@@ -44,7 +44,7 @@ func UserPost(controller controllers.Controller) gin.HandlerFunc {
 			DisplayError(ctx, err.Error())
 			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"user": user})
+		ctx.JSON(http.StatusCreated, gin.H{"user": user})
 	}
 }
 
