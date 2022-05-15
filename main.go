@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
 
 	"github.com/gin-gonic/contrib/static"
@@ -24,6 +25,9 @@ func main() {
 		// environment variables found in ".env" file
 		// sample ".env" file found in ".env.example"
 		URL = os.Getenv("URL")
+
+		dbUsername = os.Getenv("db_username")
+		dbPassword = os.Getenv("db_password")
 	)
 
 	// essentially same as gin.Default() for now
@@ -39,6 +43,8 @@ func main() {
 	// run `make bc`
 	router.Use(static.Serve("/", static.LocalFile("./client/build", true)))
 
+	client, cancel := db.Connect(dbUsername, dbPassword)
+	defer cancel()
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")

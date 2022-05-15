@@ -1,26 +1,33 @@
-// package to interact with MongoDB database
-
+// Sets up a connection with MongoDB database.
 package db
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	// TODO: haven't actually ran and tested this package!
-	URI = "mongodb://foo:bar@localhost:27017"
-)
-
-func Connect() (*mongo.Client, error) {
+func Connect(dbUsername, dbPassword string) (*mongo.Client, context.CancelFunc) {
+	serverAPIOptions := options.ServerAPI(options.ServerAPIVersion1)
+	URI := fmt.Sprintf("mongodb+srv://%s:%s@organius.zwjpt.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", dbUsername, dbPassword)
+	clientOptions := options.Client().
+		ApplyURI(URI).
+		SetServerAPIOptions(serverAPIOptions)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(URI))
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-	return client, nil
+
+	databases, err := client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(databases)
+	return client, cancel
 }
