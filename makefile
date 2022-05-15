@@ -6,13 +6,13 @@ go:
 .PHONY: r react
 r: react
 react:
-	cd client && npm start && cd
+	npm start --prefix "client"
 
 .PHONY: init-client
 init-client:
-	cd client && npm install && cd
+	npm install --prefix "client"
 
 .PHONY: bc build-client
 bc: build-client
 build-client:
-	cd client && npm run build && cd
+	npm run build --prefix "client"
