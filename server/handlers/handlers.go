@@ -1,5 +1,4 @@
-// handlers for the REST API
-
+// Handlers for interfacing with frontend client.
 package handlers
 
 import (
@@ -40,9 +39,8 @@ func LoginPost() gin.HandlerFunc {
 	}
 }
 
-// currently unused function
-func DisplayError(ctx *gin.Context, err error) {
-	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func DisplayError(ctx *gin.Context, message string) {
+	ctx.JSON(http.StatusBadRequest, gin.H{"Error": message})
 }
 
 // TODO: Test function pls remove
