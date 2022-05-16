@@ -16,6 +16,33 @@ import (
 	"github.com/joho/godotenv"
 )
 
+func handleRoutes(router *gin.Engine, controller controllers.Controller) {
+	// serve React build at root
+	// make sure to re-build the React client after every change
+	// run `make bc`
+	router.Use(static.Serve("/", static.LocalFile("./client/build", true)))
+
+	// always serve React build if path is not valid (for Gin Router)
+	// React will handle actual invalid paths
+	// which is any path not defined in Gin Router AND React Router
+	router.NoRoute(func(ctx *gin.Context) {
+		ctx.File("./client/build")
+	})
+
+	// API Routes Group
+	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
+	v1 := router.Group("/api/v1")
+	v1.GET("/ping", handlers.PingGet())
+	v1.POST("/login", handlers.LoginPost())
+	v1.GET("/params/:param", handlers.TestParamsGet())
+
+	v1.GET("/user_exists/:name", handlers.UserExistsGet(controller))
+	v1.GET("/user/:id", handlers.UserGet(controller))
+	v1.POST("/signup", handlers.UserPost(controller))
+	v1.PATCH("/user/:id", handlers.UserPatch(controller))
+	v1.DELETE("/user/:id", handlers.UserDelete(controller))
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println("Error while loading environment variables.")
@@ -42,18 +69,6 @@ func main() {
 	// kept here for reference, in case we need to load templates in the future
 	// router.LoadHTMLGlob("./server/templates/*.html")
 
-	// serve React build at root
-	// make sure to re-build the React client after every change
-	// run `make bc`
-	router.Use(static.Serve("/", static.LocalFile("./client/build", true)))
-
-	// always serve React build if path is not valid (for Gin Router)
-	// React will handle actual invalid paths
-	// which is any path not defined in Gin Router AND React Router
-	router.NoRoute(func(ctx *gin.Context) {
-		ctx.File("./client/build")
-	})
-
 	client, cancel := db.Connect(dbUsername, dbPassword)
 	defer cancel()
 
@@ -65,18 +80,7 @@ func main() {
 
 	controller := controllers.New(client)
 
-	// API Routes Group
-	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
-	v1 := router.Group("/api/v1")
-	v1.GET("/ping", handlers.PingGet())
-	v1.POST("/login", handlers.LoginPost())
-	v1.GET("/params/:param", handlers.TestParamsGet())
-
-	v1.GET("/user_exists/:name", handlers.UserExistsGet(*controller))
-	v1.GET("/user/:id", handlers.UserGet(*controller))
-	v1.POST("/signup", handlers.UserPost(*controller))
-	v1.PATCH("/user/:id", handlers.UserPatch(*controller))
-	v1.DELETE("/user/:id", handlers.UserDelete(*controller))
+	handleRoutes(router, *controller)
 
 	fmt.Println("Server booted up!")
 
