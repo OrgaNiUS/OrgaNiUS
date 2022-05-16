@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"net/mail"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
@@ -30,6 +31,12 @@ func UserGet(controller controllers.Controller) gin.HandlerFunc {
 		}
 		ctx.JSON(http.StatusOK, user)
 	}
+	}
+}
+
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }
 
 func UserPost(controller controllers.Controller) gin.HandlerFunc {
