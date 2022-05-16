@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
@@ -29,6 +30,8 @@ func main() {
 
 		dbUsername = os.Getenv("db_username")
 		dbPassword = os.Getenv("db_password")
+
+		jwtSecret = os.Getenv("jwt_secret")
 	)
 
 	// essentially same as gin.Default() for now
@@ -53,6 +56,12 @@ func main() {
 
 	client, cancel := db.Connect(dbUsername, dbPassword)
 	defer cancel()
+
+	jwtParser := auth.New(jwtSecret)
+
+	// TODO: Remove this temporary test usage
+	tokenString, _ := jwtParser.GenerateJWT("abcdefg")
+	jwtParser.ParseJWT(tokenString)
 
 	controller := controllers.New(client)
 
