@@ -32,10 +32,6 @@ func handleRoutes(router *gin.Engine, controller controllers.Controller) {
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
-	v1.GET("/ping", handlers.PingGet())
-	v1.POST("/login", handlers.LoginPost())
-	v1.GET("/params/:param", handlers.TestParamsGet())
-
 	v1.GET("/user_exists/:name", handlers.UserExistsGet(controller))
 	v1.GET("/user/:id", handlers.UserGet(controller))
 	v1.POST("/signup", handlers.UserPost(controller))
