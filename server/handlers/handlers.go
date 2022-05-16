@@ -40,7 +40,7 @@ func LoginPost() gin.HandlerFunc {
 }
 
 func DisplayError(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusBadRequest, gin.H{"Error": message})
+	ctx.JSON(http.StatusBadRequest, gin.H{"error": message})
 }
 
 // TODO: Test function pls remove
