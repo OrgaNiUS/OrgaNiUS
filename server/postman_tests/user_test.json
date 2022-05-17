@@ -1,12 +1,12 @@
 {
   "info": {
-    "_postman_id": "f15cb0e1-b331-4d17-9f89-3b04add49495",
+    "_postman_id": "b3fbffaf-de1e-4388-b854-913cabec2f73",
     "name": "User Tests",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Create New User",
+      "name": "Sign Up Random User",
       "event": [
         {
           "listen": "test",
@@ -15,12 +15,18 @@
               "pm.test(\"Status Code of 201 Created\", () => {",
               "    pm.response.to.have.status(201);",
               "});",
-              "",
-              "const response = pm.response.json();",
-              "",
-              "pm.environment.set(\"userId\", response.id);",
-              "pm.environment.set(\"name\", response.name);",
-              "pm.environment.set(\"email\", response.email);",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"name\", pm.variables.replaceIn(\"{{$randomFullName}}\"))",
+              "pm.environment.set(\"password\", pm.variables.replaceIn(\"{{$randomPassword}}\"))",
+              "pm.environment.set(\"email\", pm.variables.replaceIn(\"{{$randomEmail}}\"))",
               ""
             ],
             "type": "text/javascript"
@@ -32,7 +38,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\"\n}",
+          "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -48,7 +54,7 @@
       "response": []
     },
     {
-      "name": "Create Same User",
+      "name": "Sign Up Same User",
       "event": [
         {
           "listen": "test",
@@ -60,11 +66,18 @@
               "",
               "const response = pm.response.json();",
               "",
-              "pm.test(\"Correct error message: 'Username already exists.'.\", () => {",
-              "    pm.expect(response.error).to.eql(\"Username already exists.\");",
+              "pm.test(\"Correct error message.\", () => {",
+              "    pm.expect(response.error).to.eql(\"Username or email already exists.\");",
               "});",
               ""
             ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
             "type": "text/javascript"
           }
         }
@@ -74,7 +87,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\"\n}",
+          "raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -90,7 +103,7 @@
       "response": []
     },
     {
-      "name": "Create User with Invalid Email",
+      "name": "Sign Up Short Username",
       "event": [
         {
           "listen": "test",
@@ -102,13 +115,118 @@
               "",
               "const response = pm.response.json();",
               "",
-              "pm.test(\"Correct error message: 'Email is not a valid address.'.\", () => {",
+              "pm.test(\"Correct error message.\", () => {",
+              "    pm.expect(response.error).to.eql(\"Username too short.\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"x\",\n    \"email\": \"example@abc.com\",\n    \"password\": \"abcdefGHI5678\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["signup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign Up Short Password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code of 400 Bad Request\", () => {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "pm.test(\"Correct error message.\", () => {",
+              "    pm.expect(response.error).to.eql(\"Password too short.\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"xxxxxxxxxxxxxx\",\n    \"email\": \"example@abc.com\",\n    \"password\": \"x\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["signup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sign Up Bad Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code of 400 Bad Request\", () => {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "pm.test(\"Correct error message.\", () => {",
               "    pm.expect(response.error).to.eql(\"Email is not a valid address.\");",
               "});",
               ""
             ],
             "type": "text/javascript"
           }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript"
+          }
         }
       ],
       "request": {
@@ -116,7 +234,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"name\": \"{{$randomFileName}}\",\n    \"email\": \"45678\"\n}",
+          "raw": "{\n    \"name\": \"xxxxxxxxxxxxxx\",\n    \"email\": \"exampleabc.com\",\n    \"password\": \"xxXXXXXXXXXx21451525\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -132,7 +250,99 @@
       "response": []
     },
     {
-      "name": "Get Valid User",
+      "name": "Login Correct",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code of 201 Created\", () => {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{name}}\",\n    \"password\": \"{{password}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login Correct Invalid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code of 400 Bad Request\", () => {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "pm.test(\"Correct error message.\", () => {",
+              "    pm.expect(response.error).to.eql(\"Username and password do not match.\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [""],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{name}}\",\n    \"password\": \"xxxxxx\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Own User",
       "event": [
         {
           "listen": "test",
@@ -144,58 +354,22 @@
               "",
               "const response = pm.response.json();",
               "",
-              "pm.test(\"Correct name\", () => {",
+              "pm.test(\"Correct username.\", () => {",
               "    pm.expect(response.name).to.eql(pm.environment.get(\"name\"));",
               "});",
               "",
-              "pm.test(\"Correct email\", () => {",
+              "pm.test(\"Correct email.\", () => {",
               "    pm.expect(response.email).to.eql(pm.environment.get(\"email\"));",
               "});",
               ""
             ],
             "type": "text/javascript"
           }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/user/:id",
-          "host": ["{{baseUrl}}"],
-          "path": ["user", ":id"],
-          "variable": [
-            {
-              "key": "id",
-              "value": "{{userId}}"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Invalid User",
-      "event": [
+        },
         {
-          "listen": "test",
+          "listen": "prerequest",
           "script": {
-            "exec": [
-              "pm.test(\"Status Code of 400 Bad Request\", () => {",
-              "    pm.response.to.have.status(400);",
-              "});",
-              "",
-              "const response = pm.response.json();",
-              "",
-              "// I can't find a way to guarantee a valid ObjectID that is definitely not in use.",
-              "// Thus, if the test below fails, generate one manually from the link below and try again!",
-              "// https://observablehq.com/@hugodf/mongodb-objectid-generator",
-              "",
-              "pm.test(\"Correct error message: 'User does not exist.'.\", () => {",
-              "    pm.expect(response.error).to.eql(\"User does not exist.\");",
-              "});",
-              ""
-            ],
+            "exec": [""],
             "type": "text/javascript"
           }
         }
@@ -203,22 +377,25 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/user/:id",
-          "host": ["{{baseUrl}}"],
-          "path": ["user", ":id"],
-          "variable": [
-            {
-              "key": "id",
-              "value": "6281024984e755c4cefbc251"
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
             }
-          ]
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/own_user",
+          "host": ["{{baseUrl}}"],
+          "path": ["own_user"]
         }
       },
       "response": []
     },
     {
-      "name": "Valid User Exists",
+      "name": "Valid User Exists by Name",
       "event": [
         {
           "listen": "test",
@@ -243,13 +420,60 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/user_exists/:name",
+          "raw": "{{baseUrl}}/user_exists/:name/:email",
           "host": ["{{baseUrl}}"],
-          "path": ["user_exists", ":name"],
+          "path": ["user_exists", ":name", ":email"],
           "variable": [
             {
               "key": "name",
               "value": "{{name}}"
+            },
+            {
+              "key": "email",
+              "value": null
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Valid User Exists by Email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status Code of 200 OK\", () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "",
+              "pm.test(\"Correct return value: 'true'.\", () => {",
+              "    pm.expect(response.exists).to.eql(true);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/user_exists/:name/:email",
+          "host": ["{{baseUrl}}"],
+          "path": ["user_exists", ":name", ":email"],
+          "variable": [
+            {
+              "key": "name",
+              "value": null
+            },
+            {
+              "key": "email",
+              "value": "{{email}}"
             }
           ]
         }
@@ -282,46 +506,38 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/user_exists/:name",
+          "raw": "{{baseUrl}}/user_exists/:name/:email",
           "host": ["{{baseUrl}}"],
-          "path": ["user_exists", ":name"],
+          "path": ["user_exists", ":name", ":email"],
           "variable": [
             {
               "key": "name",
-              "value": "{{$randomFullName}}"
+              "value": null
+            },
+            {
+              "key": "email",
+              "value": null
             }
           ]
         }
       },
       "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
     },
     {
-      "name": "Delete User",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": ["pm.test(\"Status Code of 200 OK\", () => {", "    pm.response.to.have.status(200);", "});", ""],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/user/:id",
-          "host": ["{{baseUrl}}"],
-          "path": ["user", ":id"],
-          "variable": [
-            {
-              "key": "id",
-              "value": "{{userId}}"
-            }
-          ]
-        }
-      },
-      "response": []
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
     }
   ],
   "variable": [
