@@ -25,7 +25,7 @@ func New(jwtSecret string) *JWTParser {
 	}
 }
 
-func (p *JWTParser) GenerateJWT(id string) (string, error) {
+func (p *JWTParser) Generate(id string) (string, error) {
 	claims := p.token.Claims.(jwt.MapClaims)
 
 	/*
@@ -50,7 +50,7 @@ func (p *JWTParser) GenerateJWT(id string) (string, error) {
 	return tokenString, nil
 }
 
-func (p *JWTParser) ParseJWT(tokenString string) (jwt.MapClaims, error) {
+func (p *JWTParser) Parse(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// HS256 is a HMAC signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -63,4 +63,12 @@ func (p *JWTParser) ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		return claims, nil
 	}
 	return nil, err
+}
+
+func (p *JWTParser) GetID(tokenString string) (string, error) {
+	claims, err := p.Parse(tokenString)
+	if err != nil {
+		return "", err
+	}
+	return claims["id"].(string), nil
 }

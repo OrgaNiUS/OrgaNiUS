@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(router *gin.Engine, controller controllers.Controller) {
+func handleRoutes(URL string, router *gin.Engine, controller controllers.Controller, jwtParser *auth.JWTParser) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -32,9 +32,11 @@ func handleRoutes(router *gin.Engine, controller controllers.Controller) {
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
-	v1.GET("/user_exists/:name", handlers.UserExistsGet(controller))
+	v1.POST("/signup", handlers.UserSignup(URL, controller, jwtParser))
+	v1.GET("/user_exists/:name/:email", handlers.UserExistsGet(controller))
 	v1.GET("/user/:id", handlers.UserGet(controller))
-	v1.POST("/signup", handlers.UserPost(controller))
+	v1.GET("/user", handlers.UserGetSelf(controller, jwtParser))
+	// v1.POST("/signup", handlers.UserPost(controller))
 	v1.PATCH("/user/:id", handlers.UserPatch(controller))
 	v1.DELETE("/user/:id", handlers.UserDelete(controller))
 }
@@ -68,15 +70,9 @@ func main() {
 	client, cancel := db.Connect(dbUsername, dbPassword)
 	defer cancel()
 
-	jwtParser := auth.New(jwtSecret)
-
-	// TODO: Remove this temporary test usage
-	tokenString, _ := jwtParser.GenerateJWT("abcdefg")
-	jwtParser.ParseJWT(tokenString)
-
 	controller := controllers.New(client)
-
-	handleRoutes(router, *controller)
+	jwtParser := auth.New(jwtSecret)
+	handleRoutes(URL, router, *controller, jwtParser)
 
 	fmt.Println("Server booted up!")
 

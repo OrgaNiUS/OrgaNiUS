@@ -39,10 +39,15 @@ func (c *Controller) UserRetrieve(ctx context.Context, id string) (models.User, 
 	return user, err
 }
 
-// Checks if a user with a particular name exists
-func (c *Controller) UserExists(ctx context.Context, name string) (bool, error) {
+// Checks if a user with a particular name OR email exists
+func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, error) {
 	var user models.User
-	filter := filterBy("name", name)
+	filter := bson.D{
+		{Key: "$or", Value: []interface{}{
+			bson.D{{Key: "name", Value: name}},
+			bson.D{{Key: "email", Value: email}},
+		}},
+	}
 	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	if err == nil {
 		return true, nil
