@@ -41,14 +41,8 @@ func UserGet(controller controllers.Controller) gin.HandlerFunc {
 
 func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// abstract this out?
-		idCookie, err := ctx.Cookie("jwt")
-		if err != nil {
-			DisplayNotAuthorized(ctx, "Not logged in.")
-			return
-		}
-		id, err := jwtParser.GetID(idCookie)
-		if err != nil {
+		id, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
 			DisplayNotAuthorized(ctx, "Not logged in.")
 			return
 		}
@@ -69,6 +63,8 @@ func alreadySignedUp(controller controllers.Controller, ctx *gin.Context, name, 
 	}
 	return "", true
 }
+
+// TODO: tests for bad inputs
 
 func isValidEmail(email string) (string, bool) {
 	if email == "" {
@@ -101,7 +97,7 @@ func isValidPassword(name, password string) (string, bool) {
 	return "", true
 }
 
-func UserSignup(URL string, controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
 		ctx.BindJSON(&user)
@@ -133,9 +129,31 @@ func UserSignup(URL string, controller controllers.Controller, jwtParser *auth.J
 			DisplayError(ctx, err.Error())
 			return
 		}
-		maxAge := 10 * 60 * 60
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-		ctx.SetCookie("jwt", token, maxAge, "/", URL, false, true)
+		jwtParser.RefreshJWT(ctx, token)
+		ctx.JSON(http.StatusCreated, token)
+	}
+}
+
+func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var user models.User
+		ctx.BindJSON(&user)
+		if len(user.Name) == 0 || len(user.Password) == 0 {
+			DisplayError(ctx, "Please provide a username and password.")
+			return
+		}
+		validLogin, err := controller.UserCheckPassword(ctx, &user)
+		if !validLogin || err != nil {
+			// Intentionally not exposing any other details.
+			DisplayError(ctx, "Username and password do not match.")
+			return
+		}
+		token, err := jwtParser.Generate(user.Id.Hex())
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		jwtParser.RefreshJWT(ctx, token)
 		ctx.JSON(http.StatusCreated, token)
 	}
 }

@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -65,6 +66,17 @@ func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
 	}
 	user.Id = result.InsertedID.(primitive.ObjectID)
 	return nil
+}
+
+// Checks whether the password matches the hashed password for a particular username
+func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (bool, error) {
+	password := user.Password
+	filter := bson.D{{Key: "name", Value: user.Name}}
+	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return false, err
+	}
+	return auth.CheckPasswordHash(user.Password, password), nil
 }
 
 // Modifies the user

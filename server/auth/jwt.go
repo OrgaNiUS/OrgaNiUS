@@ -2,8 +2,10 @@ package auth
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -71,4 +73,39 @@ func (p *JWTParser) GetID(tokenString string) (string, error) {
 		return "", err
 	}
 	return claims["id"].(string), nil
+}
+
+const (
+	// 10 minutes
+	expiryTime = 10 * 60 * 60
+)
+
+// Refreshes JWT expiry time.
+func (p *JWTParser) RefreshJWT(ctx *gin.Context, jwt string) {
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "jwt",
+		Value:    jwt,
+		Path:     "/",
+		MaxAge:   expiryTime,
+		Secure:   false,
+		HttpOnly: true,
+	})
+}
+
+// Gets ID from JWT from Cookie.
+// Returns false if the JWT is not valid.
+// Refreshes JWT as well.
+func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, bool) {
+	jwt, err := ctx.Cookie("jwt")
+	if err != nil {
+		return "", false
+	}
+	id, err := p.GetID(jwt)
+	if err != nil {
+		return "", false
+	}
+	// refresh JWT on any request
+	p.RefreshJWT(ctx, jwt)
+	return id, true
 }

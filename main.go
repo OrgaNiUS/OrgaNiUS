@@ -32,11 +32,13 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
-	v1.POST("/signup", handlers.UserSignup(URL, controller, jwtParser))
+	v1.POST("/signup", handlers.UserSignup(controller, jwtParser))
+	v1.POST("/login", handlers.UserLogin(controller, jwtParser))
 	v1.GET("/user_exists/:name/:email", handlers.UserExistsGet(controller))
+	v1.GET("/own_user", handlers.UserGetSelf(controller, jwtParser))
+
+	// TODO: update below functions
 	v1.GET("/user/:id", handlers.UserGet(controller))
-	v1.GET("/user", handlers.UserGetSelf(controller, jwtParser))
-	// v1.POST("/signup", handlers.UserPost(controller))
 	v1.PATCH("/user/:id", handlers.UserPatch(controller))
 	v1.DELETE("/user/:id", handlers.UserDelete(controller))
 }
@@ -70,7 +72,7 @@ func main() {
 	client, cancel := db.Connect(dbUsername, dbPassword)
 	defer cancel()
 
-	controller := controllers.New(client)
+	controller := controllers.New(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	handleRoutes(URL, router, *controller, jwtParser)
 

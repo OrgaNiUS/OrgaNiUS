@@ -7,12 +7,16 @@ import (
 
 type Controller struct {
 	database *mongo.Database
+	URL      string
 }
 
 const (
 	databaseName = "OrgaNiUS"
 )
 
-func New(client *mongo.Client) *Controller {
-	return &Controller{client.Database(databaseName)}
+func New(client *mongo.Client, URL string) *Controller {
+	return &Controller{
+		client.Database(databaseName),
+		URL,
+	}
 }
