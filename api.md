@@ -4,6 +4,8 @@
 
 All routes in this section are be to accessed via "{url}/api/v1/..." unless otherwise specified.
 
+Authentication is handled via JWT. After successful signup or login, the server will send a set-cookie request to the client containing the JWT. This cookie will be httpOnly and is not to be modified by the client in any way. This token has an expiry time of 10 minutes, after which it is expired and the user is considered to be logged out. After each subsequent request to the server, this token will be refreshed for another 10 minutes. Do not share this token with anyone else.
+
 ### Signup
 
 POST "/signup/" request
@@ -20,10 +22,8 @@ Input: A JSON body with the following **required** parameters. You may include o
 
 Output:
 
-1. If successful, a JWT containing authentication credentials will be stored in the cookie "jwt". Following which, all requests to the server are expected to contain this cookie. This JWT expires in 10 minutes. Do not share this token with anyone else.
+1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
-
-There are plans to refresh this JWT.
 
 Please ensure that these requirements are met on the client side before sending the request to reduce unnecessary requests. However, it will still be verified on the server.
 
@@ -62,8 +62,42 @@ Input: A JSON body with the following **required** parameters.
 
 Output:
 
-1. If successful, a JWT containing authentication credentials will be stored in the cookie "jwt". Following which, all requests to the server are expected to contain this cookie. This JWT expires in 10 minutes. Do not share this token with anyone else.
+1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
+
+### Exists
+
+GET "/user_exists/:name/:email/" request
+
+Checks if a user exists with a particular name _or_ email. It is advisable to check for this before submitting a signup request.
+
+Input: Name and email parameters. Both are required. Use a "." to not use that parameter.
+
+Output:
+
+```json
+{
+  "exists": true | false
+}
+```
+
+Example usage:
+
+```
+GET {url}/user_exists/user1/eg@email.com/
+GET {url}/user_exists/user1/./
+GET {url}/user_exists/./eg@email.com/
+```
+
+### Get Own User
+
+GET "/own_user/" request
+
+Gets the `User` data, of currently logged in user, in format defined below.
+
+Input: None
+
+Output: `User` data as defined in [definitions](#definitions).
 
 ## Definitions
 
