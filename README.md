@@ -18,3 +18,7 @@ make g
 # this runs on default "http://localhost:3000"
 make r
 ```
+
+## API
+
+Refer to the [API Documentation](api.md) for more information on how to interact with the server.

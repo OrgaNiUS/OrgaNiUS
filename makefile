@@ -16,3 +16,13 @@ init-client:
 bc: build-client
 build-client:
 	npm run build --prefix "client"
+
+# run all tests
+.PHONY: test
+test: postman-test
+
+# run all API tests using newman/postman
+.PHONY: pm postman-test
+pm: postman-test
+postman-test:
+	newman run server/postman_tests/*.json
