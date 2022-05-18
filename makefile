@@ -19,7 +19,12 @@ build-client:
 
 # run all tests
 .PHONY: test
-test: postman-test
+test: go-test postman-test
+
+.PHONY: gt go-test
+gt: go-test
+go-test:
+	go test -v ./...
 
 # run all API tests using newman/postman
 .PHONY: pm postman-test
