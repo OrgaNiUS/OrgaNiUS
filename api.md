@@ -31,7 +31,7 @@ Username requirements
 
 1. Must be unique
 2. At least 5 characters long
-3. Only alphanumeric
+3. Only conains alphanumeric characters and ' ', '\_', '.'
 
 Password requirements:
 
