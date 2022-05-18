@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/mail"
 	"strings"
+	"unicode"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
@@ -64,8 +65,6 @@ func alreadySignedUp(controller controllers.Controller, ctx *gin.Context, name, 
 	return "", true
 }
 
-// TODO: tests for bad inputs
-
 func isValidEmail(email string) (string, bool) {
 	if email == "" {
 		return "Please provide an email.", false
@@ -83,6 +82,18 @@ func isValidName(name string) (string, bool) {
 	} else if len(name) < 5 {
 		return "Username too short.", false
 	}
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if 'a' <= c && c <= 'z' ||
+			'A' <= c && c <= 'Z' ||
+			'0' <= c && c <= '9' ||
+			c == ' ' ||
+			c == '_' ||
+			c == '.' {
+			continue
+		}
+		return "Name contains invalid character.", false
+	}
 	return "", true
 }
 
@@ -93,6 +104,30 @@ func isValidPassword(name, password string) (string, bool) {
 		return "Password too short.", false
 	} else if strings.Contains(password, name) {
 		return "Password cannot contain username.", false
+	}
+	hasLowerCase := false
+	hasUpperCase := false
+	hasDigit := false
+	for i := 0; i < len(password); i++ {
+		c := password[i]
+		// check for non-ascii character
+		// https://stackoverflow.com/a/53069799
+		if c > unicode.MaxASCII {
+			return "Password contains invalid character.", false
+		} else if 'a' <= c && c <= 'z' {
+			hasLowerCase = true
+		} else if 'A' <= c && c <= 'Z' {
+			hasUpperCase = true
+		} else if '0' <= c && c <= '9' {
+			hasDigit = true
+		}
+	}
+	if !hasLowerCase {
+		return "Password missing required lowercase letter.", false
+	} else if !hasUpperCase {
+		return "Password missing required uppercase letter.", false
+	} else if !hasDigit {
+		return "Password missing required digit.", false
 	}
 	return "", true
 }
