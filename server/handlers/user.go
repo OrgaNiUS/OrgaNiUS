@@ -44,12 +44,12 @@ func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) g
 	return func(ctx *gin.Context) {
 		id, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
-			DisplayNotAuthorized(ctx, "Not logged in.")
+			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
 		user, err := controller.UserRetrieve(ctx, id)
 		if err == mongo.ErrNoDocuments {
-			DisplayError(ctx, "User does not exist.")
+			DisplayError(ctx, "user does not exist")
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
@@ -60,27 +60,27 @@ func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) g
 
 func alreadySignedUp(controller controllers.Controller, ctx *gin.Context, name, email string) (string, bool) {
 	if exists, _ := controller.UserExists(ctx, name, email); exists {
-		return "Username or email already exists.", false
+		return "username or email already exists", false
 	}
 	return "", true
 }
 
 func isValidEmail(email string) (string, bool) {
 	if email == "" {
-		return "Please provide an email.", false
+		return "please provide an email", false
 	}
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return "Email is not a valid address.", false
+		return "email is not a valid address", false
 	}
 	return "", true
 }
 
 func isValidName(name string) (string, bool) {
 	if name == "" {
-		return "Please provide a username.", false
+		return "please provide a username", false
 	} else if len(name) < 5 {
-		return "Username too short.", false
+		return "username too short", false
 	}
 	for i := 0; i < len(name); i++ {
 		c := name[i]
@@ -92,18 +92,18 @@ func isValidName(name string) (string, bool) {
 			c == '.' {
 			continue
 		}
-		return "Name contains invalid character.", false
+		return "name contains invalid character", false
 	}
 	return "", true
 }
 
 func isValidPassword(name, password string) (string, bool) {
 	if password == "" {
-		return "Please provide a password.", false
+		return "please provide a password", false
 	} else if len(password) < 8 {
-		return "Password too short.", false
+		return "password too short", false
 	} else if strings.Contains(password, name) {
-		return "Password cannot contain username.", false
+		return "password cannot contain username", false
 	}
 	hasLowerCase := false
 	hasUpperCase := false
@@ -113,7 +113,7 @@ func isValidPassword(name, password string) (string, bool) {
 		// check for non-ascii character
 		// https://stackoverflow.com/a/53069799
 		if c > unicode.MaxASCII {
-			return "Password contains invalid character.", false
+			return "password contains invalid character", false
 		} else if 'a' <= c && c <= 'z' {
 			hasLowerCase = true
 		} else if 'A' <= c && c <= 'Z' {
@@ -123,11 +123,11 @@ func isValidPassword(name, password string) (string, bool) {
 		}
 	}
 	if !hasLowerCase {
-		return "Password missing required lowercase letter.", false
+		return "password missing required lowercase letter", false
 	} else if !hasUpperCase {
-		return "Password missing required uppercase letter.", false
+		return "password missing required uppercase letter", false
 	} else if !hasDigit {
-		return "Password missing required digit.", false
+		return "password missing required digit", false
 	}
 	return "", true
 }
@@ -135,8 +135,7 @@ func isValidPassword(name, password string) (string, bool) {
 func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
-		ctx.BindJSON(&user)
-		if msg, ok := isValidName(user.Name); !ok {
+		if err := ctx.BindJSON(&user); err != nil {
 			DisplayError(ctx, msg)
 			return
 		} else if msg, ok := isValidPassword(user.Name, user.Password); !ok {
@@ -174,13 +173,13 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 		var user models.User
 		ctx.BindJSON(&user)
 		if len(user.Name) == 0 || len(user.Password) == 0 {
-			DisplayError(ctx, "Please provide a username and password.")
+			DisplayError(ctx, "please provide a username and password")
 			return
 		}
 		validLogin, err := controller.UserCheckPassword(ctx, &user)
 		if !validLogin || err != nil {
 			// Intentionally not exposing any other details.
-			DisplayError(ctx, "Username and password do not match.")
+			DisplayError(ctx, "username and password do not match")
 			return
 		}
 		token, err := jwtParser.Generate(user.Id.Hex())
