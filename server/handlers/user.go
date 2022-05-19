@@ -26,16 +26,25 @@ func UserExistsGet(controller controllers.Controller) gin.HandlerFunc {
 	}
 }
 
+// This handler is meant to be accessed without an account.
+// Thus, no sensitive information should be leaked from this!
 func UserGet(controller controllers.Controller) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
-		user, err := controller.UserRetrieve(ctx, id)
+		id := ctx.DefaultQuery("id", "")
+		name := ctx.DefaultQuery("name", "")
+		user, err := controller.UserRetrieve(ctx, id, name)
 		if err == mongo.ErrNoDocuments {
-			DisplayError(ctx, "User does not exist.")
+			DisplayError(ctx, "user does not exist")
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
-			ctx.JSON(http.StatusOK, user)
+			// only return a non-sensitive subset of the information
+			returnedUser := gin.H{
+				"name":     user.Name,
+				"email":    user.Email,
+				"projects": user.Projects,
+			}
+			ctx.JSON(http.StatusOK, returnedUser)
 		}
 	}
 }
@@ -47,7 +56,7 @@ func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) g
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		user, err := controller.UserRetrieve(ctx, id)
+		user, err := controller.UserRetrieve(ctx, id, "")
 		if err == mongo.ErrNoDocuments {
 			DisplayError(ctx, "user does not exist")
 		} else if err != nil {
@@ -136,6 +145,9 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 	return func(ctx *gin.Context) {
 		var user models.User
 		if err := ctx.BindJSON(&user); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		} else if msg, ok := isValidName(user.Name); !ok {
 			DisplayError(ctx, msg)
 			return
 		} else if msg, ok := isValidPassword(user.Name, user.Password); !ok {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
@@ -29,12 +30,30 @@ func filterByID(id string) (bson.D, error) {
 	return filterBy("_id", objectID), nil
 }
 
-// Retrives a user by id
-func (c *Controller) UserRetrieve(ctx context.Context, id string) (models.User, error) {
+// Retrives a user by id or name
+// empty input will be ignored
+func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.User, error) {
 	var user models.User
-	filter, err := filterByID(id)
+	var filter primitive.D
+	if id == "" && name == "" {
+		return user, errors.New("cannot leave both id and name empty")
+	}
+	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return user, err
+	}
+	if id != "" {
+		filter = bson.D{{Key: "_id", Value: objectId}}
+	} else if name != "" {
+		filter = bson.D{{Key: "name", Value: name}}
+	} else {
+		// if both not empty, filter by both
+		filter = bson.D{
+			{Key: "$or", Value: []interface{}{
+				bson.D{{Key: "_id", Value: objectId}},
+				bson.D{{Key: "name", Value: name}},
+			}},
+		}
 	}
 	err = c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	return user, err
