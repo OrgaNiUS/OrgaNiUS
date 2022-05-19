@@ -13,10 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// This handler is meant to be accessed without an account.
 func UserExistsGet(controller controllers.Controller) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		name := ctx.Param("name")
-		email := ctx.Param("email")
+		name := ctx.DefaultQuery("name", "")
+		email := ctx.DefaultQuery("email", "")
 		exists, err := controller.UserExists(ctx, name, email)
 		if err != nil {
 			DisplayError(ctx, err.Error())

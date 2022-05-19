@@ -62,11 +62,22 @@ func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.
 // Checks if a user with a particular name OR email exists
 func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, error) {
 	var user models.User
-	filter := bson.D{
-		{Key: "$or", Value: []interface{}{
-			bson.D{{Key: "name", Value: name}},
-			bson.D{{Key: "email", Value: email}},
-		}},
+	var filter bson.D
+	if name == "" && email == "" {
+		return false, errors.New("cannot leave both name and email empty")
+	}
+	if name != "" && email != "" {
+		// if both not empty, filter by both
+		filter = bson.D{
+			{Key: "$or", Value: []interface{}{
+				bson.D{{Key: "name", Value: name}},
+				bson.D{{Key: "email", Value: email}},
+			}},
+		}
+	} else if name != "" {
+		filter = bson.D{{Key: "name", Value: name}}
+	} else if email != "" {
+		filter = bson.D{{Key: "email", Value: email}}
 	}
 	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	if err == nil {

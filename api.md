@@ -67,11 +67,11 @@ Output:
 
 ### Exists
 
-GET "/user_exists/:name/:email/" request
+GET "/user_exists/" request
 
-Checks if a user exists with a particular name _or_ email. It is advisable to check for this before submitting a signup request.
+Checks if a user exists with a particular name _or_ email. It is advisable to check if the username and email is already in use before submitting a signup request for a smoother signup process.
 
-Input: Name and email parameters. Both are required. Use a "." to not use that parameter.
+Input: Query parameters of "name" and "email".
 
 Output:
 
@@ -84,9 +84,9 @@ Output:
 Example usage:
 
 ```
-GET {url}/user_exists/user1/eg@email.com/
-GET {url}/user_exists/user1/./
-GET {url}/user_exists/./eg@email.com/
+GET {url}/user_exists/?name=user1&email=eg@email.com/
+GET {url}/user_exists/?name=user1/
+GET {url}/user_exists/?email=eg@email.com/
 ```
 
 ### Get Own User
