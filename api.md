@@ -77,7 +77,7 @@ Output:
 
 ```json
 {
-  "exists": true | false
+  "exists": true
 }
 ```
 
@@ -98,6 +98,26 @@ Gets the `User` data, of currently logged in user, in format defined below.
 Input: None
 
 Output: `User` data as defined in [definitions](#definitions).
+
+### Get Other User Data
+
+GET "/user/" request
+
+This request does not require the user to be logged in and is meant for querying users other than oneself, for a public profile of sorts.
+
+Gets some non-sensitive data of a User by the User ID or username. Unused parameter will be ignored.
+
+Input: Query parameters of "id" and "name". (Example: "GET {url}/?name=user100")
+
+Output:
+
+```json
+{
+  "name": string,
+  "email": string,
+  "projects": Project[]
+}
+```
 
 ## Definitions
 
