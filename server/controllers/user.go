@@ -38,9 +38,13 @@ func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.
 	if id == "" && name == "" {
 		return user, errors.New("cannot leave both id and name empty")
 	}
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return user, err
+	var objectId primitive.ObjectID
+	var err error
+	if id != "" {
+		objectId, err = primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return user, err
+		}
 	}
 	if id != "" && name != "" {
 		// if both not empty, filter by both
