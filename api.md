@@ -99,6 +99,14 @@ Input: None
 
 Output: `User` data as defined in [definitions](#definitions).
 
+### Modification of User Data
+
+PATCH "/user/" request
+
+Input: Username, Password, Email as strings. Leave the fields blank if unchanged, except when changing Password, Username is required to be sent as well even if it is the same.
+
+Output: Updated `User` data if successful, else, error message.
+
 ### Get Other User Data
 
 GET "/user/" request

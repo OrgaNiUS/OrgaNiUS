@@ -10,6 +10,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -182,7 +183,10 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
-		ctx.BindJSON(&user)
+		if err := ctx.BindJSON(&user); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
 		if len(user.Name) == 0 || len(user.Password) == 0 {
 			DisplayError(ctx, "please provide a username and password")
 			return
@@ -201,9 +205,78 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 	}
 }
 
-func UserPatch(controller controllers.Controller) gin.HandlerFunc {
+// Only used for modifying username, password and email.
+func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "not yet implemented"})
+		id, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type query struct {
+			Name     string `bson:"name" json:"name"`
+			Password string `bson:"password" json:"password"`
+			Email    string `bson:"email" json:"email"`
+		}
+		var q query
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		tests := []func() (string, bool){
+			func() (string, bool) {
+				if q.Name == "" {
+					return "", true
+				}
+				return isValidName(q.Name)
+			},
+			func() (string, bool) {
+				if q.Password == "" {
+					return "", true
+				} else if q.Name == "" {
+					return "for modifying password, send username as well (even if its the same)", false
+				}
+				return isValidPassword(q.Name, q.Password)
+			},
+			func() (string, bool) {
+				if q.Email == "" {
+					return "", true
+				}
+				return isValidEmail(q.Email)
+			},
+		}
+		for _, t := range tests {
+			if msg, ok := t(); !ok {
+				DisplayError(ctx, msg)
+				return
+			}
+		}
+		objectId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		user := models.User{
+			Id: objectId,
+		}
+		if q.Name != "" {
+			user.Name = q.Name
+		}
+		if q.Password != "" {
+			hashedPassword, err := auth.HashPassword(q.Password)
+			if err != nil {
+				DisplayError(ctx, err.Error())
+				return
+			}
+			user.Password = hashedPassword
+		}
+		if q.Email != "" {
+			user.Email = q.Email
+		}
+		controller.UserModify(ctx, &user)
+		// hide password from output
+		user.Password = ""
+		ctx.JSON(http.StatusOK, user)
 	}
 }
 

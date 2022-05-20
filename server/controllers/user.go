@@ -115,7 +115,18 @@ func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (
 
 // Modifies the user
 func (c *Controller) UserModify(ctx context.Context, user *models.User) {
-	panic("Not yet implemented!")
+	params := bson.D{}
+	if user.Name != "" {
+		params = append(params, bson.E{Key: "name", Value: user.Name})
+	}
+	if user.Password != "" {
+		params = append(params, bson.E{Key: "password", Value: user.Password})
+	}
+	if user.Email != "" {
+		params = append(params, bson.E{Key: "email", Value: user.Email})
+	}
+	update := bson.D{{Key: "$set", Value: params}}
+	c.database.Collection(collection).UpdateByID(ctx, user.Id, update)
 }
 
 // Deletes the user
