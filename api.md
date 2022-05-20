@@ -8,7 +8,7 @@ Authentication is handled via JWT. After successful signup or login, the server 
 
 ### Signup
 
-POST "/signup/" request
+POST "/signup" request
 
 Input: A JSON body with the following **required** parameters. You may include other parameters specified in the `User` [definitions](#definitions) below, but they are not guaranteed to be kept.
 
@@ -49,7 +49,7 @@ This [link](https://emailregex.com/) contains regex queries that should work for
 
 ### Login
 
-POST "/login/" request
+POST "/login" request
 
 Input: A JSON body with the following **required** parameters.
 
@@ -65,9 +65,35 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
+### Get Own User
+
+GET "/own_user" request
+
+Gets the `User` data, of currently logged in user, in format defined below.
+
+Input: None
+
+Output: `User` data as defined in [definitions](#definitions).
+
+### Modification of User Data
+
+PATCH "/user" request
+
+Input: Username, Password, Email as strings. Leave the fields blank if unchanged, except when changing Password, Username is required to be sent as well even if it is the same.
+
+Output: Updated `User` data if successful, else, error message in "error" field.
+
+### Deleting User
+
+DELETE "/user" request
+
+Input: Nothing
+
+Output: No output if successful (except status code of 200), else, error message in "error" field.
+
 ### Exists
 
-GET "/user_exists/" request
+GET "/user_exists" request
 
 Checks if a user exists with a particular name _or_ email. It is advisable to check if the username and email is already in use before submitting a signup request for a smoother signup process.
 
@@ -89,27 +115,9 @@ GET {url}/user_exists/?name=user1/
 GET {url}/user_exists/?email=eg@email.com/
 ```
 
-### Get Own User
-
-GET "/own_user/" request
-
-Gets the `User` data, of currently logged in user, in format defined below.
-
-Input: None
-
-Output: `User` data as defined in [definitions](#definitions).
-
-### Modification of User Data
-
-PATCH "/user/" request
-
-Input: Username, Password, Email as strings. Leave the fields blank if unchanged, except when changing Password, Username is required to be sent as well even if it is the same.
-
-Output: Updated `User` data if successful, else, error message.
-
 ### Get Other User Data
 
-GET "/user/" request
+GET "/user" request
 
 This request does not require the user to be logged in and is meant for querying users other than oneself, for a public profile of sorts.
 

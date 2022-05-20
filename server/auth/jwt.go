@@ -115,3 +115,15 @@ func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, bool) {
 	p.RefreshJWT(ctx, id)
 	return id, true
 }
+
+func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
+	// MaxAge < 0 deletes the cookie
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   false,
+		HttpOnly: true,
+	})
+}

@@ -288,12 +288,17 @@ func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 	}
 }
 
-func UserDelete(controller controllers.Controller) gin.HandlerFunc {
+func UserDelete(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id := ctx.Param("id")
+		id, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
 		if err := controller.UserDelete(ctx, id); err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
+			jwtParser.DeleteJWT(ctx)
 			ctx.JSON(http.StatusOK, gin.H{})
 		}
 	}
