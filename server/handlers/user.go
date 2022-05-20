@@ -146,6 +146,10 @@ func isValidPassword(name, password string) (string, bool) {
 func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
+		if err := ctx.BindJSON(&user); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
 		tests := []func() (string, bool){
 			func() (string, bool) {
 				return isValidName(user.Name)
@@ -165,10 +169,6 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 				DisplayError(ctx, msg)
 				return
 			}
-		}
-		if err := ctx.BindJSON(&user); err != nil {
-			DisplayError(ctx, err.Error())
-			return
 		}
 		hashedPassword, err := auth.HashPassword(user.Password)
 		if err != nil {
