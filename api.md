@@ -65,6 +65,16 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
+### Refresh JWT
+
+GET "/refresh-jwt" request
+
+Refreshes the JWT such that the token expires 10 minutes from the time this request is made. This is useful to prevent the user from being logged out due to inactivity.
+
+Input: Nothing
+
+Output: No output if successful (except status code of 200), else, error message in "error" field.
+
 ### Logout
 
 DELETE "/logout" request

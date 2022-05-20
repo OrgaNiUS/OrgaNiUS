@@ -213,6 +213,24 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 	}
 }
 
+// Refresh JWT manually. Useful to prevent being logged out from inactivity.
+// Note that JWT is already refreshed on any request (that requires the user to be logged in).
+func UserRefreshJWT(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		if err := jwtParser.RefreshJWT(ctx, id); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// Logout user.
 func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		_, ok := jwtParser.GetFromJWT(ctx)
@@ -221,6 +239,7 @@ func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 			return
 		}
 		jwtParser.DeleteJWT(ctx)
+		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
 
