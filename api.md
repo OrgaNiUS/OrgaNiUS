@@ -65,6 +65,14 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
+### Logout
+
+DELETE "/logout" request
+
+Input: Nothing
+
+Output: No output if successful (except status code of 200), else, error message in "error" field.
+
 ### Get Own User
 
 GET "/own_user" request

@@ -213,6 +213,17 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 	}
 }
 
+func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		_, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		jwtParser.DeleteJWT(ctx)
+	}
+}
+
 // Only used for modifying username, password and email.
 func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {

@@ -34,6 +34,7 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 	v1 := router.Group("/api/v1")
 	v1.POST("/signup", handlers.UserSignup(controller, jwtParser))
 	v1.POST("/login", handlers.UserLogin(controller, jwtParser))
+	v1.DELETE("/logout", handlers.UserLogout(controller, jwtParser))
 	v1.GET("/own_user", handlers.UserGetSelf(controller, jwtParser))
 	v1.PATCH("/user", handlers.UserPatch(controller, jwtParser))
 	v1.DELETE("/user", handlers.UserDelete(controller, jwtParser))
