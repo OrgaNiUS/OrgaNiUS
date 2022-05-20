@@ -171,13 +171,11 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 			DisplayError(ctx, err.Error())
 			return
 		}
-		token, err := jwtParser.Generate(user.Id.Hex())
-		if err != nil {
+		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
-		jwtParser.RefreshJWT(ctx, token)
-		ctx.JSON(http.StatusCreated, token)
+		ctx.JSON(http.StatusCreated, gin.H{})
 	}
 }
 
@@ -195,13 +193,11 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 			DisplayError(ctx, "username and password do not match")
 			return
 		}
-		token, err := jwtParser.Generate(user.Id.Hex())
-		if err != nil {
+		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
-		jwtParser.RefreshJWT(ctx, token)
-		ctx.JSON(http.StatusCreated, token)
+		ctx.JSON(http.StatusCreated, gin.H{})
 	}
 }
 
