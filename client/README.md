@@ -1,3 +1,3 @@
 # React Client for OrgaNiUS
 
-This is the respository for our React Client!
+This is the repository for our React Client!
