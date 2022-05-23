@@ -10,14 +10,14 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
-	"github.com/OrgaNiUS/OrgaNiUS/server/mail"
+	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, controller controllers.Controller, jwtParser *auth.JWTParser) {
+func handleRoutes(URL string, router *gin.Engine, controller controllers.Controller, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -33,7 +33,7 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
-	v1.POST("/signup", handlers.UserSignup(controller, jwtParser))
+	v1.POST("/signup", handlers.UserSignup(controller, jwtParser, mailer))
 	v1.POST("/login", handlers.UserLogin(controller, jwtParser))
 	v1.GET("/refresh-jwt", handlers.UserRefreshJWT(controller, jwtParser))
 	v1.DELETE("/logout", handlers.UserLogout(controller, jwtParser))
@@ -79,10 +79,8 @@ func main() {
 
 	controller := controllers.New(client, URL)
 	jwtParser := auth.New(jwtSecret)
-	mailer := mail.New("OrgaNiUS", emailSender, sendGridKey)
-	fmt.Println(mailer)
-	mailer.Send("Test", "seetohjinwei@gmail.com", "hi this is subject", "Hey test")
-	handleRoutes(URL, router, *controller, jwtParser)
+	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
+	handleRoutes(URL, router, *controller, jwtParser, mailer)
 
 	fmt.Println("Server booted up!")
 

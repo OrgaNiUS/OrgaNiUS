@@ -8,6 +8,7 @@ import (
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -143,7 +144,7 @@ func isValidPassword(name, password string) (string, bool) {
 	return "", true
 }
 
-func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, mailer *mailer.Mailer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
 		if err := ctx.BindJSON(&user); err != nil {
@@ -176,7 +177,15 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 			return
 		}
 		user.Password = hashedPassword
+		// ensure its Verified is false
+		user.Verified = false
+		hash, pin := auth.GeneratePin()
+		user.VerificationPin = hash
 		if err := controller.UserCreate(ctx, &user); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if err := mailer.SendVerification(user.Name, user.Email, pin); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
