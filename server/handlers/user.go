@@ -189,10 +189,6 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, ma
 			DisplayError(ctx, err.Error())
 			return
 		}
-		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {
-			DisplayError(ctx, err.Error())
-			return
-		}
 		ctx.JSON(http.StatusCreated, gin.H{})
 	}
 }
@@ -212,7 +208,12 @@ func UserVerify(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 			DisplayError(ctx, "please provide name and pin")
 			return
 		}
-		if ok, err := controller.UserVerifyPin(ctx, q.Name, q.Pin); !ok {
+		id, err := controller.UserVerifyPin(ctx, q.Name, q.Pin)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if err := jwtParser.RefreshJWT(ctx, id.Hex()); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
