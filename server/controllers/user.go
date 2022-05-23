@@ -34,31 +34,23 @@ func filterByID(id string) (bson.D, error) {
 // empty input will be ignored
 func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.User, error) {
 	var user models.User
-	var filter primitive.D
 	if id == "" && name == "" {
 		return user, errors.New("cannot leave both id and name empty")
 	}
 	var objectId primitive.ObjectID
 	var err error
+	params := []interface{}{}
 	if id != "" {
 		objectId, err = primitive.ObjectIDFromHex(id)
 		if err != nil {
 			return user, err
 		}
+		params = append(params, bson.D{{Key: "_id", Value: objectId}})
 	}
-	if id != "" && name != "" {
-		// if both not empty, filter by both
-		filter = bson.D{
-			{Key: "$or", Value: []interface{}{
-				bson.D{{Key: "_id", Value: objectId}},
-				bson.D{{Key: "name", Value: name}},
-			}},
-		}
-	} else if id != "" {
-		filter = bson.D{{Key: "_id", Value: objectId}}
-	} else if name != "" {
-		filter = bson.D{{Key: "name", Value: name}}
+	if name != "" {
+		params = append(params, bson.D{{Key: "name", Value: name}})
 	}
+	filter := bson.D{{Key: "$or", Value: params}}
 	err = c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	return user, err
 }
@@ -66,23 +58,17 @@ func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.
 // Checks if a user with a particular name OR email exists
 func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, error) {
 	var user models.User
-	var filter bson.D
 	if name == "" && email == "" {
 		return false, errors.New("cannot leave both name and email empty")
 	}
-	if name != "" && email != "" {
-		// if both not empty, filter by both
-		filter = bson.D{
-			{Key: "$or", Value: []interface{}{
-				bson.D{{Key: "name", Value: name}},
-				bson.D{{Key: "email", Value: email}},
-			}},
-		}
-	} else if name != "" {
-		filter = bson.D{{Key: "name", Value: name}}
-	} else if email != "" {
-		filter = bson.D{{Key: "email", Value: email}}
+	params := []interface{}{}
+	if name != "" {
+		params = append(params, bson.D{{Key: "name", Value: name}})
 	}
+	if email != "" {
+		params = append(params, bson.D{{Key: "email", Value: email}})
+	}
+	filter := bson.D{{Key: "$or", Value: params}}
 	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	if err == nil {
 		return true, nil
