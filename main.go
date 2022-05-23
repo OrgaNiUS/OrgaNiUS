@@ -10,6 +10,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/mail"
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,9 @@ func main() {
 		dbPassword = os.Getenv("db_password")
 
 		jwtSecret = os.Getenv("jwt_secret")
+
+		emailSender = os.Getenv("email")
+		sendGridKey = os.Getenv("sendgrid_api_key")
 	)
 
 	// essentially same as gin.Default() for now
@@ -75,6 +79,9 @@ func main() {
 
 	controller := controllers.New(client, URL)
 	jwtParser := auth.New(jwtSecret)
+	mailer := mail.New("OrgaNiUS", emailSender, sendGridKey)
+	fmt.Println(mailer)
+	mailer.Send("Test", "seetohjinwei@gmail.com", "hi this is subject", "Hey test")
 	handleRoutes(URL, router, *controller, jwtParser)
 
 	fmt.Println("Server booted up!")
