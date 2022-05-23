@@ -81,7 +81,11 @@ const (
 )
 
 // Refreshes JWT expiry time.
-func (p *JWTParser) RefreshJWT(ctx *gin.Context, jwt string) {
+func (p *JWTParser) RefreshJWT(ctx *gin.Context, id string) error {
+	jwt, err := p.Generate(id)
+	if err != nil {
+		return err
+	}
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
 		Name:     "jwt",
@@ -91,6 +95,7 @@ func (p *JWTParser) RefreshJWT(ctx *gin.Context, jwt string) {
 		Secure:   false,
 		HttpOnly: true,
 	})
+	return nil
 }
 
 // Gets ID from JWT from Cookie.
@@ -106,6 +111,19 @@ func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, bool) {
 		return "", false
 	}
 	// refresh JWT on any request
-	p.RefreshJWT(ctx, jwt)
+	// GetID already ensures that the JWT is valid
+	p.RefreshJWT(ctx, id)
 	return id, true
+}
+
+func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
+	// MaxAge < 0 deletes the cookie
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   false,
+		HttpOnly: true,
+	})
 }

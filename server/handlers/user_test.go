@@ -25,18 +25,18 @@ func TestIsValidEmail(t *testing.T) {
 		"email@example.co.jp":            {"", true},
 		"firstname-lastname@example.com": {"", true},
 
-		"": {"Please provide an email.", false},
+		"": {"please provide an email", false},
 
-		"plainaddress":              {"Email is not a valid address.", false},
-		"#@%^%#$@#$@#.com":          {"Email is not a valid address.", false},
-		"@example.com":              {"Email is not a valid address.", false},
-		"email.example.com":         {"Email is not a valid address.", false},
-		"email@example@example.com": {"Email is not a valid address.", false},
-		".email@example.com":        {"Email is not a valid address.", false},
-		"email.@example.com":        {"Email is not a valid address.", false},
-		"email..email@example.com":  {"Email is not a valid address.", false},
-		"email@example..com":        {"Email is not a valid address.", false},
-		"Abc..123@example.com":      {"Email is not a valid address.", false},
+		"plainaddress":              {"email is not a valid address", false},
+		"#@%^%#$@#$@#.com":          {"email is not a valid address", false},
+		"@example.com":              {"email is not a valid address", false},
+		"email.example.com":         {"email is not a valid address", false},
+		"email@example@example.com": {"email is not a valid address", false},
+		".email@example.com":        {"email is not a valid address", false},
+		"email.@example.com":        {"email is not a valid address", false},
+		"email..email@example.com":  {"email is not a valid address", false},
+		"email@example..com":        {"email is not a valid address", false},
+		"Abc..123@example.com":      {"email is not a valid address", false},
 	}
 
 	for test, expected := range tests {
@@ -58,15 +58,15 @@ func TestIsValidName(t *testing.T) {
 		"34562567":  {"", true},
 		"dfghjklgh": {"", true},
 
-		"": {"Please provide a username.", false},
+		"": {"please provide a username", false},
 
-		"x":    {"Username too short.", false},
-		"xx":   {"Username too short.", false},
-		"xxx":  {"Username too short.", false},
-		"xxxx": {"Username too short.", false},
+		"x":    {"username too short", false},
+		"xx":   {"username too short", false},
+		"xxx":  {"username too short", false},
+		"xxxx": {"username too short", false},
 
-		"dfghjklghѼ": {"Name contains invalid character.", false},
-		"Ab**&":      {"Name contains invalid character.", false},
+		"dfghjklghѼ": {"name contains invalid character", false},
+		"Ab**&":      {"name contains invalid character", false},
 	}
 
 	for test, expected := range tests {
@@ -87,24 +87,24 @@ func TestIsValidPassword(t *testing.T) {
 	tests := map[Input]*Result{
 		{"abcde", "AbCde123"}: {"", true},
 
-		{"abcde", ""}: {"Please provide a password.", false},
+		{"abcde", ""}: {"please provide a password", false},
 
-		{"abcde", "0"}:       {"Password too short.", false},
-		{"abcde", "00"}:      {"Password too short.", false},
-		{"abcde", "000"}:     {"Password too short.", false},
-		{"abcde", "0000"}:    {"Password too short.", false},
-		{"abcde", "00000"}:   {"Password too short.", false},
-		{"abcde", "000000"}:  {"Password too short.", false},
-		{"abcde", "0000000"}: {"Password too short.", false},
+		{"abcde", "0"}:       {"password too short", false},
+		{"abcde", "00"}:      {"password too short", false},
+		{"abcde", "000"}:     {"password too short", false},
+		{"abcde", "0000"}:    {"password too short", false},
+		{"abcde", "00000"}:   {"password too short", false},
+		{"abcde", "000000"}:  {"password too short", false},
+		{"abcde", "0000000"}: {"password too short", false},
 
-		{"abcde", "abcde123"}:   {"Password cannot contain username.", false},
-		{"ab2345", "00ab23450"}: {"Password cannot contain username.", false},
+		{"abcde", "abcde123"}:   {"password cannot contain username", false},
+		{"ab2345", "00ab23450"}: {"password cannot contain username", false},
 
-		{"abcde", "AbCde123Ѽ"}: {"Password contains invalid character.", false},
+		{"abcde", "AbCde123Ѽ"}: {"password contains invalid character", false},
 
-		{"abcde", "ABBABABABA"}: {"Password missing required lowercase letter.", false},
-		{"abcde", "abbabababa"}: {"Password missing required uppercase letter.", false},
-		{"abcde", "Abbabababa"}: {"Password missing required digit.", false},
+		{"abcde", "ABBABABABA"}: {"password missing required lowercase letter", false},
+		{"abcde", "abbabababa"}: {"password missing required uppercase letter", false},
+		{"abcde", "Abbabababa"}: {"password missing required digit", false},
 	}
 
 	for test, expected := range tests {
