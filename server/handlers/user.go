@@ -197,6 +197,29 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, ma
 	}
 }
 
+func UserVerify(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		type query struct {
+			Name string `bson:"name" json:"name"`
+			Pin  string `bson:"pin" json:"pin"`
+		}
+		var q query
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if q.Name == "" || q.Pin == "" {
+			DisplayError(ctx, "please provide name and pin")
+			return
+		}
+		if ok, err := controller.UserVerifyPin(ctx, q.Name, q.Pin); !ok {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
 func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User

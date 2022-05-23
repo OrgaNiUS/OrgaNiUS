@@ -102,6 +102,25 @@ func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
 	return nil
 }
 
+// Verifies PIN from email verification. If successful, also marks the user as verified in the database.
+func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (bool, error) {
+	var user models.User
+	filter := bson.D{{Key: "name", Value: name}}
+	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return false, err
+	}
+	if auth.CheckPasswordHash(user.VerificationPin, pin) {
+		update := bson.D{{Key: "$set", Value: bson.D{
+			{Key: "verified", Value: true},
+			{Key: "verificationPin", Value: ""},
+		}}}
+		c.database.Collection(collection).UpdateByID(ctx, user.Id, update)
+		return true, nil
+	}
+	return false, errors.New("wrong pin")
+}
+
 // Checks whether the password matches the hashed password for a particular username
 func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (bool, error) {
 	password := user.Password

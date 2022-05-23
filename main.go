@@ -34,6 +34,7 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
 	v1.POST("/signup", handlers.UserSignup(controller, jwtParser, mailer))
+	v1.POST("/verify", handlers.UserVerify(controller, jwtParser))
 	v1.POST("/login", handlers.UserLogin(controller, jwtParser))
 	v1.GET("/refresh-jwt", handlers.UserRefreshJWT(controller, jwtParser))
 	v1.DELETE("/logout", handlers.UserLogout(controller, jwtParser))
