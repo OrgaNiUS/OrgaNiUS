@@ -235,7 +235,11 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 		validLogin, err := controller.UserCheckPassword(ctx, &user)
 		if !validLogin || err != nil {
 			// Intentionally not exposing any other details.
-			DisplayError(ctx, "username and password do not match")
+			msg := err.Error()
+			if msg != "please verify the account first" {
+				msg = "username and password do not match"
+			}
+			DisplayError(ctx, msg)
 			return
 		}
 		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {

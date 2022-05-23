@@ -129,6 +129,8 @@ func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (
 	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		return false, err
+	} else if !user.Verified {
+		return false, errors.New("please verify the account first")
 	}
 	return auth.CheckPasswordHash(user.Password, password), nil
 }
