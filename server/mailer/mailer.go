@@ -1,4 +1,4 @@
-package mail
+package mailer
 
 import (
 	"fmt"
@@ -22,10 +22,8 @@ func New(name, sender, key string) *Mailer {
 func (m *Mailer) Send(name, address, subject, body string) error {
 	from := m.Sender
 	to := mail.NewEmail(name, address)
-	fmt.Println(&from, &to)
 	// there is also a mail.NewSingleEmail() that accepts HTML content
 	message := mail.NewSingleEmailPlainText(from, subject, to, body)
-	fmt.Println(message)
 	_, err := m.Client.Send(message)
 	if err != nil {
 		fmt.Println(err.Error())
