@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { validEmail, validPassword, validUsername } from "../components/regex";
 import axios from "../api/axios";
 import Login from "./Login";
@@ -83,106 +83,110 @@ const Registration = (): JSX.Element => {
       {success ? (
         { Login }
       ) : (
-        <div>
-          <div className="navbar-wrapper">
-            <div className="home-icon">OrgaNiUS</div>
+        <div className="flex flex-col h-screen">
+          <div className="flex fixed top-0 left-0 w-screen h-20 m-0 flex-row bg-blend-color shadow-lg ">
+            <Link
+              to="/"
+              className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased hover:text-orange-600"
+            >
+              OrgaNiUS
+            </Link>
           </div>
-          <section className="relative h-full justify-center items-center overflow-hidden">
-            <div className="flex justify-center items-center h-screen g-6 text-gray-800">
-              <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-                <span className="text-3xl justify-center items-center text-center ">
-                  OrgaNiUS Registration
-                </span>
-                <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
-                  {errMsg}
-                </p>
-                <form onSubmit={handleSubmit} className="mt-3">
-                  <div className="mb-6">
-                    <input
-                      type="text"
-                      id="username"
-                      ref={userRef}
-                      onChange={(e) => setUser(e.target.value)}
-                      className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                        !validName && user
-                          ? "border-red-300"
-                          : !user
-                          ? "border-gray-300"
-                          : "border-green-300"
-                      } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
-                      placeholder="Username (Min. 5 characters)"
-                      required
-                    />
-                  </div>
 
-                  <div className="mb-6">
-                    <input
-                      type="text"
-                      id="email"
-                      ref={mailRef}
-                      onChange={(e) => setMail(e.target.value)}
-                      className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                        !(validMail || !mail)
-                          ? "border-red-300"
-                          : !mail
-                          ? "border-gray-300"
-                          : "border-green-300"
-                      } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
-                      placeholder="Email address"
-                      required
-                    />
-                  </div>
+          <div className="flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800">
+            <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
+              <span className="text-3xl justify-center items-center text-center ">
+                OrgaNiUS Registration
+              </span>
+              <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
+                {errMsg}
+              </p>
+              <form onSubmit={handleSubmit} className="mt-3">
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    id="username"
+                    ref={userRef}
+                    onChange={(e) => setUser(e.target.value)}
+                    className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
+                      !validName && user
+                        ? "border-red-300"
+                        : !user
+                        ? "border-gray-300"
+                        : "border-green-300"
+                    } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                    placeholder="Username (Min. 5 characters)"
+                    required
+                  />
+                </div>
 
-                  <div className="mb-6">
-                    <input
-                      type="password"
-                      id="password"
-                      onChange={(e) => setPwd(e.target.value)}
-                      className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                        !(validPwd || !pwd)
-                          ? "border-red-300"
-                          : !pwd
-                          ? "border-gray-300"
-                          : "border-green-300"
-                      } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
-                      placeholder="Password"
-                      required
-                    />
-                  </div>
+                <div className="mb-6">
+                  <input
+                    type="text"
+                    id="email"
+                    ref={mailRef}
+                    onChange={(e) => setMail(e.target.value)}
+                    className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
+                      !(validMail || !mail)
+                        ? "border-red-300"
+                        : !mail
+                        ? "border-gray-300"
+                        : "border-green-300"
+                    } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                    placeholder="Email address"
+                    required
+                  />
+                </div>
 
-                  <div className="mb-6">
-                    <input
-                      type="password"
-                      id="confirm_password"
-                      onChange={(e) => setMatchPwd(e.target.value)}
-                      className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                        !(validMatch || !matchPwd)
-                          ? "border-red-300"
-                          : !matchPwd
-                          ? "border-gray-300"
-                          : "border-green-300"
-                      } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
-                      placeholder="Re-Enter Your Password"
-                      required
-                    />
-                  </div>
+                <div className="mb-6">
+                  <input
+                    type="password"
+                    id="password"
+                    onChange={(e) => setPwd(e.target.value)}
+                    className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
+                      !(validPwd || !pwd)
+                        ? "border-red-300"
+                        : !pwd
+                        ? "border-gray-300"
+                        : "border-green-300"
+                    } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                    placeholder="Password"
+                    required
+                  />
+                </div>
 
-                  <button
-                    type="submit"
-                    disabled={
-                      !validName || !validMail || !validPwd || !validMatch
-                    }
-                    className="mt-2 inline-block px-7 py-3 bg-orange-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-orange-700 hover:shadow-lg focus:bg-orange-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-orange-800 active:shadow-lg transition duration-150 ease-in-out w-full disabled:bg-gray-600 disabled:hover:shadow"
-                    data-mdb-ripple="true"
-                    data-mdb-ripple-color="light"
-                    onClick={() => navigate("/")}
-                  >
-                    Register
-                  </button>
-                </form>
-              </div>
+                <div className="mb-6">
+                  <input
+                    type="password"
+                    id="confirm_password"
+                    onChange={(e) => setMatchPwd(e.target.value)}
+                    className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
+                      !(validMatch || !matchPwd)
+                        ? "border-red-300"
+                        : !matchPwd
+                        ? "border-gray-300"
+                        : "border-green-300"
+                    } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                    placeholder="Re-Enter Your Password"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={
+                    !validName || !validMail || !validPwd || !validMatch
+                  }
+                  className="mt-2 inline-block px-7 py-3 bg-orange-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-orange-700 hover:shadow-lg focus:bg-orange-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-orange-800 active:shadow-lg transition duration-150 ease-in-out w-full disabled:bg-gray-600 disabled:hover:shadow"
+                  data-mdb-ripple="true"
+                  data-mdb-ripple-color="light"
+                  onClick={() => navigate("/")}
+                >
+                  Register
+                </button>
+              </form>
             </div>
-          </section>
+          </div>
         </div>
       )}
     </>
