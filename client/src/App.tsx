@@ -1,22 +1,29 @@
 import "./App.css";
-import Page404 from "./components/Page404";
+import { Login, Registration } from "./index";
 import React from "react";
-import User from "./components/User";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<div>This is the main page.</div>} />
-        <Route path="/projects" element={<div>This is the projects page.</div>} />
-        <Route path="/settings" element={<div>This is the settings page.</div>} />
-        <Route path="/user/:username" element={<User />} />
-        {/* catch all path send to Page404 */}
-        <Route path="*" element={<Page404 />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/registration" element={<Registration />} />
+    </Routes>
   );
+
+  // return (
+  //     <>
+  //         <Navbar/>
+  //         <Routes>
+  //             <Route path="/" element={<Homepage/>}/>
+  //             <Route path="/projects" element={<Projects/>}/>
+  //             <Route path="/settings" element={<Settings/>}/>
+  //             <Route path="/user/:username" element={<User/>}/>
+  //             {/* catch all path send to Page404 */}
+  //             <Route path="*" element={<Page404/>}/>
+  //         </Routes>
+  //     </>
+  // )
 }
 
 export default App;
