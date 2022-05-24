@@ -3,7 +3,8 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter as Router } from 'react-router-dom'
+import {BrowserRouter as Router} from 'react-router-dom'
+import {AuthProvider} from "./context/AuthProvider";
 
 export {default as Navbar} from "./components/Navbar"
 export {default as User} from "./pages/User"
@@ -18,7 +19,9 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(
     <React.StrictMode>
         <Router>
-            <App/>
+            <AuthProvider>
+                <App/>
+            </AuthProvider>
         </Router>
     </React.StrictMode>
 );
