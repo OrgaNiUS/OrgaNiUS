@@ -25,7 +25,7 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
-Please ensure that these requirements are met on the client side before sending the request to reduce unnecessary requests. However, it will still be verified on the server.
+Please ensure that these requirements are met on the client side before sending the request to reduce unnecessary requests. However, it will still be verified on the server. After the user signs up, the user must still be [verified](#verify-email) before being allowed to login.
 
 Username requirements
 
@@ -46,6 +46,24 @@ Email requirements:
 1. Must be a valid email address by RFC5322 standards
 
 This [link](https://emailregex.com/) contains regex queries that should work for most use cases.
+
+### Verify Email
+
+POST "/verify" request
+
+Input: Name and pin. Pin is sent to the email account used in signup.
+
+```json
+{
+  name: string;
+  pin: string;
+}
+```
+
+Output:
+
+1. If successful, a JWT will be set in the cookies.
+2. Else, a HTTP Bad Request Status followed by an error message.
 
 ### Login
 
@@ -80,6 +98,75 @@ Output: No output if successful (except status code of 200), else, error message
 DELETE "/logout" request
 
 Input: Nothing
+
+Output: No output if successful (except status code of 200), else, error message in "error" field.
+
+### Forgot Password
+
+This is a 3-step process to reset the user's password via the "Forgot Password" option. The process is done similarly to many other services.
+
+Naturally, all these 3 steps do not require the user to be logged in.
+
+FPP - forget password PIN
+
+1. Generate the FPP which will be sent to the user's email address.
+2. (Optional) Verify if the FPP is correct.
+3. Change the user's password with the FPP as verification.
+
+Note that if a user requests for a FPP multiple times, only the latest one will be effective.
+
+#### Generate Forgot Password PIN
+
+POST "/forgot_pw" request
+
+Input:
+
+```json
+{
+  name: string;
+}
+```
+
+Output: No output if successful (except status code of 200), else, error message in "error" field.
+
+#### Verify Forgot Password PIN
+
+POST "/verify_forgot_pw" request
+
+This step is optional as an extra check before requesting the new password from the end user. It is merely used to ensure that the user has obtained the correct PIN before the next step. You can save this PIN locally so that the user does not have to insert it twice.
+
+Input:
+
+```json
+{
+  name: string;
+  pin: string;
+}
+```
+
+Output:
+
+```json
+{
+  "valid": true
+}
+```
+
+#### Forgot Password: Change to New Password
+
+POST "/change_forgot_pw" request
+
+"password" field refers to the new password. Do validate the requirements of the password first.
+
+Input:
+
+```json
+{
+  name: string;
+  pin: string;
+  password: string;
+}
+```
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
 
