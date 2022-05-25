@@ -235,11 +235,7 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 		validLogin, err := controller.UserCheckPassword(ctx, &user)
 		if !validLogin || err != nil {
 			// Intentionally not exposing any other details.
-			msg := err.Error()
-			if msg != "please verify the account first" {
-				msg = "username and password do not match"
-			}
-			DisplayError(ctx, msg)
+			DisplayError(ctx, err.Error())
 			return
 		}
 		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {
@@ -277,6 +273,75 @@ func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 		}
 		jwtParser.DeleteJWT(ctx)
 		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// Forgot password.
+// This will send a 6-digit PIN (similar to the one used for sign up) to the user's email address.
+func UserForgotPW(controller controllers.Controller, mailer *mailer.Mailer) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		type query struct {
+			Name string `bson:"name" json:"name"`
+		}
+		var q query
+		ctx.BindJSON(&q)
+		hash, pin := auth.GeneratePin()
+		email, err := controller.UserForgotPW(ctx, q.Name, hash)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if err := mailer.SendForgotPW(q.Name, email, pin); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// Verify PIN obtained from Forgot Password.
+func UserVerifyForgotPW(controller controllers.Controller) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		type query struct {
+			Name string `bson:"name" json:"name"`
+			Pin  string `bson:"pin" json:"pin"`
+		}
+		var q query
+		ctx.BindJSON(&q)
+		ok, err := controller.UserVerifyForgotPW(ctx, q.Name, q.Pin)
+		if !ok {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"valid": true,
+		})
+	}
+}
+
+// Uses the PIN as validation to change the password of the user account.
+func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		type query struct {
+			Name     string `bson:"name" json:"name"`
+			Pin      string `bson:"pin" json:"pin"`
+			Password string `bson:"password" json:"password"`
+		}
+		var q query
+		ctx.BindJSON(&q)
+		if msg, ok := isValidPassword(q.Name, q.Password); !ok {
+			DisplayError(ctx, msg)
+			return
+		}
+		hash, err := auth.HashPassword(q.Password)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if err := controller.UserChangeForgotPW(ctx, q.Name, q.Pin, hash); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
 	}
 }
 

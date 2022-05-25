@@ -13,6 +13,8 @@ type User struct {
 	Email           string             `bson:"email" json:"email"`
 	Verified        bool               `bson:"verified" json:"verified"`
 	VerificationPin string             `bson:"verificationPin" json:"verificationPin"`
+	ForgotPW        bool               `bson:"forgotPw" json:"forgotPw"`
+	ForgotPWPin     string             `bson:"forgotPwPin" json:"forgotPwPin"`
 	Events          []Event            `bson:"events" json:"events"`
 	Tasks           []Task             `bson:"tasks" json:"tasks"`
 	Projects        []Project          `bson:"projects" json:"projects"`
