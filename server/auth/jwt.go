@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -46,7 +47,7 @@ func (p *JWTParser) Generate(id string) (string, error) {
 	tokenString, err := p.token.SignedString(p.secret)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("failed to generate jwt: %v", err)
 		return "", err
 	}
 	return tokenString, nil

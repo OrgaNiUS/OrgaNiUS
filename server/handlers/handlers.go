@@ -2,12 +2,14 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func DisplayError(ctx *gin.Context, message string) {
+	log.Printf("displaying error to client: %v", message)
 	ctx.JSON(http.StatusBadRequest, gin.H{"error": message})
 }
 
