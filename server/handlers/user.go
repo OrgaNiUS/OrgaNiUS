@@ -342,6 +342,7 @@ func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
 			DisplayError(ctx, err.Error())
 			return
 		}
+		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
 

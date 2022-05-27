@@ -27,6 +27,8 @@ Output:
 
 Please ensure that these requirements are met on the client side before sending the request to reduce unnecessary requests. However, it will still be verified on the server. After the user signs up, the user must still be [verified](#verify-email) before being allowed to login.
 
+Status Code: 201 or 400
+
 Username requirements
 
 1. Must be unique
@@ -65,6 +67,8 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
+Status Code: 200 or 400
+
 ### Login
 
 POST "/login" request
@@ -83,6 +87,8 @@ Output:
 1. If successful, a JWT will be set in the cookies.
 2. Else, a HTTP Bad Request Status followed by an error message.
 
+Status Code: 201 or 400
+
 ### Refresh JWT
 
 GET "/refresh-jwt" request
@@ -93,6 +99,8 @@ Input: Nothing
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
 
+Status Code: 200 or 400 or 401
+
 ### Logout
 
 DELETE "/logout" request
@@ -100,6 +108,8 @@ DELETE "/logout" request
 Input: Nothing
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
+
+Status Code: 200 or 401
 
 ### Forgot Password
 
@@ -129,6 +139,8 @@ Input:
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
 
+Status Code: 200 or 400
+
 #### Verify Forgot Password PIN
 
 POST "/verify_forgot_pw" request
@@ -152,6 +164,8 @@ Output:
 }
 ```
 
+Status Code: 200 or 400
+
 #### Forgot Password: Change to New Password
 
 POST "/change_forgot_pw" request
@@ -170,6 +184,8 @@ Input:
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
 
+Status Code: 200 or 400
+
 ### Get Own User
 
 GET "/own_user" request
@@ -180,6 +196,8 @@ Input: None
 
 Output: `User` data as defined in [definitions](#definitions).
 
+Status Code: 200 or 400 or 401
+
 ### Modification of User Data
 
 PATCH "/user" request
@@ -188,6 +206,8 @@ Input: Username, Password, Email as strings. Leave the fields blank if unchanged
 
 Output: Updated `User` data if successful, else, error message in "error" field.
 
+Status Code: 200 or 400 or 401
+
 ### Deleting User
 
 DELETE "/user" request
@@ -195,6 +215,8 @@ DELETE "/user" request
 Input: Nothing
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
+
+Status Code: 200 or 400 or 401
 
 ### Exists
 
@@ -211,6 +233,8 @@ Output:
   "exists": true
 }
 ```
+
+Status Code: 200 or 400
 
 Example usage:
 
@@ -239,6 +263,8 @@ Output:
   "projects": Project[]
 }
 ```
+
+Status Code: 200 or 400
 
 ## Definitions
 
