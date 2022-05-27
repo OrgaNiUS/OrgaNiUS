@@ -3,7 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/base32"
-	"fmt"
+	"log"
 )
 
 // Generates a hash and the 6-character PIN. Used for email verification.
@@ -16,13 +16,13 @@ func GeneratePin() (string, string) {
 	randomBytes := make([]byte, 20)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("failed to generate PIN: %v", err)
 		return "", ""
 	}
 	pin := base32.StdEncoding.EncodeToString(randomBytes)[:length]
 	hash, err := HashPassword(pin)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("failed to hash PIN: %v", err)
 		return "", ""
 	}
 	return hash, pin

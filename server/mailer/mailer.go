@@ -1,7 +1,7 @@
 package mailer
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -26,7 +26,7 @@ func (m *Mailer) Send(name, address, subject, body string) error {
 	message := mail.NewSingleEmailPlainText(from, subject, to, body)
 	_, err := m.Client.Send(message)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf("failed to send email: %v", err)
 		return err
 	}
 	return nil

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
@@ -52,9 +52,21 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 }
 
 func main() {
+	// Set up logging.
+	// Create "logs" directory if it does not exist.
+	_ = os.Mkdir("logs", os.ModePerm)
+	// FileMode from https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
+	// 0666 is read & write
+	logFile, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error creating/opening logger file: %v", err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	// Set up loading of environment variables.
 	if err := godotenv.Load(); err != nil {
-		fmt.Println("Error while loading environment variables.")
-		fmt.Println(err.Error())
+		log.Fatalf("error loading environment variables: %v", err)
 		return
 	}
 
@@ -88,7 +100,7 @@ func main() {
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
 	handleRoutes(URL, router, *controller, jwtParser, mailer)
 
-	fmt.Println("Server booted up!")
+	log.Print("Server booted up!")
 
 	router.Run(URL)
 }
