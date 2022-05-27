@@ -11,7 +11,7 @@ const Login = (): JSX.Element => {
   const userRef = useRef<HTMLInputElement>(null);
   const errRef = useRef<HTMLParagraphElement>(null);
 
-  const iAuth = useContext(AuthContext);
+  const Auth = useContext(AuthContext);
 
   const [user, setUser] = useState<string>("");
   const [pwd, setPwd] = useState<string>("");
@@ -39,7 +39,7 @@ const Login = (): JSX.Element => {
         }
       );
       // const accessToken = response?.data?.accessToken; response = await axios.post etc etc
-      iAuth.setAuth({ user, loggedIn: true });
+      Auth.setAuth({ user, loggedIn: true });
 
       //Reset User inputs
       setUser("");

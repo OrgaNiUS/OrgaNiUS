@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   validEmail,
@@ -8,10 +8,13 @@ import {
 } from "../components/regex";
 import axios from "../api/axios";
 import App from "../App";
+import AuthContext from "../context/AuthProvider";
 
 const Registration = (): JSX.Element => {
   const REGISTRATION_URL = "/api/v1/signup";
   const VERIFY_URL = "/api/v1/verify";
+
+  const Auth = useContext(AuthContext);
 
   const userRef = useRef<HTMLInputElement>(null);
   const mailRef = useRef<HTMLInputElement>(null);
@@ -77,6 +80,7 @@ const Registration = (): JSX.Element => {
           withCredentials: true,
         }
       );
+      Auth.setAuth({ user, loggedIn: false });
       setSuccess(true);
     } catch (err) {
       setErrMsg("Registration Failed");
@@ -90,6 +94,7 @@ const Registration = (): JSX.Element => {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
+      Auth.setAuth({ user, loggedIn: true });
       setVerifySuccess(true);
     } catch (err) {
       setErrMsg("Verification Failed");
