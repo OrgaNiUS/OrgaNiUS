@@ -14,6 +14,7 @@ export { default as Projects } from "./pages/Projects";
 export { default as Settings } from "./pages/Settings";
 export { default as Login } from "./pages/Login";
 export { default as Registration } from "./pages/Registration";
+export { default as ForgotPwd } from "./pages/ForgotPwd";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
