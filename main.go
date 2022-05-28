@@ -52,6 +52,9 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 }
 
 func main() {
+	// Uncomment the following line below to enable Production mode.
+	gin.SetMode(gin.ReleaseMode)
+
 	// Set up logging.
 	// Create "logs" directory if it does not exist.
 	_ = os.Mkdir("logs", os.ModePerm)
@@ -66,8 +69,8 @@ func main() {
 
 	// Set up loading of environment variables.
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading environment variables: %v", err)
-		return
+		// will fail on heroku server
+		log.Printf("error loading environment variables: %v", err)
 	}
 
 	var (
@@ -102,5 +105,5 @@ func main() {
 
 	log.Print("Server booted up!")
 
-	router.Run(URL)
+	router.Run()
 }
