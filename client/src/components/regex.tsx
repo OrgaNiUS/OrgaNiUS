@@ -18,4 +18,4 @@ export const validEmail: RegExp =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/g;
 
 // Only accepts 6 digit Decimal input
-export const validPinCode: RegExp = /^\d{6}$/g;
+export const validPinCode: RegExp = /^[A-Z\d]{6}$/g;
