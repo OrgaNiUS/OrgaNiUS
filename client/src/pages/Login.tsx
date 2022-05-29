@@ -59,7 +59,9 @@ const Login = (): JSX.Element => {
             ) : (
                 <div className="flex flex-col h-screen">
                     <div className="navbar-wrapper">
-                        <div className="home-icon">OrgaNiUS</div>
+                        <div className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased">
+                            OrgaNiUS
+                        </div>
                     </div>
                     <section className="flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800">
                         <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
