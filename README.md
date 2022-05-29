@@ -2,23 +2,45 @@
 
 OrgaNiUS aims to be a central hub for forming, planning and organising group work.
 
+Available at: https://organius.herokuapp.com/ (still very much a Work-in-Progress!), might take a while to load as Heroku servers sleeps the application when unused for a while.
+
 Built by Kannusami Saraan and See Toh Jin Wei.
 
-## Quick Start
+## Local Development
 
-```shell
+The [Makefile](makefile) has some shortcuts for some of the below commands.
+
+```sh
 # to install node dependencies
-make init-client
-# build react client
-make bc
-# run go server
-make g
+npm install --prefix "client"
+# build react client (necessary for Go server because it simply serves the final build)
+npm run build --prefix "client"
+# run react client as standalone
+npm start --prefix "client"
 
-# run react client as a standalone (WITHOUT server)
-# this runs on default "http://localhost:3000"
-make r
+# run go tests
+go test -v ./...
+
+# run go server
+go run main.go
+
+# compile go server
+go build -o main .
+# run compiled binary
+./main
+
+# build docker container
+docker build -t organius .
+# run docker container
+docker run -p 8080:8080 organius
 ```
 
 ## API
 
 Refer to the [API Documentation](api.md) for more information on how to interact with the server.
+
+## Deployment
+
+This application is deployed on Heroku servers.
+
+Refer to the [Deployment Guide](deploy.md) for instructions on how to setup the deployment and for future deployments.
