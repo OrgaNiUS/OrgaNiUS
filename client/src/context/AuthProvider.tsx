@@ -11,7 +11,7 @@ interface IAuthContext {
 }
 
 // Gets information from JWT and returns an AuthInterface.
-// Used for maintaing logged in status across refresh.
+// Used for maintaining logged in status across refresh.
 const ParseJWT = (): AuthInterface => {
   // get cookie, abstract out if needed elsewhere too!
   // from https://stackoverflow.com/a/67707172
