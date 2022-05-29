@@ -97,7 +97,7 @@ func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
 		Secure: false,
 		// Same SiteStrict Mode forces the cookie to never be sent to another site
 		SameSite: http.SameSiteStrictMode,
-		HttpOnly: true,
+		HttpOnly: false,
 	})
 	return nil
 }
@@ -134,6 +134,6 @@ func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
 		Secure: false,
 		// Same SiteStrict Mode forces the cookie to never be sent to another site
 		SameSite: http.SameSiteStrictMode,
-		HttpOnly: true,
+		HttpOnly: false,
 	})
 }
