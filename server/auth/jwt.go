@@ -89,11 +89,13 @@ func (p *JWTParser) RefreshJWT(ctx *gin.Context, id string) error {
 	}
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "jwt",
-		Value:    jwt,
-		Path:     "/",
-		MaxAge:   expiryTime,
-		Secure:   false,
+		Name:   "jwt",
+		Value:  jwt,
+		Path:   "/",
+		MaxAge: expiryTime,
+		Secure: false,
+		// Same SiteStrict Mode forces the cookie to never be sent to another site
+		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})
 	return nil
@@ -120,11 +122,13 @@ func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, bool) {
 func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
 	// MaxAge < 0 deletes the cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		Secure:   false,
+		Name:   "jwt",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+		Secure: false,
+		// Same SiteStrict Mode forces the cookie to never be sent to another site
+		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	})
 }
