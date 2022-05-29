@@ -28,7 +28,7 @@ func New(jwtSecret string) *JWTParser {
 	}
 }
 
-func (p *JWTParser) Generate(id string) (string, error) {
+func (p *JWTParser) Generate(id, name string) (string, error) {
 	claims := p.token.Claims.(jwt.MapClaims)
 
 	/*
@@ -41,6 +41,7 @@ func (p *JWTParser) Generate(id string) (string, error) {
 	now := time.Now()
 
 	claims["id"] = id
+	claims["name"] = name
 	claims["iat"] = now.Unix()
 	claims["exp"] = now.Add(expTime).Unix()
 
@@ -68,12 +69,12 @@ func (p *JWTParser) Parse(tokenString string) (jwt.MapClaims, error) {
 	return nil, err
 }
 
-func (p *JWTParser) GetID(tokenString string) (string, error) {
+func (p *JWTParser) GetKey(tokenString, key string) (string, error) {
 	claims, err := p.Parse(tokenString)
 	if err != nil {
 		return "", err
 	}
-	return claims["id"].(string), nil
+	return claims[key].(string), nil
 }
 
 const (
@@ -82,49 +83,57 @@ const (
 )
 
 // Refreshes JWT expiry time.
-func (p *JWTParser) RefreshJWT(ctx *gin.Context, id string) error {
-	jwt, err := p.Generate(id)
+func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
+	jwt, err := p.Generate(id, name)
 	if err != nil {
 		return err
 	}
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "jwt",
-		Value:    jwt,
-		Path:     "/",
-		MaxAge:   expiryTime,
-		Secure:   false,
-		HttpOnly: true,
+		Name:   "jwt",
+		Value:  jwt,
+		Path:   "/",
+		MaxAge: expiryTime,
+		Secure: false,
+		// Same SiteStrict Mode forces the cookie to never be sent to another site
+		SameSite: http.SameSiteStrictMode,
+		HttpOnly: false,
 	})
 	return nil
 }
 
-// Gets ID from JWT from Cookie.
+// Gets ID and Name from JWT from Cookie.
 // Returns false if the JWT is not valid.
 // Refreshes JWT as well.
-func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, bool) {
+func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, string, bool) {
 	jwt, err := ctx.Cookie("jwt")
 	if err != nil {
-		return "", false
+		return "", "", false
 	}
-	id, err := p.GetID(jwt)
+	id, err := p.GetKey(jwt, "id")
 	if err != nil {
-		return "", false
+		return "", "", false
+	}
+	name, err := p.GetKey(jwt, "name")
+	if err != nil {
+		return "", "", false
 	}
 	// refresh JWT on any request
 	// GetID already ensures that the JWT is valid
-	p.RefreshJWT(ctx, id)
-	return id, true
+	p.RefreshJWT(ctx, id, name)
+	return id, name, true
 }
 
 func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
 	// MaxAge < 0 deletes the cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		Secure:   false,
-		HttpOnly: true,
+		Name:   "jwt",
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+		Secure: false,
+		// Same SiteStrict Mode forces the cookie to never be sent to another site
+		SameSite: http.SameSiteStrictMode,
+		HttpOnly: false,
 	})
 }
