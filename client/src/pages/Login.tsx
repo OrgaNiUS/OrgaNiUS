@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, Link} from "react-router-dom";
 import App from "../App";
 
 import axios from "../api/axios";
@@ -110,12 +110,12 @@ const Login = (): JSX.Element => {
                                         </label>
                                     </div>
 
-                                    <a
-                                        href="pages/SignIn#!"
+                                    <Link
+                                        to="/forgot_pwd"
                                         className="text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out hover:underline"
                                     >
                                         Forgot password?
-                                    </a>
+                                    </Link>
                                 </div>
 
                                 <button
