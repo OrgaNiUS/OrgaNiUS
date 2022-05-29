@@ -79,7 +79,7 @@ func (p *JWTParser) GetKey(tokenString, key string) (string, error) {
 
 const (
 	// 10 minutes
-	expiryTime = 10 * 60 * 60
+	expiryTime = 10 * 60
 )
 
 // Refreshes JWT expiry time.
@@ -90,11 +90,13 @@ func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
 	}
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:   "jwt",
-		Value:  jwt,
-		Path:   "/",
-		MaxAge: expiryTime,
-		Secure: false,
+		Name:  "jwt",
+		Value: jwt,
+		Path:  "/",
+		// Expires is used for compatibility with IE, all other modern browsers use MaxAge
+		Expires: time.Now().Add(10 * time.Minute),
+		MaxAge:  expiryTime,
+		Secure:  false,
 		// Same SiteStrict Mode forces the cookie to never be sent to another site
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: false,
@@ -127,11 +129,13 @@ func (p *JWTParser) GetFromJWT(ctx *gin.Context) (string, string, bool) {
 func (p *JWTParser) DeleteJWT(ctx *gin.Context) {
 	// MaxAge < 0 deletes the cookie
 	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:   "jwt",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-		Secure: false,
+		Name:  "jwt",
+		Value: "",
+		Path:  "/",
+		// Expires is used for compatibility with IE, all other modern browsers use MaxAge
+		Expires: time.Now(),
+		MaxAge:  -1,
+		Secure:  false,
 		// Same SiteStrict Mode forces the cookie to never be sent to another site
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: false,
