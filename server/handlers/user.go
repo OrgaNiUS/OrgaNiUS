@@ -54,7 +54,7 @@ func UserGet(controller controllers.Controller) gin.HandlerFunc {
 
 func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -213,7 +213,7 @@ func UserVerify(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 			DisplayError(ctx, err.Error())
 			return
 		}
-		if err := jwtParser.RefreshJWT(ctx, id.Hex()); err != nil {
+		if err := jwtParser.RefreshJWT(ctx, id.Hex(), q.Name); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
@@ -238,7 +238,7 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 			DisplayError(ctx, err.Error())
 			return
 		}
-		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex()); err != nil {
+		if err := jwtParser.RefreshJWT(ctx, user.Id.Hex(), user.Name); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
@@ -250,13 +250,9 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 // Note that JWT is already refreshed on any request (that requires the user to be logged in).
 func UserRefreshJWT(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, ok := jwtParser.GetFromJWT(ctx)
+		_, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
-			return
-		}
-		if err := jwtParser.RefreshJWT(ctx, id); err != nil {
-			DisplayError(ctx, err.Error())
 			return
 		}
 		ctx.JSON(http.StatusOK, gin.H{})
@@ -266,7 +262,7 @@ func UserRefreshJWT(controller controllers.Controller, jwtParser *auth.JWTParser
 // Logout user.
 func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, ok := jwtParser.GetFromJWT(ctx)
+		_, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -349,7 +345,8 @@ func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
 // Only used for modifying username, password and email.
 func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, ok := jwtParser.GetFromJWT(ctx)
+		// TODO: no longer need name from user input when changing password (because stored in JWT)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -423,7 +420,7 @@ func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 
 func UserDelete(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
