@@ -1,0 +1,98 @@
+.header1 {
+  font-size: xx-large;
+  margin-bottom: 1em;
+}
+
+.header2 {
+  font-size: x-large;
+}
+
+.split {
+  height: 100%;
+  width: 100%;
+}
+
+.left {
+  border-right: 1px solid grey;
+  float: left;
+  width: 40%;
+}
+
+.right {
+  float: right;
+  width: 60%;
+}
+
+.centered {
+  text-align: center;
+  padding: 3em;
+}
+
+.changeButton {
+  background-color: rgb(0, 85, 255);
+  /* border-radius for rounded button */
+  border-radius: 6px;
+  color: white;
+  margin: 0.6vh;
+  padding: 0.2vh 1vw;
+}
+
+/* Darken colour and shadow on hover. */
+.changeButton:hover {
+  background-color: blue;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+form {
+  display: inline-block;
+  vertical-align: center;
+}
+
+label,
+input {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+input {
+  margin-bottom: 5px;
+}
+
+.inputField {
+  border: 1px solid grey;
+  padding: 7px;
+  color: grey;
+}
+
+.inputField:hover {
+  border: 1px solid black;
+  color: black;
+}
+
+.inputField:focus {
+  border: 1px solid black;
+  color: black;
+}
+
+.vert-center {
+  flex: auto;
+  justify-content: center;
+  align-items: center;
+  height: 100;
+}
+
+.submitButton {
+  background-color: rgb(255, 85, 0);
+  /* border-radius for rounded button */
+  border-radius: 6px;
+  color: white;
+  float: right;
+  margin: 0.6vh;
+  padding: 0.2vh 1vw;
+}
+
+.submitButton:hover {
+  background-color: red;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
