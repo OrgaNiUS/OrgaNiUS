@@ -1,5 +1,16 @@
 import "./App.css";
-import {ForgotPwd, Homepage, Login, Navbar, Page404, Projects, Registration, Settings, User} from "./index";
+import {
+    ForgotPwd,
+    Homepage,
+    Login,
+    Navbar,
+    Page404, PageDoesNotExist,
+    Projects,
+    Registration,
+    Settings,
+    UnauthorisedAccess,
+    User
+} from "./index";
 import React, {useContext} from "react";
 import {Route, Routes} from "react-router-dom";
 import AuthContext from "./context/AuthProvider";
@@ -12,6 +23,10 @@ function App() {
             <Route path="/" element={<Login/>}/>
             <Route path="/registration" element={<Registration/>}/>
             <Route path="/forgot_pwd" element={<ForgotPwd/>}/>
+            <Route path="/projects" element={<UnauthorisedAccess/>}/>
+            <Route path="/settings" element={<UnauthorisedAccess/>}/>
+            <Route path="/user/:username" element={<UnauthorisedAccess/>}/>
+            <Route path="*" element={<PageDoesNotExist/>}/>
         </Routes>
     ) : (
         <>
