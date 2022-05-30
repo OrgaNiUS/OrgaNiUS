@@ -5,25 +5,26 @@ import "../styles/Settings.css";
 
 // do ensure these keys match keys
 interface Fields {
-  username: string;
+  name: string;
   email: string;
   password: string;
   confirm_password: string;
 }
 
 const defaultFields: Fields = {
-  username: "jinwei",
-  email: "email@mail.com",
+  name: "",
+  email: "",
   password: "",
   confirm_password: "",
 };
 
 const GET_SELF_URL: string = "api/v1/own_user";
+const USER_PATCH_URL: string = "api/v1/user";
 
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
 // https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings
-const keys: (keyof Fields)[] = ["username", "email", "password"];
+const keys: (keyof Fields)[] = ["name", "email", "password"];
 
 const Settings = (): JSX.Element => {
   const [selection, setSelection] = useState<typeof keys[number]>();
@@ -35,7 +36,7 @@ const Settings = (): JSX.Element => {
       .get(GET_SELF_URL)
       .then((response) => {
         const data = response.data;
-        setFields({ ...fields, username: data["name"], email: data["email"] });
+        setFields({ ...fields, name: data["name"], email: data["email"] });
       })
       .catch((err) => {
         console.log(err);
@@ -53,8 +54,23 @@ const Settings = (): JSX.Element => {
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    // TODO: not actually submitting to backend yet
-    console.log("pressed submit");
+    const key: keyof Fields = selection as keyof Fields;
+
+    // Only send the single field we are editing (even though the backend supports multiple)
+    const payload = {
+      [key]: fields[key],
+    };
+
+    axios
+      .patch(USER_PATCH_URL, payload)
+      .then((response) => {
+        // TODO: feed this into the context
+        // Exit the "edit" mode
+        setSelection(undefined);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
