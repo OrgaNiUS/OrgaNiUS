@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import axios from "../api/axios";
+import { validEmail, validPassword, validUsername } from "../components/regex";
+import AuthContext from "../context/AuthProvider";
 import { toTitleCase } from "../functions/strings";
 import "../styles/Settings.css";
 
-// do ensure these keys match keys
+// when updating this interface Fields, do remember to update the following sections as well
+// keys array
+// validityChecks object in Settings
 interface Fields {
   name: string;
   email: string;
@@ -27,8 +31,34 @@ const USER_PATCH_URL: string = "api/v1/user";
 const keys: (keyof Fields)[] = ["name", "email", "password"];
 
 const Settings = (): JSX.Element => {
+  const auth = useContext(AuthContext);
+
   const [selection, setSelection] = useState<typeof keys[number]>();
   const [fields, setFields] = useState<Fields>(defaultFields);
+
+  // Validates the input fields.
+  // Currently called before form submission.
+  const validityChecks: { [key: string]: () => boolean } = {
+    name: () => {
+      const name: string = fields["name"];
+      return validUsername.test(name);
+    },
+    email: () => {
+      const email: string = fields["email"];
+      return validEmail.test(email);
+    },
+    password: () => {
+      const name: string = auth.auth.user || "";
+      const password: string = fields["password"];
+      const confirm_password: string = fields["confirm_password"];
+      if (password !== confirm_password) {
+        return false;
+      } else if (password.includes(name)) {
+        return false;
+      }
+      return validPassword.test(password);
+    },
+  };
 
   useEffect(() => {
     // get user name and email and populate fields on page load
@@ -36,7 +66,9 @@ const Settings = (): JSX.Element => {
       .get(GET_SELF_URL)
       .then((response) => {
         const data = response.data;
-        setFields({ ...fields, name: data["name"], email: data["email"] });
+        setFields((f) => {
+          return { ...f, name: data["name"], email: data["email"] };
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -56,6 +88,12 @@ const Settings = (): JSX.Element => {
     event.preventDefault();
     const key: keyof Fields = selection as keyof Fields;
 
+    if (!validityChecks[key]()) {
+      // If fail checks, display error message for the user to see.
+      // TODO: error message display
+      return;
+    }
+
     // Only send the single field we are editing (even though the backend supports multiple)
     const payload = {
       [key]: fields[key],
@@ -64,7 +102,16 @@ const Settings = (): JSX.Element => {
     axios
       .patch(USER_PATCH_URL, payload)
       .then((response) => {
-        // TODO: feed this into the context
+        if (key === "name") {
+          // when name changes, update the context
+          auth.setAuth((current) => {
+            return {
+              user: response.data["name"],
+              loggedIn: current.loggedIn,
+            };
+          });
+        }
+
         // Exit the "edit" mode
         setSelection(undefined);
       })
