@@ -345,8 +345,7 @@ func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
 // Only used for modifying username, password and email.
 func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// TODO: no longer need name from user input when changing password (because stored in JWT)
-		id, _, ok := jwtParser.GetFromJWT(ctx)
+		id, name, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -361,6 +360,11 @@ func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 			DisplayError(ctx, err.Error())
 			return
 		}
+		// If a new name is provided, use it for checks instead.
+		// Currently, only relevant for password check.
+		if q.Name != "" {
+			name = q.Name
+		}
 		tests := []func() (string, bool){
 			func() (string, bool) {
 				if q.Name == "" {
@@ -371,10 +375,8 @@ func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 			func() (string, bool) {
 				if q.Password == "" {
 					return "", true
-				} else if q.Name == "" {
-					return "for modifying password, send username as well (even if its the same)", false
 				}
-				return isValidPassword(q.Name, q.Password)
+				return isValidPassword(name, q.Password)
 			},
 			func() (string, bool) {
 				if q.Email == "" {
