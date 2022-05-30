@@ -35,6 +35,7 @@ const Settings = (): JSX.Element => {
 
   const [selection, setSelection] = useState<typeof keys[number]>();
   const [fields, setFields] = useState<Fields>(defaultFields);
+  const [message, setMessage] = useState<string>("");
 
   // Validates the input fields.
   // Currently called before form submission.
@@ -90,7 +91,7 @@ const Settings = (): JSX.Element => {
 
     if (!validityChecks[key]()) {
       // If fail checks, display error message for the user to see.
-      // TODO: error message display
+      setMessage("Input is invalid!");
       return;
     }
 
@@ -114,10 +115,18 @@ const Settings = (): JSX.Element => {
 
         // Exit the "edit" mode
         setSelection(undefined);
+
+        // Delete any previous message.
+        setMessage("");
       })
       .catch((err) => {
         console.log(err);
       });
+  };
+
+  const dismissMessage: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.preventDefault();
+    setMessage("");
   };
 
   return (
@@ -138,50 +147,65 @@ const Settings = (): JSX.Element => {
           </div>
           <div className="right centered">
             {selection === undefined ? (
+              // show this when the user has not selected an option
               <div className="vert-center">{"<- Please choose the field you want to edit!"}</div>
             ) : (
-              <form className="" onSubmit={handleSubmit}>
-                <h1 className="header2">Changing...</h1>
-                {selection !== "password" ? (
-                  <div>
-                    <label>{toTitleCase(selection)}</label>
-                    <input
-                      className="inputField"
-                      type="text"
-                      name={selection}
-                      onChange={handleChange}
-                      value={fields[selection]}
-                      required
-                    />
-                  </div>
-                ) : (
-                  <>
+              // show the form when the user has selected an option
+              <>
+                <form onSubmit={handleSubmit}>
+                  <h1 className="header2">Changing...</h1>
+                  {selection !== "password" ? (
                     <div>
-                      <label>Password</label>
+                      <label>{toTitleCase(selection)}</label>
                       <input
                         className="inputField"
-                        type="password"
-                        name="password"
+                        type="text"
+                        name={selection}
                         onChange={handleChange}
                         value={fields[selection]}
                         required
                       />
                     </div>
-                    <div>
-                      <label>Confirm Password</label>
-                      <input
-                        className="inputField"
-                        type="password"
-                        name="confirm_password"
-                        onChange={handleChange}
-                        value={fields["confirm_password"]}
-                        required
-                      />
-                    </div>
-                  </>
+                  ) : (
+                    <>
+                      <div>
+                        <label>Password</label>
+                        <input
+                          className="inputField"
+                          type="password"
+                          name="password"
+                          onChange={handleChange}
+                          value={fields[selection]}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label>Confirm Password</label>
+                        <input
+                          className="inputField"
+                          type="password"
+                          name="confirm_password"
+                          onChange={handleChange}
+                          value={fields["confirm_password"]}
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+                  <input className="submitButton" type="submit" value="Submit" />
+                </form>
+                {/* render div iff message is not empty */}
+                {message !== "" && (
+                  <div className="mt-5">
+                    <span className="error">
+                      {message}
+                      <button className="ml-5 errorClose" title="Close" onClick={dismissMessage}>
+                        &times;
+                      </button>
+                    </span>
+                  </div>
                 )}
-                <input className="submitButton" type="submit" value="Submit" />
-              </form>
+              </>
             )}
           </div>
         </div>

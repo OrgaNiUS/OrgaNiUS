@@ -96,3 +96,14 @@ input {
   background-color: red;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
+
+.error {
+  background-color: red;
+  border-radius: 6px;
+  color: white;
+  padding: 0.5vh 1vw;
+}
+
+.errorClose:hover {
+  color: black;
+}
