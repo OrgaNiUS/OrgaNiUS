@@ -3,7 +3,8 @@ import axios from "../api/axios";
 import { validEmail, validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
 import { toTitleCase } from "../functions/strings";
-import "../styles/Settings.css";
+import styles from "../styles/Settings.module.css";
+import StylesMerger from "../styles/StyleMerging";
 
 // when updating this interface Fields, do remember to update the following sections as well
 // keys array
@@ -129,36 +130,38 @@ const Settings = (): JSX.Element => {
     setMessage("");
   };
 
+  const styler = StylesMerger(styles);
+
   return (
     <>
       <div className="flex flex-col relative top-20 margin-top">
         <div className="mx-20 mt-10 justify-center items-center">
-          <div className="left centered">
-            <h1 className="header1">Settings</h1>
+          <div className={styler("left", "centered")}>
+            <h1 className={styler("header1")}>Settings</h1>
             {keys.map((key, i) => {
               return (
                 <div>
-                  <button className="changeButton" key={i} onClick={() => handleClick(key)}>
+                  <button className={styler("changeButton")} key={i} onClick={() => handleClick(key)}>
                     {`Change ${toTitleCase(key)}`}
                   </button>
                 </div>
               );
             })}
           </div>
-          <div className="right centered">
+          <div className={styler("right", "centered")}>
             {selection === undefined ? (
               // show this when the user has not selected an option
-              <div className="vert-center">{"<- Please choose the field you want to edit!"}</div>
+              <div className={styler("vert-center")}>{"<- Please choose the field you want to edit!"}</div>
             ) : (
               // show the form when the user has selected an option
               <>
-                <form onSubmit={handleSubmit}>
-                  <h1 className="header2">Changing...</h1>
+                <form className={styler("form")} onSubmit={handleSubmit}>
+                  <h1 className={`mb-5 ${styler("header2")}`}>Changing...</h1>
                   {selection !== "password" ? (
                     <div>
-                      <label>{toTitleCase(selection)}</label>
+                      <label className={styler("form-elem")}>{toTitleCase(selection)}</label>
                       <input
-                        className="inputField"
+                        className={`mb-5 ${styler("inputField")}`}
                         type="text"
                         name={selection}
                         onChange={handleChange}
@@ -169,9 +172,9 @@ const Settings = (): JSX.Element => {
                   ) : (
                     <>
                       <div>
-                        <label>Password</label>
+                        <label className={styler("form-elem")}>Password</label>
                         <input
-                          className="inputField"
+                          className={`mb-5 ${styler("inputField")}`}
                           type="password"
                           name="password"
                           onChange={handleChange}
@@ -180,9 +183,9 @@ const Settings = (): JSX.Element => {
                         />
                       </div>
                       <div>
-                        <label>Confirm Password</label>
+                        <label className={styler("form-elem")}>Confirm Password</label>
                         <input
-                          className="inputField"
+                          className={`mb-5 ${styler("inputField")}`}
                           type="password"
                           name="confirm_password"
                           onChange={handleChange}
@@ -192,14 +195,14 @@ const Settings = (): JSX.Element => {
                       </div>
                     </>
                   )}
-                  <input className="submitButton" type="submit" value="Submit" />
+                  <input className={styler("submitButton")} type="submit" value="Submit" />
                 </form>
                 {/* render div iff message is not empty */}
                 {message !== "" && (
                   <div className="mt-5">
-                    <span className="error">
+                    <span className={styler("error")}>
                       {message}
-                      <button className="ml-5 errorClose" title="Close" onClick={dismissMessage}>
+                      <button className={`ml-5 ${styler("errorClose")}`} title="Close" onClick={dismissMessage}>
                         &times;
                       </button>
                     </span>
