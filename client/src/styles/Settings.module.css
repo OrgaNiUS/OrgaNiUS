@@ -43,20 +43,15 @@
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
-form {
+.form {
   display: inline-block;
   vertical-align: center;
 }
 
-label,
-input {
+.form-elem {
   text-align: left;
   display: flex;
   flex-direction: column;
-}
-
-input {
-  margin-bottom: 5px;
 }
 
 .inputField {
