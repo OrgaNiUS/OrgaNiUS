@@ -202,7 +202,7 @@ Status Code: 200 or 400 or 401
 
 PATCH "/user" request
 
-Input: Username, Password, Email as strings. Leave the fields blank if unchanged, except when changing Password, Username is required to be sent as well even if it is the same.
+Input: Username, Password, Email as strings. Leave the fields blank if unchanged.
 
 Output: Updated `User` data if successful, else, error message in "error" field.
 

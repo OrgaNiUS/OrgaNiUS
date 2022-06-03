@@ -47,7 +47,7 @@ const Login = (): JSX.Element => {
         }).catch((err) => {
             if (err instanceof AxiosError) {
                 console.log(err);
-                setErrMsg(err.message);
+                setErrMsg(err.response?.data.error);
             } else setErrMsg("Login Failed");
         });
     };
