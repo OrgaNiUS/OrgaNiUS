@@ -2,6 +2,7 @@ package mailer_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
@@ -23,16 +24,21 @@ func (c *MockClient) SendWithContext(ctx context.Context, email *mail.SGMailV3) 
 	return nil, nil
 }
 
-type sendData struct {
-	name, address, subject, body string
-}
-
-func TestNew(t *testing.T) {
+func getTestMailer() *mailer.Mailer {
 	name := "tester"
 	sender := "tester@test.com"
 	key := "abcdef"
 	mailer := mailer.New(name, sender, key)
 	mailer.Client = &MockClient{}
+	return mailer
+}
+
+func TestSend(t *testing.T) {
+	mailer := getTestMailer()
+
+	type sendData struct {
+		name, address, subject, body string
+	}
 
 	tests := []sendData{
 		{"name1", "mail1@mail.com", "subject here", "body here\nanother line"},
@@ -50,6 +56,58 @@ func TestNew(t *testing.T) {
 		}
 		if body != test.body {
 			t.Errorf("Expected body %v but got %v", test.body, body)
+		}
+	}
+}
+
+func TestSendVerification(t *testing.T) {
+	mailer_ := getTestMailer()
+
+	type sendData struct {
+		name, email, pin string
+	}
+
+	tests := []sendData{
+		{"name1", "xxxx@mail.com", "ABCDE0"},
+		{"name2", "yyyy@mail.com", "12345F"},
+	}
+
+	for _, test := range tests {
+		mailer_.SendVerification(test.name, test.email, test.pin)
+		mail := mailer_.Client.(*MockClient).lastSend
+		if mail.Subject != mailer.SignupSubject {
+			t.Errorf("Expected subject %v but got %v", mailer.SignupSubject, mail.Subject)
+		}
+		actual := mail.Content[0].Value
+		expected := fmt.Sprintf(mailer.SignupFormat, test.name, test.pin)
+		if actual != expected {
+			t.Errorf("Expected body %v but got %v", expected, actual)
+		}
+	}
+}
+
+func TestSendForgotPW(t *testing.T) {
+	mailer_ := getTestMailer()
+
+	type sendData struct {
+		name, email, pin string
+	}
+
+	tests := []sendData{
+		{"name1", "xxxx@mail.com", "ABCDE0"},
+		{"name2", "yyyy@mail.com", "12345F"},
+	}
+
+	for _, test := range tests {
+		mailer_.SendForgotPW(test.name, test.email, test.pin)
+		mail := mailer_.Client.(*MockClient).lastSend
+		if mail.Subject != mailer.ForgotPWSubject {
+			t.Errorf("Expected subject %v but got %v", mailer.ForgotPWSubject, mail.Subject)
+		}
+		actual := mail.Content[0].Value
+		expected := fmt.Sprintf(mailer.ForgotPWFormat, test.name, test.pin)
+		if actual != expected {
+			t.Errorf("Expected body %v but got %v", expected, actual)
 		}
 	}
 }
