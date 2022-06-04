@@ -1,9 +1,11 @@
 package auth_test
 
 import (
+	"net/http/httptest"
 	"testing"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -41,6 +43,40 @@ func TestGenerationAndParsing(t *testing.T) {
 		getName, _ := parser.GetKey(tokenString, "name")
 		if getName != test.name {
 			t.Errorf("Expected name %v but got %v", test.name, getName)
+		}
+	}
+}
+
+// Tests RefreshJWT.
+func TestRefreshJWT(t *testing.T) {
+	// Set gin to be in test mode.
+	gin.SetMode(gin.TestMode)
+
+	type testData struct {
+		id, name string
+	}
+
+	tests := []testData{
+		{"123456", "testUser123"},
+		{"234567", "ABCBCBABCABCAB241"},
+	}
+
+	parser := auth.New(secret)
+
+	for _, test := range tests {
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		parser.RefreshJWT(ctx, test.id, test.name)
+		cookies := w.Result().Cookies()
+		hasJwt := false
+		for _, cookie := range cookies {
+			if cookie.Name == "jwt" {
+				hasJwt = true
+				break
+			}
+		}
+		if !hasJwt {
+			t.Error("No JWT cookie created.")
 		}
 	}
 }
