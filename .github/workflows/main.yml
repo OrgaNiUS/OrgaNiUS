@@ -20,9 +20,9 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag organius:$(date +%s)
 
+    # Deploy to Heroku
     - uses: actions/checkout@v2
     - uses: akhileshns/heroku-deploy@v3.12.12
-    - name: Deploy to Heroku
       with:
         heroku_api_key: ${{secrets.HEROKU_API_KEY}}
         heroku_app_name: "organius"
