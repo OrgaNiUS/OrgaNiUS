@@ -1,0 +1,29 @@
+# this is the main workflow that is automatically triggered whenever there is a push or pull request to the main branch
+
+name: OrgaNiUS
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # for manually running this workflow
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag organius:$(date +%s)
+
+    - uses: actions/checkout@v2
+    - uses: akhileshns/heroku-deploy@v3.12.12
+    - name: Deploy to Heroku
+      with:
+        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+        heroku_app_name: "organius"
+        heroku_email: ${{secrets.HEROKU_EMAIL}}
