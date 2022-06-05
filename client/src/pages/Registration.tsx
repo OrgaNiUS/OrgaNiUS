@@ -114,7 +114,7 @@ const Registration = (): JSX.Element => {
                             to="/"
                             className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased hover:text-orange-600"
                         >
-                            OrgaNiUS
+                            OrgaNiUS (THIS IS A TEST CHANGE)
                         </Link>
                     </div>
 
