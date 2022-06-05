@@ -4,9 +4,9 @@ name: OrgaNiUS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "prod" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "prod" ]
   workflow_dispatch: # for manually running this workflow
 
 jobs:
