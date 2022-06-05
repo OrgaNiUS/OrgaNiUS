@@ -17,10 +17,11 @@ jobs:
 
     steps:
     # Deploy to Heroku
-    - uses: actions/checkout@v2
-    - uses: akhileshns/heroku-deploy@v3.12.12
-      with:
-        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-        heroku_app_name: "organius"
-        heroku_email: ${{secrets.HEROKU_EMAIL}}
-        usedocker: true
+      - run: echo "Test"
+#     - uses: actions/checkout@v2
+#     - uses: akhileshns/heroku-deploy@v3.12.12
+#       with:
+#         heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+#         heroku_app_name: "organius"
+#         heroku_email: ${{secrets.HEROKU_EMAIL}}
+#         usedocker: true
