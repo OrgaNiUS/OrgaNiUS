@@ -4,12 +4,20 @@ name: OrgaNiUS
 
 on:
   push:
+    # change to main for both
     branches: [ "prod" ]
   pull_request:
     branches: [ "prod" ]
   workflow_dispatch: # for manually running this workflow
 
 jobs:
+
+  test-client:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: echo "Testing client done here!"
 
   test-server:
 
@@ -21,12 +29,11 @@ jobs:
         go-version: '1.18.2'
     - uses: actions/checkout@v3
     - run: go test ./...
-    - run: echo "Testing done!"
 
   deploy:
 
     # run deploy iff test stage passes
-    needs: [ test-server ]
+    needs: [ test-client, test-server ]
 
     runs-on: ubuntu-latest
 
