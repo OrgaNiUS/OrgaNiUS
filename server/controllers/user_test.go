@@ -9,36 +9,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// Creates a controller populated with some data.
-func getController(data []*models.User) ([]primitive.ObjectID, controllers.Controller) {
-	collection := &MockCollection{
-		data: map[primitive.ObjectID]*models.User{},
-	}
-
-	ids := []primitive.ObjectID{}
-	for i := 0; i < len(data); i++ {
-		user := data[i]
-		if user.Id == primitive.NilObjectID {
-			// if nil, populate with some object id
-			user.Id = primitive.NewObjectID()
-		}
-		id := user.Id
-		ids = append(ids, id)
-		collection.data[id] = user
-	}
-
-	controller := controllers.Controller{
-		Collection: func(name string, opts ...*options.CollectionOptions) controllers.CollectionInterface {
-			return collection
-		},
-		URL: TEST_URL,
-	}
-
-	return ids, controller
-}
 
 func TestUserRetrieve(t *testing.T) {
 	data := []*models.User{
@@ -59,7 +30,7 @@ func TestUserRetrieve(t *testing.T) {
 		},
 	}
 
-	ids, controller := getController(data)
+	ids, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -108,7 +79,7 @@ func TestUserExists(t *testing.T) {
 		},
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -157,7 +128,7 @@ func TestUserExists(t *testing.T) {
 func TestUserCreate(t *testing.T) {
 	data := []*models.User{}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -204,7 +175,7 @@ func TestUserVerifyPin(t *testing.T) {
 		data[i].VerificationPin = hash
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -265,7 +236,7 @@ func TestUserCheckPassword(t *testing.T) {
 		data[i].Password = hash
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -342,7 +313,7 @@ func TestUserForgotPW(t *testing.T) {
 		},
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -407,7 +378,7 @@ func TestUserVerifyForgotPW(t *testing.T) {
 		data[i].ForgotPWPin = hash
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -475,7 +446,7 @@ func TestUserChangeForgotPW(t *testing.T) {
 		data[i].ForgotPWPin = hash
 	}
 
-	_, controller := getController(data)
+	_, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
@@ -526,7 +497,7 @@ func TestUserModify(t *testing.T) {
 		Email: email,
 	}}
 
-	ids, controller := getController(data)
+	ids, controller := controllers.GetMockController(data)
 	id := ids[0]
 
 	w := httptest.NewRecorder()
@@ -567,7 +538,7 @@ func TestUserDelete(t *testing.T) {
 		},
 	}
 
-	ids, controller := getController(data)
+	ids, controller := controllers.GetMockController(data)
 
 	w := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(w)
