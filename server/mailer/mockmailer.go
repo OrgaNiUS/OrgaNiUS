@@ -21,7 +21,7 @@ func (c *MockClient) SendWithContext(ctx context.Context, email *mail.SGMailV3) 
 	return nil, nil
 }
 
-func GetTestMailer() (*mail.SGMailV3, *Mailer) {
+func GetMock() (*mail.SGMailV3, *Mailer) {
 	name := "tester"
 	sender := "tester@test.com"
 	key := "abcdef"

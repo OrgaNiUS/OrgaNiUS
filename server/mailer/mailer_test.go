@@ -8,7 +8,7 @@ import (
 )
 
 func TestSend(t *testing.T) {
-	mail, mailer := mailer.GetTestMailer()
+	mail, mailer := mailer.GetMock()
 
 	type sendData struct {
 		name, address, subject, body string
@@ -34,7 +34,7 @@ func TestSend(t *testing.T) {
 }
 
 func TestSendVerification(t *testing.T) {
-	mail, mailer_ := mailer.GetTestMailer()
+	mail, mailer_ := mailer.GetMock()
 
 	type sendData struct {
 		name, email, pin string
@@ -59,7 +59,7 @@ func TestSendVerification(t *testing.T) {
 }
 
 func TestSendForgotPW(t *testing.T) {
-	mail, mailer_ := mailer.GetTestMailer()
+	mail, mailer_ := mailer.GetMock()
 
 	type sendData struct {
 		name, email, pin string
