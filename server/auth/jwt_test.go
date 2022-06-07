@@ -1,11 +1,13 @@
 package auth_test
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -77,6 +79,57 @@ func TestRefreshJWT(t *testing.T) {
 		}
 		if !hasJwt {
 			t.Error("No JWT cookie created.")
+		}
+	}
+}
+
+func TestGetFromJWT(t *testing.T) {
+	names := []string{"name1", "name2"}
+	jwt := auth.New("some secret")
+	for _, expectedName := range names {
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		expectedId := primitive.NewObjectID()
+		cookie, _ := jwt.Generate(expectedId.Hex(), expectedName)
+		header := make(http.Header)
+		header.Set("Content-Type", "application/json")
+		ctx.Request = &http.Request{
+			Header: header,
+		}
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		id, name, ok := jwt.GetFromJWT(ctx)
+		if id != expectedId.Hex() {
+			t.Errorf("Expected id %v but got %v", expectedId.Hex(), id)
+		} else if name != expectedName {
+			t.Errorf("Expected name %v but got %v", expectedName, name)
+		} else if !ok {
+			t.Error("Expected to be ok when correct JWT")
+		}
+	}
+}
+
+func TestDeleteJWT(t *testing.T) {
+	names := []string{"name1", "name2"}
+	jwt := auth.New("some secret")
+	for _, expectedName := range names {
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		expectedId := primitive.NewObjectID()
+		cookie, _ := jwt.Generate(expectedId.Hex(), expectedName)
+		header := make(http.Header)
+		header.Set("Content-Type", "application/json")
+		ctx.Request = &http.Request{
+			Header: header,
+		}
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		jwt.DeleteJWT(ctx)
+		cookies := w.Result().Cookies()
+		for _, cookie := range cookies {
+			if cookie.Name == "jwt" {
+				if cookie.Value != "" {
+					t.Error("Expected jwt to be deleted")
+				}
+			}
 		}
 	}
 }
