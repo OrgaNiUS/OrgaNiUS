@@ -30,13 +30,13 @@ func (c *MockCollection) FindOne(ctx context.Context, user *models.User, id, nam
 		}
 	}
 	for _, u := range c.Data {
-		if u.Id == objectId {
+		if u.Id != primitive.NilObjectID && u.Id == objectId {
 			*user = *u
 			return u, nil
-		} else if u.Name == name {
+		} else if u.Name != "" && u.Name == name {
 			*user = *u
 			return u, nil
-		} else if u.Email == email {
+		} else if u.Email != "" && u.Email == email {
 			*user = *u
 			return u, nil
 		}
