@@ -24,14 +24,6 @@ const Modal = ({
         }
     };
 
-    // if (!active) {
-    //     return (
-    //         <div className={styler("inactive-outer", "outer")}>
-    //             <div className={styler("inactive-inner", "inner")}>{body}</div>
-    //         </div>
-    //     );
-    // }
-
     return (
         // onClick outer div to trigger close
         <div className={styler(active ? "active-outer" : "inactive-outer", "outer")} onClick={handleClick}>
