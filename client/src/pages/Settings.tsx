@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
-import axios from "../api/axios";
-import { validEmail, validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
-import { toTitleCase } from "../functions/strings";
-import styles from "../styles/Settings.module.css";
+import Modal from "../components/Modal";
+import React, { useContext, useEffect, useState } from "react";
 import StylesMerger from "../styles/StyleMerging";
+import axios from "../api/axios";
+import styles from "../styles/Settings.module.css";
+import { toTitleCase } from "../functions/strings";
+import { validEmail, validPassword, validUsername } from "../components/regex";
+import { useNavigate } from "react-router-dom";
 
 // when updating this interface Fields, do remember to update the following sections as well
 // keys array
@@ -25,18 +27,23 @@ const defaultFields: Fields = {
 
 const GET_SELF_URL: string = "api/v1/own_user";
 const USER_PATCH_URL: string = "api/v1/user";
+const DELETE_ACC_URL: string = "api/v1/user";
 
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
 // https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings
 const keys: (keyof Fields)[] = ["name", "email", "password"];
 
+const styler = StylesMerger(styles);
+
 const Settings = (): JSX.Element => {
     const auth = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const [selection, setSelection] = useState<typeof keys[number]>();
     const [fields, setFields] = useState<Fields>(defaultFields);
     const [message, setMessage] = useState<string>("");
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
     // Validates the input fields.
     // Currently called before form submission.
@@ -130,10 +137,68 @@ const Settings = (): JSX.Element => {
         setMessage("");
     };
 
-    const styler = StylesMerger(styles);
+    const handleConfirmDelete: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+        event.preventDefault();
+        axios
+            .delete(DELETE_ACC_URL)
+            .then((resp) => {
+                auth.setAuth({
+                    user: undefined,
+                    loggedIn: false,
+                });
+                navigate("/");
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
+
+    const DeleteModal = (
+        <>
+            <div>
+                <svg
+                    // SVG from https://heroicons.com/
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-8 pr-2 align-bottom inline"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                </svg>
+                Are you sure you want to delete this account?
+            </div>
+            <div>This is irreversible.</div>
+            <button className={`float-right ml-3 mt-4 ${styler("confirmDelete")}`} onClick={handleConfirmDelete}>
+                Confirm
+            </button>
+            <button
+                className={styler("confirmCancel")}
+                onClick={() => {
+                    setShowDeleteModal(false);
+                }}
+            >
+                Cancel
+            </button>
+        </>
+    );
 
     return (
         <>
+            <Modal
+                {...{
+                    active: showDeleteModal,
+                    body: DeleteModal,
+                    callback: () => {
+                        setShowDeleteModal(false);
+                    },
+                }}
+            />
             <div className="flex flex-col relative top-20 margin-top">
                 <div className="mx-20 mt-10 justify-center items-center">
                     <div className={styler("left", "centered")}>
@@ -147,6 +212,9 @@ const Settings = (): JSX.Element => {
                                 </div>
                             );
                         })}
+                        <button className={`mt-1 ${styler("confirmDelete")}`} onClick={() => setShowDeleteModal(true)}>
+                            Delete Account
+                        </button>
                     </div>
                     <div className={styler("right", "centered")}>
                         {selection === undefined ? (
