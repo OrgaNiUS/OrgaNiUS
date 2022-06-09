@@ -1,104 +1,132 @@
 .header1 {
-  font-size: xx-large;
-  margin-bottom: 1em;
+    font-size: xx-large;
+    margin-bottom: 1rem;
 }
 
 .header2 {
-  font-size: x-large;
+    font-size: x-large;
 }
 
 .split {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 .left {
-  border-right: 1px solid grey;
-  float: left;
-  width: 40%;
+    border-right: 1px solid grey;
+    float: left;
+    width: 40%;
 }
 
 .right {
-  float: right;
-  width: 60%;
+    float: right;
+    width: 60%;
 }
 
 .centered {
-  text-align: center;
-  padding: 3em;
+    text-align: center;
+    padding: 3rem;
 }
 
 .changeButton {
-  background-color: rgb(0, 85, 255);
-  /* border-radius for rounded button */
-  border-radius: 6px;
-  color: white;
-  margin: 0.6vh;
-  padding: 0.2vh 1vw;
+    background-color: rgb(0, 85, 255);
+    /* border-radius for rounded button */
+    border-radius: 6px;
+    color: white;
+    margin: 0.25rem;
+    padding: 0.1rem 0.5rem;
 }
 
 /* Darken colour and shadow on hover. */
 .changeButton:hover {
-  background-color: blue;
-  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    background-color: blue;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .form {
-  display: inline-block;
-  vertical-align: center;
+    display: inline-block;
+    vertical-align: center;
 }
 
 .form-elem {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
 }
 
 .inputField {
-  border: 1px solid grey;
-  padding: 7px;
-  color: grey;
+    border: 1px solid grey;
+    padding: 7px;
+    color: grey;
 }
 
 .inputField:hover {
-  border: 1px solid black;
-  color: black;
+    border: 1px solid black;
+    color: black;
 }
 
 .inputField:focus {
-  border: 1px solid black;
-  color: black;
+    border: 1px solid black;
+    color: black;
 }
 
 .vert-center {
-  flex: auto;
-  justify-content: center;
-  align-items: center;
-  height: 100;
+    flex: auto;
+    justify-content: center;
+    align-items: center;
+    height: 100;
 }
 
 .submitButton {
-  background-color: rgb(255, 85, 0);
-  /* border-radius for rounded button */
-  border-radius: 6px;
-  color: white;
-  float: right;
-  margin: 0.6vh;
-  padding: 0.2vh 1vw;
+    background-color: rgb(255, 85, 0);
+    /* border-radius for rounded button */
+    border-radius: 6px;
+    color: white;
+    float: right;
+    margin: 0.6vh;
+    padding: 0.1rem 0.5rem;
 }
 
 .submitButton:hover {
-  background-color: red;
-  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    filter: brightness(150%);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .error {
-  background-color: red;
-  border-radius: 6px;
-  color: white;
-  padding: 0.5vh 1vw;
+    background-color: red;
+    border-radius: 6px;
+    color: white;
+    padding: 0.2rem 0.5rem;
 }
 
 .errorClose:hover {
-  color: black;
+    color: black;
+}
+
+.confirmDelete {
+    background-color: rgb(255, 0, 90);
+    /* border-radius for rounded button */
+    border-radius: 6px;
+    color: white;
+    padding: 0.1rem 0.5rem;
+}
+
+.confirmDelete:hover {
+    filter: brightness(150%);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.confirmCancel {
+    background-color: white;
+    /* border-radius for rounded button */
+    border-radius: 6px;
+    border: 1px solid black;
+    float: right;
+    margin-top: 1rem;
+    padding: 0.1rem 0.5rem;
+}
+
+.confirmCancel:hover {
+    filter: brightness(150%);
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
