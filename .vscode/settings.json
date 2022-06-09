@@ -1,10 +1,10 @@
 {
-  "makefile.extensionOutputFolder": "./.vscode",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "editor.tabSize": 2,
-  "prettier.printWidth": 120,
-  "[go]": {
-    "editor.defaultFormatter": "golang.go"
-  }
+    "makefile.extensionOutputFolder": "./.vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.tabWidth": 4,
+    "prettier.printWidth": 120,
+    "[go]": {
+        "editor.defaultFormatter": "golang.go"
+    }
 }
