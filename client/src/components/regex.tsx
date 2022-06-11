@@ -17,5 +17,5 @@ export const validPassword: RegExp =
 export const validEmail: RegExp =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}])|(([a-zA-Z\-\d]+\.)+[a-zA-Z]{2,}))$/;
 
-// Only accepts 6 digit Decimal input
+// Only accepts 6 digit AlphaNumeric input
 export const validPinCode: RegExp = /^[A-Z\d]{6}$/;
