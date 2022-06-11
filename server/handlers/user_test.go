@@ -1,117 +1,496 @@
-package handlers
+package handlers_test
 
-import "testing"
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
-type Result struct {
-	message string
-	ok      bool
+	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
+	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
+	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/gin-gonic/gin"
+)
+
+/*
+	Skipped testing of some internal function calls because those function calls are being tested separately already.
+*/
+
+const (
+	JWT_SECRET = "test_secret"
+)
+
+func getJWT() *auth.JWTParser {
+	return auth.New(JWT_SECRET)
 }
 
-func TestIsValidEmail(t *testing.T) {
-	// some examples taken from here
-	// https://gist.github.com/cjaoude/fd9910626629b53c4d25
-	tests := map[string]*Result{
-		"email@example.com":              {"", true},
-		"firstname.lastname@example.com": {"", true},
-		"email@subdomain.example.com":    {"", true},
-		"firstname+lastname@example.com": {"", true},
-		"email@123.123.123.123":          {"", true},
-		"\"email\"@example.com":          {"", true},
-		"1234567890@example.com":         {"", true},
-		"email@example-one.com":          {"", true},
-		"_______@example.com":            {"", true},
-		"email@example.name":             {"", true},
-		"email@example.museum":           {"", true},
-		"email@example.co.jp":            {"", true},
-		"firstname-lastname@example.com": {"", true},
+func makeWithQuery(method string, queries map[string]string) (*httptest.ResponseRecorder, *gin.Context) {
+	// https://stackoverflow.com/a/64122385
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
+	queriesArray := []string{}
+	for k, v := range queries {
+		queriesArray = append(queriesArray, k+"="+v)
+	}
+	URL := "/?" + strings.Join(queriesArray, "&")
+	ctx.Request, _ = http.NewRequest(method, URL, nil)
+	return w, ctx
+}
 
-		"": {"please provide an email", false},
-
-		"plainaddress":              {"email is not a valid address", false},
-		"#@%^%#$@#$@#.com":          {"email is not a valid address", false},
-		"@example.com":              {"email is not a valid address", false},
-		"email.example.com":         {"email is not a valid address", false},
-		"email@example@example.com": {"email is not a valid address", false},
-		".email@example.com":        {"email is not a valid address", false},
-		"email.@example.com":        {"email is not a valid address", false},
-		"email..email@example.com":  {"email is not a valid address", false},
-		"email@example..com":        {"email is not a valid address", false},
-		"Abc..123@example.com":      {"email is not a valid address", false},
+func makePostWithParam(data map[string]interface{}) (*httptest.ResponseRecorder, *gin.Context) {
+	// https://stackoverflow.com/a/67034058
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
+	header := make(http.Header)
+	header.Set("Content-Type", "application/json")
+	ctx.Request = &http.Request{
+		Header: header,
+		Method: "POST",
 	}
 
-	for test, expected := range tests {
-		message, ok := isValidEmail(test)
-		if message != expected.message || ok != expected.ok {
-			t.Errorf("Test for %s", test)
-			t.Errorf("Expected %v but got {%v %v}", *expected, message, ok)
+	jsonbytes, _ := json.Marshal(data)
+	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
+	return w, ctx
+}
+
+func TestUserExistsGet(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Password: "Password1234",
+			Email:    "name1@mail.com",
+		},
+	}
+
+	_, controller := controllers.GetMockController(data)
+	f := handlers.UserExistsGet(controller)
+
+	type response struct {
+		Exists bool
+	}
+	var resp response
+	var body []byte
+
+	w, ctx := makeWithQuery("GET", map[string]string{
+		"name":  data[0].Name,
+		"email": data[0].Email,
+	})
+	f(ctx)
+	body, _ = io.ReadAll(w.Result().Body)
+	json.Unmarshal(body, &resp)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+	} else if !resp.Exists {
+		t.Error("Expected user to exist")
+	}
+
+	w, ctx = makeWithQuery("GET", map[string]string{
+		"name": "does not exist",
+	})
+	f(ctx)
+	body, _ = io.ReadAll(w.Result().Body)
+	json.Unmarshal(body, &resp)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+	} else if resp.Exists {
+		t.Error("Expected user to not exist")
+	}
+}
+
+func TestUserGet(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Password: "Password1234",
+			Email:    "name1@mail.com",
+		},
+	}
+
+	_, controller := controllers.GetMockController(data)
+	f := handlers.UserGet(controller)
+
+	type response struct {
+		Name     string
+		Email    string
+		Projects []models.Project
+	}
+	var resp response
+	var body []byte
+
+	w, ctx := makeWithQuery("GET", map[string]string{
+		"name":  data[0].Name,
+		"email": data[0].Email,
+	})
+	f(ctx)
+	body, _ = io.ReadAll(w.Result().Body)
+	json.Unmarshal(body, &resp)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+	} else if resp.Name != data[0].Name {
+		t.Error("Expected user to exist")
+	}
+
+	w, ctx = makeWithQuery("GET", map[string]string{
+		"name": "does not exist",
+	})
+	f(ctx)
+	body, _ = io.ReadAll(w.Result().Body)
+	json.Unmarshal(body, &resp)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected code %v but got %v", http.StatusBadRequest, w.Code)
+	}
+}
+
+func TestUserGetSelf(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:  "name1",
+			Email: "name1@mail.com",
+		},
+		{
+			Name:  "fafa22",
+			Email: "name2@mail.com",
+		},
+		{
+			Name:  "23456789SDFGHJ",
+			Email: "name3@mail.com",
+		},
+	}
+
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserGetSelf(controller, jwt)
+
+	for i := 0; i < len(data); i++ {
+		w, ctx := makeWithQuery("GET", nil)
+		cookie, _ := jwt.Generate(data[i].Id.Hex(), data[i].Name)
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+
+		var resp models.User
+		var body []byte
+
+		f(ctx)
+		body, _ = io.ReadAll(w.Result().Body)
+		json.Unmarshal(body, &resp)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		} else if resp.Name != data[i].Name {
+			t.Errorf("Expected name %v but got %v", data[i].Name, resp.Name)
+		} else if resp.Email != data[i].Email {
+			t.Errorf("Expected email %v but got %v", data[i].Email, resp.Email)
 		}
 	}
 }
 
-func TestIsValidName(t *testing.T) {
-	tests := map[string]*Result{
-		"ABCDE":     {"", true},
-		"ABCDEF":    {"", true},
-		"ABCDEFG":   {"", true},
-		"WERTYUI":   {"", true},
-		"xcvbnm":    {"", true},
-		"34562567":  {"", true},
-		"dfghjklgh": {"", true},
+func TestUserSignup(t *testing.T) {
+	data := []*models.User{}
 
-		"": {"please provide a username", false},
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	_, mailer := mailer.GetMock()
+	f := handlers.UserSignup(controller, jwt, mailer)
 
-		"x":    {"username too short", false},
-		"xx":   {"username too short", false},
-		"xxx":  {"username too short", false},
-		"xxxx": {"username too short", false},
+	params := map[string]interface{}{
+		"name":     "GoodName",
+		"email":    "mail@email.com",
+		"password": "Password1234",
+	}
+	w, ctx := makePostWithParam(params)
+	f(ctx)
+	if w.Code != http.StatusCreated {
+		t.Errorf("Expected code %v but got %v", http.StatusCreated, w.Code)
+	}
+}
 
-		"dfghjklghѼ": {"name contains invalid character", false},
-		"Ab**&":      {"name contains invalid character", false},
+func TestUserVerify(t *testing.T) {
+	pins := []string{"ABCDEF", "123456"}
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Email:    "name1@mail.com",
+			Verified: false,
+		},
+		{
+			Name:     "name2",
+			Email:    "name2@mail.com",
+			Verified: false,
+		},
+	}
+	for i := 0; i < len(data); i++ {
+		hash, _ := auth.HashPassword(pins[i])
+		data[i].VerificationPin = hash
 	}
 
-	for test, expected := range tests {
-		message, ok := isValidName(test)
-		if message != expected.message || ok != expected.ok {
-			t.Errorf("Test for %s", test)
-			t.Errorf("Expected %v but got {%v %v}", *expected, message, ok)
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserVerify(controller, jwt)
+
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name": data[i].Name,
+			"pin":  pins[i],
+		}
+		w, ctx := makePostWithParam(params)
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
 		}
 	}
 }
 
-func TestIsValidPassword(t *testing.T) {
-	type Input struct {
-		name     string
-		password string
+func TestUserLogin(t *testing.T) {
+	passwords := []string{"Password1234", "Test45678"}
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+		{
+			Name:     "name2",
+			Verified: true,
+		},
+	}
+	for i := 0; i < len(data); i++ {
+		hash, _ := auth.HashPassword(passwords[i])
+		data[i].Password = hash
 	}
 
-	tests := map[Input]*Result{
-		{"abcde", "AbCde123"}: {"", true},
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserLogin(controller, jwt)
 
-		{"abcde", ""}: {"please provide a password", false},
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name":     data[i].Name,
+			"password": passwords[i],
+		}
+		w, ctx := makePostWithParam(params)
+		f(ctx)
+		if w.Code != http.StatusCreated {
+			t.Errorf("Expected code %v but got %v", http.StatusCreated, w.Code)
+		}
+	}
+}
 
-		{"abcde", "0"}:       {"password too short", false},
-		{"abcde", "00"}:      {"password too short", false},
-		{"abcde", "000"}:     {"password too short", false},
-		{"abcde", "0000"}:    {"password too short", false},
-		{"abcde", "00000"}:   {"password too short", false},
-		{"abcde", "000000"}:  {"password too short", false},
-		{"abcde", "0000000"}: {"password too short", false},
+func TestUserRefreshJWT(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+	}
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserRefreshJWT(controller, jwt)
 
-		{"abcde", "abcde123"}:   {"password cannot contain username", false},
-		{"ab2345", "00ab23450"}: {"password cannot contain username", false},
-
-		{"abcde", "AbCde123Ѽ"}: {"password contains invalid character", false},
-
-		{"abcde", "ABBABABABA"}: {"password missing required lowercase letter", false},
-		{"abcde", "abbabababa"}: {"password missing required uppercase letter", false},
-		{"abcde", "Abbabababa"}: {"password missing required digit", false},
+	w, ctx := makeWithQuery("GET", nil)
+	f(ctx)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("Expected code %v but got %v", http.StatusUnauthorized, w.Code)
 	}
 
-	for test, expected := range tests {
-		message, ok := isValidPassword(test.name, test.password)
-		if message != expected.message || ok != expected.ok {
-			t.Errorf("Test for %s", test)
-			t.Errorf("Expected %v but got {%v %v}", *expected, message, ok)
+	for i := 0; i < len(data); i++ {
+		w, ctx := makeWithQuery("GET", nil)
+		cookie, _ := jwt.Generate("fake id", data[i].Name)
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserLogout(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+	}
+	_, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserLogout(controller, jwt)
+
+	w, ctx := makeWithQuery("GET", nil)
+	f(ctx)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("Expected code %v but got %v", http.StatusUnauthorized, w.Code)
+	}
+
+	for i := 0; i < len(data); i++ {
+		w, ctx := makeWithQuery("GET", nil)
+		cookie, _ := jwt.Generate("fake id", data[i].Name)
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserForgotPW(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+	}
+
+	_, controller := controllers.GetMockController(data)
+	_, mailer := mailer.GetMock()
+	f := handlers.UserForgotPW(controller, mailer)
+
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name": data[i].Name,
+		}
+		w, ctx := makePostWithParam(params)
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserVerifyForgotPW(t *testing.T) {
+	pins := []string{"ABCDEF", "123456"}
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+			ForgotPW: true,
+		},
+		{
+			Name:     "name2",
+			Verified: true,
+			ForgotPW: true,
+		},
+	}
+
+	for i := 0; i < len(data); i++ {
+		hash, _ := auth.HashPassword(pins[i])
+		data[i].ForgotPWPin = hash
+	}
+
+	_, controller := controllers.GetMockController(data)
+	f := handlers.UserVerifyForgotPW(controller)
+
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name": data[i].Name,
+			"pin":  pins[i],
+		}
+		w, ctx := makePostWithParam(params)
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserChangeForgotPW(t *testing.T) {
+	pins := []string{"ABCDEF", "123456"}
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+			ForgotPW: true,
+		},
+		{
+			Name:     "name2",
+			Verified: true,
+			ForgotPW: true,
+		},
+	}
+
+	for i := 0; i < len(data); i++ {
+		hash, _ := auth.HashPassword(pins[i])
+		data[i].ForgotPWPin = hash
+	}
+
+	_, controller := controllers.GetMockController(data)
+	f := handlers.UserChangeForgotPW(controller)
+
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name":     data[i].Name,
+			"pin":      pins[i],
+			"password": "new password1234XXX",
+		}
+		w, ctx := makePostWithParam(params)
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserPatch(t *testing.T) {
+	passwords := []string{"ABCDEF", "123456"}
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+		{
+			Name:     "name2",
+			Verified: true,
+		},
+	}
+
+	for i := 0; i < len(data); i++ {
+		hash, _ := auth.HashPassword(passwords[i])
+		data[i].Password = hash
+	}
+
+	ids, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserPatch(controller, jwt)
+
+	for i := 0; i < len(data); i++ {
+		params := map[string]interface{}{
+			"name":     "new name",
+			"password": "new password1234XXX",
+			"email":    "newmail@mail.com",
+		}
+		w, ctx := makePostWithParam(params)
+		cookie, _ := jwt.Generate(ids[i].Hex(), data[i].Name)
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
+		}
+	}
+}
+
+func TestUserDelete(t *testing.T) {
+	data := []*models.User{
+		{
+			Name:     "name1",
+			Verified: true,
+		},
+		{
+			Name:     "name2",
+			Verified: true,
+		},
+	}
+
+	ids, controller := controllers.GetMockController(data)
+	jwt := getJWT()
+	f := handlers.UserDelete(controller, jwt)
+
+	for i := 0; i < len(data); i++ {
+		w, ctx := makeWithQuery("DELETE", nil)
+		cookie, _ := jwt.Generate(ids[i].Hex(), data[i].Name)
+		ctx.Request.AddCookie(auth.MakeJWTCookie(cookie))
+		f(ctx)
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected code %v but got %v", http.StatusOK, w.Code)
 		}
 	}
 }

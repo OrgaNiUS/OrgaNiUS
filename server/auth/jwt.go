@@ -82,16 +82,10 @@ const (
 	expiryTime = 10 * 60
 )
 
-// Refreshes JWT expiry time.
-func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
-	jwt, err := p.Generate(id, name)
-	if err != nil {
-		return err
-	}
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-	http.SetCookie(ctx.Writer, &http.Cookie{
+func MakeJWTCookie(value string) *http.Cookie {
+	return &http.Cookie{
 		Name:  "jwt",
-		Value: jwt,
+		Value: value,
 		Path:  "/",
 		// Expires is used for compatibility with IE, all other modern browsers use MaxAge
 		Expires: time.Now().Add(10 * time.Minute),
@@ -100,7 +94,17 @@ func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
 		// Same SiteStrict Mode forces the cookie to never be sent to another site
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: false,
-	})
+	}
+}
+
+// Refreshes JWT expiry time.
+func (p *JWTParser) RefreshJWT(ctx *gin.Context, id, name string) error {
+	jwt, err := p.Generate(id, name)
+	if err != nil {
+		return err
+	}
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+	http.SetCookie(ctx.Writer, MakeJWTCookie(jwt))
 	return nil
 }
 

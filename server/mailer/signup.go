@@ -4,14 +4,17 @@ import (
 	"fmt"
 )
 
+const (
+	SignupSubject = "Welcome to OrgaNiUS! Confirm Your Email!"
+	SignupFormat  = `Hey %s!
+
+	Enter this pin "%s" in the prompt.
+
+	Regards,
+	OrgaNiUS Team`
+)
+
 func (m *Mailer) SendVerification(name, email, pin string) error {
-	subject := "Welcome to OrgaNiUS! Confirm Your Email!"
-	format := `Hey %s!
-
-Enter this pin "%s" in the prompt.
-
-Regards,
-OrgaNiUS Team`
-	body := fmt.Sprintf(format, name, pin)
-	return m.Send(name, email, subject, body)
+	body := fmt.Sprintf(SignupFormat, name, pin)
+	return m.Send(name, email, SignupSubject, body)
 }

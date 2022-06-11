@@ -1,15 +1,22 @@
 package mailer
 
 import (
+	"context"
 	"log"
 
+	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
+type Client interface {
+	Send(email *mail.SGMailV3) (*rest.Response, error)
+	SendWithContext(ctx context.Context, email *mail.SGMailV3) (*rest.Response, error)
+}
+
 type Mailer struct {
 	Sender *mail.Email
-	Client *sendgrid.Client
+	Client Client
 }
 
 func New(name, sender, key string) *Mailer {
