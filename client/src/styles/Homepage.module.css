@@ -1,0 +1,11 @@
+.welcome-msg {
+    font-size: xx-large;
+    margin-top: 1rem;
+    margin-left: 3rem;
+}
+
+.container {
+    display: flex;
+    height: 100%;
+    padding: 3rem;
+}
