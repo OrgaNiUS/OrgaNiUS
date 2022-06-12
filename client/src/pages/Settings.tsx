@@ -199,7 +199,7 @@ const Settings = (): JSX.Element => {
                     },
                 }}
             />
-            <div className="flex flex-col relative top-20 margin-top">
+            <div className="flex flex-col">
                 <div className="mx-20 mt-10 justify-center items-center">
                     <div className={styler("left", "centered")}>
                         <h1 className={styler("header1")}>Settings</h1>
