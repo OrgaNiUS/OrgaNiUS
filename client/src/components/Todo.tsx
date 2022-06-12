@@ -1,6 +1,7 @@
 import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Todo.module.css";
-import Task, { ITask } from "./Task";
+import { ITask } from "../types";
+import Task from "./Task";
 
 const styler = StylesMerger(styles);
 

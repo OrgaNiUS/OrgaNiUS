@@ -1,14 +1,8 @@
 import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Task.module.css";
+import { ITask } from "../types";
 
 const styler = StylesMerger(styles);
-
-export interface ITask {
-    name: string;
-    description: string;
-    tags: string[];
-    deadline?: Date;
-}
 
 const formatDate = (date: Date | undefined): string => {
     if (date === undefined) {
