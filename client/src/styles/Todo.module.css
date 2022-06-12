@@ -1,6 +1,8 @@
 .container {
     border: 1px solid rgb(59, 130, 246);
-    height: 100%;
+    /* 5rem from navbar, 3rem from welcome message */
+    height: calc(100vh - 2 * (5rem + 1rem));
+    overflow-y: auto;
     padding: 1rem;
 }
 

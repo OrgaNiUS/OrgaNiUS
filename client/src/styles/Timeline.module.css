@@ -1,0 +1,23 @@
+.container {
+    height: 5rem;
+}
+
+.row {
+    /* column gap specifies the minimum gap between items in the row */
+    column-gap: 1rem;
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: 0.5rem;
+    padding-top: 1rem;
+}
+
+/* shift to middle of the region with relative positioning and top */
+.line {
+    border: 0.2rem solid black;
+}
+
+.card {
+    position: absolute;
+    border: 0.2rem solid black;
+    bottom: 7rem;
+}

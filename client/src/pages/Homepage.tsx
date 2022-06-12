@@ -1,4 +1,6 @@
 import { useContext, useState } from "react";
+import Scheduler from "../components/Scheduler";
+import Timeline from "../components/Timeline";
 import Todo from "../components/Todo";
 import AuthContext from "../context/AuthProvider";
 import styles from "../styles/Homepage.module.css";
@@ -22,7 +24,10 @@ const Homepage = (): JSX.Element => {
                     <Todo />
                 </div>
                 <div>Slider</div>
-                <div style={{ flex: 10 - pageRatio }}>Right</div>
+                <div style={{ flex: 10 - pageRatio }}>
+                    <Scheduler />
+                    <Timeline />
+                </div>
             </div>
         </>
     );
