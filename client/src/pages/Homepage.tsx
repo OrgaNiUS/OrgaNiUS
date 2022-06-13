@@ -31,7 +31,7 @@ const Homepage = (): JSX.Element => {
 
     const Resizer = (): JSX.Element => {
         // tried but failed to make this draggable instead of buttons
-        // if time permits, try again?
+        // might be doable with dnd-kit (or some other draggable library), which probably would be imported for tasks anyways
 
         const handleLeft = () => {
             setPageRatio((r) => {
@@ -52,13 +52,13 @@ const Homepage = (): JSX.Element => {
         return (
             <div className={styler("resizer")}>
                 <div className={styler("resizer-button-wrapper")}>
-                    <button className={styler("resizer-button")} onClick={handleLeft}>
-                        {"<"}
+                    <button className={styler("resizer-button")} onClick={handleRight}>
+                        {">"}
                     </button>
                 </div>
                 <div className={styler("resizer-button-wrapper")}>
-                    <button className={styler("resizer-button")} onClick={handleRight}>
-                        {">"}
+                    <button className={styler("resizer-button")} onClick={handleLeft}>
+                        {"<"}
                     </button>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 .container {
+    border-radius: 6px;
     border: 1px solid rgb(59, 130, 246);
     /* 5rem from navbar, 3rem from welcome message */
     height: calc(100vh - 2 * (5rem + 1rem));

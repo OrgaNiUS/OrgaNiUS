@@ -35,6 +35,12 @@ const events: IEvent[] = [
         end: new Date(2022, 0, 1),
         important: true,
     },
+    {
+        name: "very loooooooooooooooooooooooooooooooooooong name",
+        start: new Date(2022, 0, 1),
+        end: new Date(2022, 0, 1),
+        important: true,
+    },
 ];
 
 const Card = ({ event }: { event: IEvent }): JSX.Element => {
@@ -47,10 +53,10 @@ const Card = ({ event }: { event: IEvent }): JSX.Element => {
     const end: string = event.end.toLocaleDateString("en-SG", options);
     const period: string = start === end ? start : `${start} - ${end}`;
 
-    // TODO: make this look nice
+    // TODO: potentially link to future events page (?)
     return (
         <div className={styler("card")}>
-            <p>{event.name}</p>
+            <p className={styler("truncate-name")}>{event.name}</p>
             <p>{period}</p>
         </div>
     );
@@ -70,11 +76,12 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
 
     return (
         <div className={styler("item")}>
-            <div>{event.name}</div>
+            {showCard && <Card {...{ event }} />}
+            <div className={styler("truncate-name")}>{event.name}</div>
             <svg height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={colour} className={styler("circle")} onClick={handleClick} />
             </svg>
-            {showCard && <Card {...{ event }} />}
+            <div className={styler("vert-line")} />
         </div>
     );
 };
@@ -82,7 +89,10 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
 // Timeline will render both events and tasks.
 const Timeline = (): JSX.Element => {
     const merged = mergeEventArrays(events, tasks);
+    // TODO: filter out events that are over?
 
+    // TODO: implement buttons for scrolling timeline with
+    // currently, timeline can only be scrolled by shift + scroll wheel (or touchpad)
     return (
         <div className={styler("container")}>
             <div className={styler("row")}>

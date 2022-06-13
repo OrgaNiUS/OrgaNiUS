@@ -34,6 +34,14 @@
     border: 2px solid black;
 }
 
+.vert-line {
+    background-color: black;
+    border: none;
+    height: 25px;
+    position: relative;
+    width: 3px;
+}
+
 .item {
     align-items: center;
     display: flex;
@@ -44,10 +52,24 @@
     top: 50%;
 }
 
+/* truncate long names */
+/* https://stackoverflow.com/a/26973672 */
+.truncate-name {
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* box-shadow is #29 from https://getcssscan.com/css-box-shadow-examples */
 .card {
-    border: 0.2rem solid black;
+    background-color: white;
+    border-radius: 5px;
+    border: 2px solid black;
+    box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+    padding: 0.2rem 0.6rem;
     position: absolute;
-    top: -50%;
+    top: -30%;
     width: max-content;
 }
 
