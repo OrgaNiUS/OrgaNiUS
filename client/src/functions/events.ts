@@ -1,4 +1,5 @@
 import { IEvent, ITask } from "../types";
+import { isLessThan } from "./dates";
 
 // Collection of useful helper functions for manipulating events and tasks.
 
@@ -6,9 +7,9 @@ import { IEvent, ITask } from "../types";
  * Function to merge a variable number of event or task arrays.
  *
  * @param events Optional array of events.
- * @param tasks Optional array of tasks. Tasks are skipped if there is no deadline.
+ * @param tasks Optional array of tasks. Tasks are skipped if there is no deadline. Tasks are marked as important if deadline is less than 3 days away.
  *
- * @return The events/tasks merged into a single sorted array.
+ * @returns The events/tasks merged into a single sorted array.
  */
 export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IEvent[] => {
     const result: IEvent[] = [];
@@ -23,6 +24,7 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
             name: t.name,
             start: t.deadline,
             end: t.deadline,
+            important: isLessThan(t.deadline, 3, "day"),
         });
     });
 
@@ -35,7 +37,7 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
 
         if (aStart !== bStart) {
             return aStart - bStart;
-        } else if (aEnd != bEnd) {
+        } else if (aEnd !== bEnd) {
             return aEnd - bEnd;
         }
         return a.name.localeCompare(b.name);

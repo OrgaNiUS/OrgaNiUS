@@ -9,16 +9,16 @@ const styler = StylesMerger(styles);
 // TODO: This is only for testing purposes because actual events/tasks are to be implemented later on.
 const tasks: ITask[] = [
     {
-        name: "some task",
+        name: "Some task",
         description: "",
         tags: [],
-        deadline: new Date(2022, 0, 1),
+        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
     },
     {
-        name: "another task",
+        name: "Another task",
         description: "",
         tags: [],
-        deadline: new Date(2022, 0, 1),
+        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
     },
 ];
 
@@ -26,42 +26,62 @@ const events: IEvent[] = [
     {
         name: "event 1",
         start: new Date(2022, 0, 1),
-        end: new Date(2022, 0, 1),
+        end: new Date(2022, 1, 1),
+        important: false,
     },
     {
         name: "event 2",
         start: new Date(2022, 0, 1),
         end: new Date(2022, 0, 1),
+        important: true,
     },
 ];
 
 const Card = ({ event }: { event: IEvent }): JSX.Element => {
+    const options: Intl.DateTimeFormatOptions = {
+        day: "numeric",
+        month: "short",
+    };
+
+    const start: string = event.start.toLocaleDateString("en-SG", options);
+    const end: string = event.end.toLocaleDateString("en-SG", options);
+    const period: string = start === end ? start : `${start} - ${end}`;
+
+    // TODO: make this look nice
     return (
         <div className={styler("card")}>
             <p>{event.name}</p>
-            <p>{event.start.toLocaleDateString("en-SG")}</p>
-            <p>{event.end.toLocaleDateString("en-SG")}</p>
+            <p>{period}</p>
         </div>
     );
 };
 
 const Item = ({ event }: { event: IEvent }): JSX.Element => {
-    // TODO: pop up the Card when moused over
     const [showCard, setShowCard] = useState<boolean>(false);
 
     const handleClick = () => {
         setShowCard((x) => !x);
     };
 
-    // TODO: make this act like buttons (mouse pointer) and find nicer icon
-    return <span onClick={handleClick}>{showCard && <Card {...{ event }} />}X</span>;
+    const regular: string = "#3B82F6";
+    const important: string = "#FF5500";
+
+    const colour: string = event.important ? important : regular;
+
+    return (
+        <div className={styler("item")}>
+            <div>{event.name}</div>
+            <svg height="30" width="30">
+                <circle cx="15" cy="15" r="15" fill={colour} className={styler("circle")} onClick={handleClick} />
+            </svg>
+            {showCard && <Card {...{ event }} />}
+        </div>
+    );
 };
 
 // Timeline will render both events and tasks.
 const Timeline = (): JSX.Element => {
     const merged = mergeEventArrays(events, tasks);
-    const start: Date = merged[0].start;
-    const end: Date = merged[merged.length - 1].end;
 
     return (
         <div className={styler("container")}>

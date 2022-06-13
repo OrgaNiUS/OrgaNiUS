@@ -1,3 +1,4 @@
+import { dateDiff, isLessThan } from "../functions/dates";
 import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Task.module.css";
 import { ITask } from "../types";
@@ -9,20 +10,11 @@ const formatDate = (date: Date | undefined): string => {
         return "";
     }
 
-    // thresholds are in milliseconds
-    const milliInHour = 1000 * 60 * 60;
-    const dayThreshold: number = milliInHour * 24;
-    const weekThreshold: number = dayThreshold * 7;
-
-    const diff: number = date.getTime() - Date.now();
-
     // Display date in hours and days left if less than a week.
-    if (diff < dayThreshold) {
-        const hours: number = diff / milliInHour;
-        return `Due in ${Math.round(hours)} hours`;
-    } else if (diff < weekThreshold) {
-        const days: number = diff / (milliInHour * 24);
-        return `Due in ${Math.round(days)} days`;
+    if (isLessThan(date, 1, "day")) {
+        return `Due in ${dateDiff(new Date(), date, "hour")} hours`;
+    } else if (isLessThan(date, 1, "week")) {
+        return `Due in ${dateDiff(new Date(), date, "day")} days`;
     }
 
     const d: string = date.toLocaleDateString("en-SG");

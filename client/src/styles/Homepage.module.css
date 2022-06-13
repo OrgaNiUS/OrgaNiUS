@@ -2,10 +2,19 @@
     font-size: 2rem;
     margin-top: 1rem;
     margin-left: 3rem;
+    width: fit-content;
 }
 
 .container {
     display: flex;
     height: 100%;
     padding: 1rem 3rem;
+    width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.panel {
+    width: 10%;
 }

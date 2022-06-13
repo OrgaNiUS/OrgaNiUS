@@ -20,11 +20,11 @@ const Homepage = (): JSX.Element => {
         <>
             <h1 className={styler("welcome-msg")}>Hey {auth.auth.user}!</h1>
             <div className={styler("container")}>
-                <div style={{ flex: pageRatio }}>
+                <div className={styler("panel")} style={{ flex: pageRatio }}>
                     <Todo />
                 </div>
-                <div>Slider</div>
-                <div style={{ flex: 10 - pageRatio }}>
+                <div style={{ flex: 0.5 }}>Slider</div>
+                <div className={styler("panel")} style={{ flex: 10 - pageRatio }}>
                     <Scheduler />
                     <Timeline />
                 </div>

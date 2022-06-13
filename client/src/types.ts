@@ -2,6 +2,7 @@ export interface IEvent {
     name: string;
     start: Date;
     end: Date;
+    important: boolean;
 }
 
 export interface ITask {
