@@ -75,8 +75,11 @@
 
 .circle {
     cursor: pointer;
+    transition: transform 0.2s;
+    z-index: 1;
 }
 
 .circle:hover {
     filter: brightness(150%);
+    transform: scale(1.3);
 }

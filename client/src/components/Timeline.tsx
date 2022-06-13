@@ -78,8 +78,8 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
         <div className={styler("item")}>
             {showCard && <Card {...{ event }} />}
             <div className={styler("truncate-name")}>{event.name}</div>
-            <svg height="30" width="30">
-                <circle cx="15" cy="15" r="15" fill={colour} className={styler("circle")} onClick={handleClick} />
+            <svg height="30" width="30" className={styler("circle")}>
+                <circle cx="15" cy="15" r="15" fill={colour} onClick={handleClick} />
             </svg>
             <div className={styler("vert-line")} />
         </div>

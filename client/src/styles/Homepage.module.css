@@ -33,4 +33,10 @@
     height: fit-content;
     position: relative;
     top: 50%;
+    transform: scale(1.2);
+    transition: transform 0.2s;
+}
+
+.resizer-button:hover {
+    transform: scale(1.6);
 }
