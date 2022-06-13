@@ -18,3 +18,19 @@
 .panel {
     width: 10%;
 }
+
+.resizer {
+    display: flex;
+    justify-content: space-around;
+    height: 100%;
+}
+
+.resizer-button-wrapper {
+    height: 100%;
+}
+
+.resizer-button {
+    height: fit-content;
+    position: relative;
+    top: 50%;
+}

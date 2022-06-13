@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import { getCookie } from "../functions/cookies";
 
 interface AuthInterface {
     user?: string;
@@ -16,11 +17,7 @@ const ParseJWT = (): AuthInterface => {
     // get cookie, abstract out if needed elsewhere too!
     // from https://stackoverflow.com/a/67707172
 
-    const cookieName: string = "jwt";
-    const jwt: string | undefined = document.cookie
-        ?.split("; ")
-        ?.find((row) => row.startsWith(`${cookieName}=`))
-        ?.split("=")[1];
+    const jwt: string | undefined = getCookie("jwt");
 
     const user: AuthInterface = {
         user: "",
