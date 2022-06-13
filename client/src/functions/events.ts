@@ -45,3 +45,28 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
 
     return result;
 };
+
+export interface filterTaskOptions {
+    done: boolean;
+    expired: boolean;
+}
+
+/**
+ * Filter tasks by some options.
+ * @param tasks   Tasks to be filtered by.
+ * @param options Filter by options, true to be filtered away. If left blank, all options will be true.
+ * @returns Filtered tasks.
+ */
+export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[] => {
+    return tasks.filter((t) => {
+        if (options.done && t.isDone) {
+            return false;
+        }
+        if (options.expired) {
+            if (t.deadline !== undefined && isLessThan(t.deadline, 0, "")) {
+                return false;
+            }
+        }
+        return true;
+    });
+};

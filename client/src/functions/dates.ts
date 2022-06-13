@@ -17,13 +17,13 @@ const types = ["hour", "day", "week", ""] as const;
 export const convertTime = (millis: number, type: typeof types[number] = ""): number => {
     switch (type) {
         case "hour":
-            return Math.round(millis / milliInHour);
+            return Math.ceil(millis / milliInHour);
 
         case "day":
-            return Math.round(millis / milliInDay);
+            return Math.ceil(millis / milliInDay);
 
         case "week":
-            return Math.round(millis / milliInWeek);
+            return Math.ceil(millis / milliInWeek);
 
         default:
             return millis;
@@ -54,5 +54,19 @@ export const dateDiff = (start: Date, end: Date, type: typeof types[number] = ""
  * @returns True if date is less than `days` days away from now.
  */
 export const isLessThan = (date: Date, period: number, type: typeof types[number] = ""): boolean => {
-    return dateDiff(new Date(), date, type) <= period;
+    const diff: number = dateDiff(new Date(), date, "");
+
+    switch (type) {
+        case "hour":
+            return diff < period * milliInHour;
+
+        case "day":
+            return diff < period * milliInDay;
+
+        case "week":
+            return diff < period * milliInWeek;
+
+        default:
+            return diff < period;
+    }
 };

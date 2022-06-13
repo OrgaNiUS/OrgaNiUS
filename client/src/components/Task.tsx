@@ -11,7 +11,9 @@ const formatDate = (date: Date | undefined): string => {
     }
 
     // Display date in hours and days left if less than a week.
-    if (isLessThan(date, 1, "day")) {
+    if (isLessThan(date, 0, "")) {
+        return "Expired";
+    } else if (isLessThan(date, 1, "day")) {
         return `Due in ${dateDiff(new Date(), date, "hour")} hours`;
     } else if (isLessThan(date, 1, "week")) {
         return `Due in ${dateDiff(new Date(), date, "day")} days`;

@@ -11,13 +11,15 @@ const tasks: ITask[] = [
     {
         name: "Some task",
         description: "",
-        tags: [],
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+        isDone: false,
+        tags: [],
     },
     {
         name: "Another task",
         description: "",
         tags: [],
+        isDone: false,
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
     },
 ];

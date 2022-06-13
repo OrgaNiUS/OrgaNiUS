@@ -6,9 +6,9 @@ describe("convertTime", () => {
 
         expect(convertTime(millis, "")).toBe(millis);
         expect(convertTime(millis)).toBe(millis);
-        expect(convertTime(millis, "hour")).toBe(0);
-        expect(convertTime(millis, "day")).toBe(0);
-        expect(convertTime(millis, "week")).toBe(0);
+        expect(convertTime(millis, "hour")).toBe(1);
+        expect(convertTime(millis, "day")).toBe(1);
+        expect(convertTime(millis, "week")).toBe(1);
     });
 
     it("13 hours", () => {
@@ -18,7 +18,7 @@ describe("convertTime", () => {
         expect(convertTime(millis)).toBe(millis);
         expect(convertTime(millis, "hour")).toBe(13);
         expect(convertTime(millis, "day")).toBe(1);
-        expect(convertTime(millis, "week")).toBe(0);
+        expect(convertTime(millis, "week")).toBe(1);
     });
 
     it("5 days", () => {
@@ -48,7 +48,7 @@ describe("isLessThan", () => {
     it("10 minutes", () => {
         const future: Date = new Date(Date.now() + 1000 * 60 * 10);
 
-        expect(isLessThan(future, 0, "hour")).toBe(true);
+        expect(isLessThan(future, 0, "hour")).toBe(false);
         expect(isLessThan(future, 1, "hour")).toBe(true);
         expect(isLessThan(future, 1, "day")).toBe(true);
         expect(isLessThan(future, 1, "week")).toBe(true);
@@ -76,7 +76,7 @@ describe("isLessThan", () => {
         expect(isLessThan(future, 1, "hour")).toBe(false);
         expect(isLessThan(future, 1, "day")).toBe(false);
         expect(isLessThan(future, 1, "week")).toBe(false);
-        expect(isLessThan(future, 6, "week")).toBe(false);
-        expect(isLessThan(future, 7, "week")).toBe(true);
+        expect(isLessThan(future, 7, "week")).toBe(false);
+        expect(isLessThan(future, 8, "week")).toBe(true);
     });
 });

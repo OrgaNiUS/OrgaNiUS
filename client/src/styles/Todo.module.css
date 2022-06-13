@@ -17,6 +17,35 @@
     text-align: center;
 }
 
+.filter-button {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    transition: transform 0.2s;
+}
+
+.filter-button:hover {
+    transform: scale(1.2);
+}
+
+.filter-dropdown-content {
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid black;
+    position: absolute;
+    right: -10rem; /* this is based on the content's width + 2 (then negated) */
+    top: 3rem;
+    transition: 0s visibility 0.3s;
+    visibility: hidden;
+    width: 12rem;
+    padding: 0.2rem 0.4rem;
+}
+
+.filter-dropdown:hover .filter-dropdown-content {
+    visibility: visible;
+    transition: 0s visiblity 0s;
+}
+
 .expand-button {
     bottom: 1rem;
     position: absolute;

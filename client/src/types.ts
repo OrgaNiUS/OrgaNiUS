@@ -5,9 +5,14 @@ export interface IEvent {
     important: boolean;
 }
 
+// some fields are marked as optional temporarily
 export interface ITask {
     name: string;
+    // change assignedTo to User[] type
+    assignedTo?: string;
     description: string;
-    tags: string[];
+    creationTime?: Date;
     deadline?: Date;
+    isDone: boolean;
+    tags: string[];
 }
