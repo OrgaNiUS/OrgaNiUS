@@ -6,8 +6,6 @@ const milliInWeek: number = milliInDay * 7;
 
 const types = ["hour", "day", "week", ""] as const;
 
-// TODO: Write tests for this and the other function files.
-
 /**
  * Converts the milliseconds since 1 January 1970 UTC to hours, days, or weeks.
 
