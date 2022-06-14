@@ -49,12 +49,15 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
 export interface filterTaskOptions {
     done: boolean;
     expired: boolean;
+    searchTerm: string;
 }
 
 /**
  * Filter tasks by some options.
+ *
  * @param tasks   Tasks to be filtered by.
- * @param options Filter by options, true to be filtered away. If left blank, all options will be true.
+ * @param options Filter by options, true to be filtered away. But for search term, the task will *not* be filtered away if the name, description or tags contain the search term. Search term is case-insensitive.
+ *
  * @returns Filtered tasks.
  */
 export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[] => {
@@ -66,6 +69,20 @@ export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[]
             if (t.deadline !== undefined && isLessThan(t.deadline, 0, "")) {
                 return false;
             }
+        }
+        if (options.searchTerm !== "") {
+            const terms: string[] = options.searchTerm.split(" ");
+            return terms.some((term) => {
+                const st: string = term.toLowerCase();
+                if (t.name.toLowerCase().includes(st)) {
+                    return true;
+                } else if (t.description.toLowerCase().includes(st)) {
+                    return true;
+                }
+                return t.tags.some((tag) => {
+                    return tag.includes(st);
+                });
+            });
         }
         return true;
     });

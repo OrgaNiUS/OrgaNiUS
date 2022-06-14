@@ -63,7 +63,7 @@ describe("filterTasks", () => {
                 tags: [],
             },
         ];
-        expect(filterTasks(tasks, { done: true, expired: false })).toStrictEqual([]);
+        expect(filterTasks(tasks, { done: true, expired: false, searchTerm: "" })).toStrictEqual([]);
     });
     it("filter expired", () => {
         const tasks: ITask[] = [
@@ -75,7 +75,7 @@ describe("filterTasks", () => {
                 tags: [],
             },
         ];
-        expect(filterTasks(tasks, { done: false, expired: true })).toStrictEqual([]);
+        expect(filterTasks(tasks, { done: false, expired: true, searchTerm: "" })).toStrictEqual([]);
     });
     it("filter both expired and done", () => {
         const tasks: ITask[] = [
@@ -87,9 +87,45 @@ describe("filterTasks", () => {
                 tags: [],
             },
         ];
-        expect(filterTasks(tasks, { done: false, expired: false })).toStrictEqual(tasks);
-        expect(filterTasks(tasks, { done: false, expired: true })).toStrictEqual([]);
-        expect(filterTasks(tasks, { done: true, expired: false })).toStrictEqual([]);
-        expect(filterTasks(tasks, { done: true, expired: true })).toStrictEqual([]);
+        expect(filterTasks(tasks, { done: false, expired: false, searchTerm: "" })).toStrictEqual(tasks);
+        expect(filterTasks(tasks, { done: false, expired: true, searchTerm: "" })).toStrictEqual([]);
+        expect(filterTasks(tasks, { done: true, expired: false, searchTerm: "" })).toStrictEqual([]);
+        expect(filterTasks(tasks, { done: true, expired: true, searchTerm: "" })).toStrictEqual([]);
+    });
+    it("searchTerm name", () => {
+        const tasks: ITask[] = [
+            {
+                name: "nameX X",
+                description: "",
+                isDone: true,
+                deadline: new Date(Date.now() - 10),
+                tags: [],
+            },
+        ];
+        expect(filterTasks(tasks, { done: false, expired: false, searchTerm: "name" })).toStrictEqual(tasks);
+    });
+    it("searchTerm description", () => {
+        const tasks: ITask[] = [
+            {
+                name: "name",
+                description: "desc1",
+                isDone: true,
+                deadline: new Date(Date.now() - 10),
+                tags: [],
+            },
+        ];
+        expect(filterTasks(tasks, { done: false, expired: false, searchTerm: "desc" })).toStrictEqual(tasks);
+    });
+    it("searchTerm tag", () => {
+        const tasks: ITask[] = [
+            {
+                name: "name",
+                description: "desc",
+                isDone: true,
+                deadline: new Date(Date.now() - 10),
+                tags: ["tag2"],
+            },
+        ];
+        expect(filterTasks(tasks, { done: false, expired: false, searchTerm: "tag" })).toStrictEqual(tasks);
     });
 });

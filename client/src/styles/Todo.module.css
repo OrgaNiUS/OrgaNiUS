@@ -17,6 +17,12 @@
     text-align: center;
 }
 
+.search-box {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    width: 100%;
+}
+
 .filter-button {
     position: absolute;
     right: 1rem;

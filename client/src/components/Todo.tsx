@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { filterTaskOptions, filterTasks } from "../functions/events";
-import { toTitleCase } from "../functions/strings";
 import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Todo.module.css";
 import { ITask } from "../types";
@@ -98,19 +97,14 @@ const Dropdown = ({
     return (
         <div className={styler("filter-dropdown-content")}>
             <b>Filter Options</b>
-            {Object.keys(filterOptions).map((name, i) => {
-                return (
-                    <div key={i}>
-                        <input
-                            type="checkbox"
-                            name={name}
-                            checked={filterOptions[name as keyof filterTaskOptions]}
-                            onChange={handleChange}
-                        />
-                        <label className="ml-1">{toTitleCase(name)}</label>
-                    </div>
-                );
-            })}
+            <div>
+                <input type="checkbox" name={"done"} checked={filterOptions.done} onChange={handleChange} />
+                <label className="ml-1">Done</label>
+            </div>
+            <div>
+                <input type="checkbox" name={"expired"} checked={filterOptions.expired} onChange={handleChange} />
+                <label className="ml-1">Expired</label>
+            </div>
         </div>
     );
 };
@@ -119,10 +113,21 @@ const Dropdown = ({
 const TodoModal: JSX.Element = <div>I am the Todo expanded view.</div>;
 
 const Todo = (): JSX.Element => {
-    const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({ done: false, expired: false });
+    const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
+        done: false,
+        expired: false,
+        searchTerm: "",
+    });
     const [showModal, setShowModal] = useState<boolean>(false);
 
     const filteredTasks: ITask[] = filterTasks(tasks, filterOptions);
+
+    const handleSearch: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+        event.preventDefault();
+        setFilterOptions((opts) => {
+            return { ...opts, searchTerm: event.target.value };
+        });
+    };
 
     return (
         <>
@@ -130,6 +135,13 @@ const Todo = (): JSX.Element => {
             <div className={styler("wrapper")}>
                 <div className={styler("container")}>
                     <h1 className={styler("title")}>To-Do</h1>
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={filterOptions.searchTerm}
+                        onChange={handleSearch}
+                        className={styler("search-box")}
+                    />
                     {filteredTasks.length === 0 ? (
                         <div>Nothing here!</div>
                     ) : (
