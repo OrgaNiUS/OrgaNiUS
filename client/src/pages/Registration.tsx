@@ -55,7 +55,7 @@ const Registration = (): JSX.Element => {
     useEffect(() => {
         setValidPwd(validPassword.test(pwd) && !pwd.includes(user));
         setValidMatch(pwd === matchPwd);
-    }, [pwd, matchPwd]);
+    }, [pwd, matchPwd, user]);
 
     useEffect(() => {
         setErrMsg("");
@@ -216,7 +216,13 @@ const Registration = (): JSX.Element => {
                                         type="text"
                                         id="pin"
                                         onChange={(e) => setPin(e.target.value)}
-                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none ${
+                                            !validPin && pin
+                                                ? "uppercase"
+                                                : !pin
+                                                    ? ""
+                                                    : "uppercase"
+                                        }`}
                                         placeholder="Enter your 6 digit pin here"
                                         required
                                     />
