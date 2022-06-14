@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
-import {useNavigate, Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import App from "../App";
 
 import axios from "../api/axios";
@@ -59,7 +59,8 @@ const Login = (): JSX.Element => {
             ) : (
                 <div className="flex flex-col h-screen">
                     <div className="navbar-wrapper">
-                        <div className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased">
+                        <div
+                            className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased">
                             OrgaNiUS
                         </div>
                     </div>
@@ -71,7 +72,7 @@ const Login = (): JSX.Element => {
                             <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                                 {errMsg}
                             </p>
-                            <form className="mt-3" onSubmit={handleSubmit}>
+                            <form data-testid="login-form" className="mt-3" onSubmit={handleSubmit}>
                                 <div className="mb-6">
                                     <input
                                         type="text"
@@ -113,6 +114,7 @@ const Login = (): JSX.Element => {
                                     </div>
 
                                     <Link
+                                        data-testid="forgot_pwd"
                                         to="/forgot_pwd"
                                         className="text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out hover:underline"
                                     >
