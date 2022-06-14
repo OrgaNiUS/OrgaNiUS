@@ -43,6 +43,7 @@ describe("Login", () => {
         expect(forgetPwdElement).toHaveClass('text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out hover:underline');
     })
 
+    // https://stackoverflow.com/questions/69637636/setting-routes-for-browserrouter-in-tests
     it('navigates to forget_pwd page on click', async () => {
         render(
             <MemoryRouter initialEntries={['/']}>
@@ -56,6 +57,7 @@ describe("Login", () => {
         expect(await screen.findByTestId('fgt-pwd-indicator')).toBeInTheDocument();
     })
 
+    // https://stackoverflow.com/questions/69637636/setting-routes-for-browserrouter-in-tests
     it('navigates to register page on click', async () => {
         render(
             <MemoryRouter initialEntries={['/']}>
