@@ -64,7 +64,15 @@ heroku config
 
 8. Setup [Procfile](Procfile) and [heroku.yml](heroku.yml) files.
 
-### Deploying to Heroku
+### Automatic Deployment
+
+[Github Actions workflow](.github/workflows/main.yml) is the main workflow for this OrgaNiUS repository.
+
+On any pull request and merge to the main branch, both client and server tests will be ran.
+
+On a merge to the main branch, the client and server tests will run and if they finish successfully, the application will be deployed to the live Heroku server.
+
+### Manual Deploying to Heroku
 
 After following the steps as listed above, do the steps below for the first and all subsequent deployments to Heroku servers.
 

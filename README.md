@@ -41,6 +41,6 @@ Refer to the [API Documentation](api.md) for more information on how to interact
 
 ## Deployment
 
-This application is deployed on Heroku servers.
+This application is deployed on Heroku servers automatically using [Github Actions](.github/workflows/main.yml).
 
 Refer to the [Deployment Guide](deploy.md) for instructions on how to setup the deployment and for future deployments.
