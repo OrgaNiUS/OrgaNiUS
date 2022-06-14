@@ -2,7 +2,7 @@ import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Timeline.module.css";
 import { IEvent, ITask } from "../types";
 import { mergeEventArrays } from "../functions/events";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const styler = StylesMerger(styles);
 
@@ -93,14 +93,33 @@ const Timeline = (): JSX.Element => {
     const merged = mergeEventArrays(events, tasks);
     // TODO: filter out events that are over?
 
-    // TODO: implement buttons for scrolling timeline with
-    // currently, timeline can only be scrolled by shift + scroll wheel (or touchpad)
+    const rowRef = useRef<HTMLDivElement>(null);
+
+    // Press and hold would require using setInterval.
+    // Maybe implement in the future.
+    const handleScroll = (left: boolean) => {
+        if (rowRef.current === null) {
+            return;
+        }
+        if (left) {
+            rowRef.current.scrollLeft -= 40;
+        } else {
+            rowRef.current.scrollLeft += 40;
+        }
+    };
+
     return (
         <div className={styler("container")}>
-            <div className={styler("row")}>
+            <div onClick={() => handleScroll(true)} className={styler("row-scroller", "row-scroller-left")}>
+                {"<"}
+            </div>
+            <div className={styler("row")} ref={rowRef}>
                 {merged.map((event, i) => (
                     <Item key={i} {...{ event }} />
                 ))}
+            </div>
+            <div onClick={() => handleScroll(false)} className={styler("row-scroller", "row-scroller-right")}>
+                {">"}
             </div>
             <hr className={styler("line")} />
         </div>

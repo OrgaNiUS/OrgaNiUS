@@ -23,8 +23,6 @@ const formatDate = (date: Date | undefined): string => {
     return `Due on ${d}`;
 };
 
-// TODO: Some way to deal with long name and description and tags.
-
 const Task = ({ task }: { task: ITask }): JSX.Element => {
     return (
         <div className={styler("container")}>

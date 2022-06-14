@@ -20,14 +20,34 @@
     scrollbar-width: none;
 }
 
-/* https://stackoverflow.com/a/34455480 */
-.row::before,
-.row::after {
-    content: ""; /* insert space before first and after */
-}
-
 .row::-webkit-scrollbar {
     display: none;
+}
+
+/* user-select disabler from https://stackoverflow.com/a/4407335 */
+.row-scroller {
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    background-color: black;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    position: absolute;
+    user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    z-index: 5;
+}
+
+.row-scroller-left {
+    bottom: -1rem;
+}
+
+.row-scroller-right {
+    bottom: -1rem;
+    right: 0;
 }
 
 .line {
