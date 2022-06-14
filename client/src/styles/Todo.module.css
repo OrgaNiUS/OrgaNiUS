@@ -39,11 +39,10 @@
     border-radius: 6px;
     border: 1px solid black;
     position: absolute;
-    right: -10rem; /* this is based on the content's width + 2 (then negated) */
+    right: -20%;
     top: 3rem;
     transition: 0s visibility 0.3s;
     visibility: hidden;
-    width: 12rem;
     padding: 0.2rem 0.4rem;
 }
 
