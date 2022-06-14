@@ -124,7 +124,7 @@ const ForgotPwd = (): JSX.Element => {
 
                     <div className="flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800">
                         <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-              <span className="text-3xl justify-center items-center text-center ">
+              <span data-testid='fgt-pwd-indicator' className="text-3xl justify-center items-center text-center ">
                 OrgaNiUS Reset Password
               </span>
                             <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
