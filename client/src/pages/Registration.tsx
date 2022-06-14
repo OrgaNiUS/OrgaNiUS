@@ -53,7 +53,7 @@ const Registration = (): JSX.Element => {
     }, [mail]);
 
     useEffect(() => {
-        setValidPwd(!pwd.includes(user) && validPassword.test(pwd));
+        setValidPwd(validPassword.test(pwd) && !pwd.includes(user));
         setValidMatch(pwd === matchPwd);
     }, [pwd, matchPwd]);
 
@@ -109,7 +109,7 @@ const Registration = (): JSX.Element => {
                 {App}
             ) : (
                 <div className="flex flex-col h-screen">
-                    <div className="flex fixed top-0 left-0 w-screen h-20 m-0 flex-row bg-blend-color shadow-lg ">
+                    <div className="flex sticky top-0 z-50 bg-white w-screen h-20 m-0 flex-row bg-blend-color shadow-lg">
                         <Link
                             to="/"
                             className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased hover:text-orange-600"
@@ -118,11 +118,11 @@ const Registration = (): JSX.Element => {
                         </Link>
                     </div>
 
-                    <div className="flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800">
-                        <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-              <span className="text-3xl justify-center items-center text-center ">
-                OrgaNiUS Registration
-              </span>
+                    <div className="flex grow justify-center items-center g-6 text-gray-800 overflow-auto">
+                        <div className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${!success ? '' : 'hidden'}`}>
+                            <span className="text-3xl justify-center items-center text-center ">
+                                OrgaNiUS Registration
+                            </span>
                             <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                                 {errMsg}
                             </p>
@@ -133,16 +133,15 @@ const Registration = (): JSX.Element => {
                                         id="username"
                                         ref={userRef}
                                         onChange={(e) => setUser(e.target.value)}
-                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                                            !validName && user
-                                                ? "border-red-300"
-                                                : !user
-                                                    ? "border-gray-300"
-                                                    : "border-green-300"
-                                        } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid "border-gray-300" rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                         placeholder="Username (Min. 5 characters)"
                                         required
                                     />
+                                    <p className={`${user && !validName ? 'errmsg' : 'hidden'}`}>
+                                        At least 5 characters long.<br/>
+                                        Only contains alphanumeric characters.<br/>
+                                        Allowed special characters ' ', '_', '.'
+                                    </p>
                                 </div>
 
                                 <div className="mb-6">
@@ -151,16 +150,13 @@ const Registration = (): JSX.Element => {
                                         id="email"
                                         ref={mailRef}
                                         onChange={(e) => setMail(e.target.value)}
-                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                                            !(validMail || !mail)
-                                                ? "border-red-300"
-                                                : !mail
-                                                    ? "border-gray-300"
-                                                    : "border-green-300"
-                                        } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                         placeholder="Email address"
                                         required
                                     />
+                                    <p className={`${mail && !validMail ? 'errmsg' : 'hidden'}`}>
+                                        Invalid Email Format
+                                    </p>
                                 </div>
 
                                 <div className="mb-6">
@@ -168,16 +164,15 @@ const Registration = (): JSX.Element => {
                                         type="password"
                                         id="password"
                                         onChange={(e) => setPwd(e.target.value)}
-                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                                            !(validPwd || !pwd)
-                                                ? "border-red-300"
-                                                : !pwd
-                                                    ? "border-gray-300"
-                                                    : "border-green-300"
-                                        } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                         placeholder="Password"
                                         required
                                     />
+                                    <p className={`${pwd && !validPwd ? 'errmsg' : 'hidden'}`}>
+                                        At least 8 characters long.<br/>
+                                        Contains at least 1 uppercase, 1 lowercase and 1 digit.<br/>
+                                        Does not contain username.
+                                    </p>
                                 </div>
 
                                 <div className="mb-6">
@@ -185,16 +180,13 @@ const Registration = (): JSX.Element => {
                                         type="password"
                                         id="confirm_password"
                                         onChange={(e) => setMatchPwd(e.target.value)}
-                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                                            !(validMatch || !matchPwd)
-                                                ? "border-red-300"
-                                                : !matchPwd
-                                                    ? "border-gray-300"
-                                                    : "border-green-300"
-                                        } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                         placeholder="Re-Enter Your Password"
                                         required
                                     />
+                                    <p className={`${matchPwd && !validMatch ? 'errmsg' : 'hidden'}`}>
+                                        Does not match password
+                                    </p>
                                 </div>
 
                                 <button
@@ -210,14 +202,8 @@ const Registration = (): JSX.Element => {
                                 </button>
                             </form>
                         </div>
-                    </div>
 
-                    <div
-                        className={`flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800 ${
-                            success ? "visible" : "invisible"
-                        }`}
-                    >
-                        <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
+                        <div className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${success? '' : 'hidden'}`}>
                             <span className="text-3xl justify-center items-center text-center ">
                                 Email Verification
                             </span>
@@ -230,17 +216,14 @@ const Registration = (): JSX.Element => {
                                         type="text"
                                         id="pin"
                                         onChange={(e) => setPin(e.target.value)}
-                                        className={`form-control uppercase block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid ${
-                                            !validPin && pin
-                                                ? "border-red-300"
-                                                : !pin
-                                                    ? "border-gray-300"
-                                                    : "border-green-300"
-                                        } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
+                                        className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                         placeholder="Enter your 6 digit pin here"
                                         required
                                     />
                                 </div>
+                                <p className={`${pin && !validPin ? 'errmsg' : 'hidden'}`}>
+                                    Pin is a 6 Digit AlphaNumeric value.
+                                </p>
 
                                 <button
                                     type="submit"
