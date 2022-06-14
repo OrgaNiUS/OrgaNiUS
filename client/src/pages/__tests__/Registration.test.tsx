@@ -1,8 +1,10 @@
 import React from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import Registration from '../Registration';
-import {BrowserRouter as Router} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {validEmail, validPassword, validUsername} from "../../components/regex";
+import {MemoryRouter} from "react-router";
+import Login from "../Login";
 
 const MockRegistration = () => {
     return (
@@ -88,5 +90,18 @@ describe('Registration', () => {
             expect(validPassword.test).toHaveBeenCalledTimes(4);
             expect(validPassword.test).toHaveBeenLastCalledWith('test3');
         })
+    })
+
+    it('navigates to login page on clicking home button', async () => {
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                    <Route path="/" element={<Login />} />
+                    <Route path="/registration" element={<Registration />} />
+                </Routes>
+            </MemoryRouter>
+        )
+        fireEvent.click(screen.getByText('OrgaNiUS'));
+        expect(await screen.findByText('Welcome to OrgaNiUS!')).toBeInTheDocument();
     })
 })
