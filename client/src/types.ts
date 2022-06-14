@@ -3,6 +3,7 @@ export interface IEvent {
     start: Date;
     end: Date;
     important: boolean;
+    allDay?: boolean;
 }
 
 // some fields are marked as optional temporarily

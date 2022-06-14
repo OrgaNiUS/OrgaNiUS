@@ -1,49 +1,9 @@
+import { useRef, useState } from "react";
 import StylesMerger from "../styles/StyleMerging";
 import styles from "../styles/Timeline.module.css";
-import { IEvent, ITask } from "../types";
-import { mergeEventArrays } from "../functions/events";
-import { useRef, useState } from "react";
+import { IEvent } from "../types";
 
 const styler = StylesMerger(styles);
-
-// TODO: This is only for testing purposes because actual events/tasks are to be implemented later on.
-const tasks: ITask[] = [
-    {
-        name: "Some task",
-        description: "",
-        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
-        isDone: false,
-        tags: [],
-    },
-    {
-        name: "Another task",
-        description: "",
-        tags: [],
-        isDone: false,
-        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
-    },
-];
-
-const events: IEvent[] = [
-    {
-        name: "event 1",
-        start: new Date(2022, 0, 1),
-        end: new Date(2022, 1, 1),
-        important: false,
-    },
-    {
-        name: "event 2",
-        start: new Date(2022, 0, 1),
-        end: new Date(2022, 0, 1),
-        important: true,
-    },
-    {
-        name: "very loooooooooooooooooooooooooooooooooooong name",
-        start: new Date(2022, 0, 1),
-        end: new Date(2022, 0, 1),
-        important: true,
-    },
-];
 
 const Card = ({ event }: { event: IEvent }): JSX.Element => {
     const options: Intl.DateTimeFormatOptions = {
@@ -88,9 +48,7 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
     );
 };
 
-// Timeline will render both events and tasks.
-const Timeline = (): JSX.Element => {
-    const merged = mergeEventArrays(events, tasks);
+const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
     // TODO: filter out events that are over?
 
     const rowRef = useRef<HTMLDivElement>(null);
@@ -114,7 +72,7 @@ const Timeline = (): JSX.Element => {
                 {"<"}
             </div>
             <div className={styler("row")} ref={rowRef}>
-                {merged.map((event, i) => (
+                {events.map((event, i) => (
                     <Item key={i} {...{ event }} />
                 ))}
             </div>
