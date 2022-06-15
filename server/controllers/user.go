@@ -16,41 +16,13 @@ const (
 	collection = "users"
 )
 
-// Returns a bson.D object for filtering.
-func filterBy(key string, value interface{}) bson.D {
-	return bson.D{{Key: key, Value: value}}
-}
-
-// Returns a bson.D object for filtering by ID
-func filterByID(id string) (bson.D, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	return filterBy("_id", objectID), nil
-}
-
 // Retrives a user by id or name.
 func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.User, error) {
 	var user models.User
 	if id == "" && name == "" {
 		return user, errors.New("cannot leave both id and name empty")
 	}
-	var objectId primitive.ObjectID
-	var err error
-	params := []interface{}{}
-	if id != "" {
-		objectId, err = primitive.ObjectIDFromHex(id)
-		if err != nil {
-			return user, err
-		}
-		params = append(params, bson.D{{Key: "_id", Value: objectId}})
-	}
-	if name != "" {
-		params = append(params, bson.D{{Key: "name", Value: name}})
-	}
-	filter := bson.D{{Key: "$or", Value: params}}
-	err = c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, id, name, "")
 	return user, err
 }
 
@@ -60,15 +32,7 @@ func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, 
 	if name == "" && email == "" {
 		return false, errors.New("cannot leave both name and email empty")
 	}
-	params := []interface{}{}
-	if name != "" {
-		params = append(params, bson.D{{Key: "name", Value: name}})
-	}
-	if email != "" {
-		params = append(params, bson.D{{Key: "email", Value: email}})
-	}
-	filter := bson.D{{Key: "$or", Value: params}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, email)
 	if err == nil {
 		return true, nil
 	} else if err != mongo.ErrNoDocuments {
@@ -79,11 +43,11 @@ func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, 
 
 // Creates a new user.
 func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
-	result, err := c.database.Collection(collection).InsertOne(ctx, user)
+	id, err := c.Collection(collection).InsertOne(ctx, user)
 	if err != nil {
 		return err
 	}
-	user.Id = result.InsertedID.(primitive.ObjectID)
+	user.Id = id
 	return nil
 }
 
@@ -91,8 +55,7 @@ func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
 // Also returns the user ID for creation of JWT.
 func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primitive.ObjectID, error) {
 	var user models.User
-	filter := bson.D{{Key: "name", Value: name}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -101,7 +64,7 @@ func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primi
 			{Key: "verified", Value: true},
 			{Key: "verificationPin", Value: ""},
 		}}}
-		if _, err := c.database.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+		if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
 			return primitive.NilObjectID, err
 		}
 		return user.Id, nil
@@ -113,8 +76,7 @@ func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primi
 // Also validates if the user is verified.
 func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (bool, error) {
 	password := user.Password
-	filter := bson.D{{Key: "name", Value: user.Name}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, user, "", user.Name, "")
 	if err != nil {
 		return false, errors.New("username and password do not match")
 	} else if !user.Verified {
@@ -130,8 +92,7 @@ func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (
 // If user requests for password reset multiple times, only the latest one will be valid.
 func (c *Controller) UserForgotPW(ctx context.Context, name, hash string) (string, error) {
 	var user models.User
-	filter := bson.D{{Key: "name", Value: name}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return "", err
 	} else if !user.Verified {
@@ -141,7 +102,7 @@ func (c *Controller) UserForgotPW(ctx context.Context, name, hash string) (strin
 		{Key: "forgotPw", Value: true},
 		{Key: "forgotPwPin", Value: hash},
 	}}}
-	if _, err := c.database.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+	if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
 		return "", err
 	}
 	return user.Email, nil
@@ -150,8 +111,7 @@ func (c *Controller) UserForgotPW(ctx context.Context, name, hash string) (strin
 // Step 2 of Forgot Password protocol.
 func (c *Controller) UserVerifyForgotPW(ctx context.Context, name, pin string) (bool, error) {
 	var user models.User
-	filter := bson.D{{Key: "name", Value: name}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return false, err
 	} else if !user.ForgotPW {
@@ -165,8 +125,7 @@ func (c *Controller) UserVerifyForgotPW(ctx context.Context, name, pin string) (
 // Step 3 of Forgot Password protocol.
 func (c *Controller) UserChangeForgotPW(ctx context.Context, name, pin, hash string) error {
 	var user models.User
-	filter := bson.D{{Key: "name", Value: name}}
-	err := c.database.Collection(collection).FindOne(ctx, filter).Decode(&user)
+	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return err
 	} else if !user.ForgotPW {
@@ -179,7 +138,7 @@ func (c *Controller) UserChangeForgotPW(ctx context.Context, name, pin, hash str
 		{Key: "forgotPwPin", Value: ""},
 		{Key: "password", Value: hash},
 	}}}
-	if _, err := c.database.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+	if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
 		return err
 	}
 	return nil
@@ -198,16 +157,12 @@ func (c *Controller) UserModify(ctx context.Context, user *models.User) {
 		params = append(params, bson.E{Key: "email", Value: user.Email})
 	}
 	update := bson.D{{Key: "$set", Value: params}}
-	c.database.Collection(collection).UpdateByID(ctx, user.Id, update)
+	c.Collection(collection).UpdateByID(ctx, user.Id, update)
 }
 
 // Deletes the user.
 func (c *Controller) UserDelete(ctx context.Context, id string) error {
-	doc, err := filterByID(id)
-	if err != nil {
-		return err
-	}
-	_, err = c.database.Collection(collection).DeleteOne(ctx, doc)
+	_, err := c.Collection(collection).DeleteByID(ctx, id)
 	if err != nil {
 		return err
 	}
