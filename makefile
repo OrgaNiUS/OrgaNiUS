@@ -10,7 +10,8 @@ react:
 
 .PHONY: init-client
 init-client:
-	npm install --prefix "client"
+ 	# legacy peer deps flag required because react-big-calendar does not officially support react 18 (they did not update their package.json)
+	npm install --prefix "client" --legacy-peer-deps
 
 .PHONY: bc build-client
 bc: build-client
