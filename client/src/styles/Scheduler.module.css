@@ -1,7 +1,0 @@
-.container {
-    border-radius: 6px;
-    border: 1px solid rgb(59, 130, 246);
-    /* 5rem from navbar, 3rem from welcome message */
-    /* a further 3rem for timeline below */
-    height: calc(100vh - 2 * (5rem + 1rem) - 5rem);
-}

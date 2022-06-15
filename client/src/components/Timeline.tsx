@@ -1,9 +1,24 @@
 import { useRef, useState } from "react";
-import StylesMerger from "../styles/StyleMerging";
-import styles from "../styles/Timeline.module.css";
+import styled from "styled-components";
+import { truncate } from "../styles";
 import { IEvent } from "../types";
 
-const styler = StylesMerger(styles);
+const CardContainer = styled.div`
+    background-color: white;
+    border-radius: 5px;
+    border: 2px solid black;
+    box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+    padding: 0.2rem 0.6rem;
+    position: absolute;
+    top: -30%;
+    width: max-content;
+`;
+
+const Name = styled.p`
+    ${truncate}
+    max-width: 10rem;
+    white-space: nowrap;
+`;
 
 const Card = ({ event }: { event: IEvent }): JSX.Element => {
     const options: Intl.DateTimeFormatOptions = {
@@ -17,12 +32,41 @@ const Card = ({ event }: { event: IEvent }): JSX.Element => {
 
     // TODO: potentially link to future events page (?)
     return (
-        <div className={styler("card")}>
-            <p className={styler("truncate-name")}>{event.name}</p>
+        <CardContainer>
+            <Name>{event.name}</Name>
             <p>{period}</p>
-        </div>
+        </CardContainer>
     );
 };
+
+const ItemContainer = styled.div`
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    min-width: fit-content;
+    position: relative;
+    text-align: center;
+    top: 50%;
+`;
+
+const VertLine = styled.div`
+    background-color: black;
+    border: none;
+    height: 25px;
+    position: relative;
+    width: 3px;
+`;
+
+const Circle = styled.svg`
+    cursor: pointer;
+    transition: transform 0.2s;
+    z-index: 1;
+
+    &:hover {
+        filter: brightness(150%);
+        transform: scale(1.3);
+    }
+`;
 
 const Item = ({ event }: { event: IEvent }): JSX.Element => {
     const [showCard, setShowCard] = useState<boolean>(false);
@@ -37,16 +81,71 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
     const colour: string = event.important ? important : regular;
 
     return (
-        <div className={styler("item")}>
+        <ItemContainer>
             {showCard && <Card {...{ event }} />}
-            <div className={styler("truncate-name")}>{event.name}</div>
-            <svg height="30" width="30" className={styler("circle")}>
+            <Name>{event.name}</Name>
+            <Circle height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={colour} onClick={handleClick} />
-            </svg>
-            <div className={styler("vert-line")} />
-        </div>
+            </Circle>
+            <VertLine />
+        </ItemContainer>
     );
 };
+
+const Container = styled.div`
+    bottom: 5rem;
+    height: 10rem;
+    margin-bottom: -5rem; /* https://stackoverflow.com/a/12601490 */
+    position: relative;
+`;
+
+/* hide scrollbar from https://stackoverflow.com/a/38994837 */
+const Row = styled.div`
+    -ms-overflow-style: none;
+    column-gap: 1rem; /* column gap specifies the minimum gap between items in the row */
+    display: flex;
+    height: 100%;
+    justify-content: space-between;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding-bottom: 0.5rem;
+    padding-top: 1rem;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+`;
+
+/* user-select disabler from https://stackoverflow.com/a/4407335 */
+const RowScroller = styled.div`
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    background-color: black;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    position: absolute;
+    user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    z-index: 5;
+`;
+
+const RowScrollerLeft = styled(RowScroller)`
+    bottom: -1rem;
+`;
+
+const RowScrollerRight = styled(RowScroller)`
+    bottom: -1rem;
+    right: 0;
+`;
+
+const Line = styled.hr`
+    border: 2px solid black;
+`;
 
 const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
     // TODO: filter out events that are over?
@@ -67,20 +166,16 @@ const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
     };
 
     return (
-        <div className={styler("container")}>
-            <div onClick={() => handleScroll(true)} className={styler("row-scroller", "row-scroller-left")}>
-                {"<"}
-            </div>
-            <div className={styler("row")} ref={rowRef}>
+        <Container data-testid="timeline">
+            <RowScrollerLeft onClick={() => handleScroll(true)}>{"<"}</RowScrollerLeft>
+            <Row ref={rowRef}>
                 {events.map((event, i) => (
                     <Item key={i} {...{ event }} />
                 ))}
-            </div>
-            <div onClick={() => handleScroll(false)} className={styler("row-scroller", "row-scroller-right")}>
-                {">"}
-            </div>
-            <hr className={styler("line")} />
-        </div>
+            </Row>
+            <RowScrollerRight onClick={() => handleScroll(false)}>{">"}</RowScrollerRight>
+            <Line />
+        </Container>
     );
 };
 

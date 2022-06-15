@@ -1,9 +1,32 @@
+import styled from "styled-components";
 import { dateDiff, isLessThan } from "../functions/dates";
-import StylesMerger from "../styles/StyleMerging";
-import styles from "../styles/Task.module.css";
+import { truncate } from "../styles";
 import { ITask } from "../types";
 
-const styler = StylesMerger(styles);
+const Container = styled.div`
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+`;
+
+const Name = styled.h1`
+    ${truncate}
+    font-size: large;
+    font-weight: 600; /* only slightly bolder than default of 400 */
+    white-space: nowrap; /* name should only be on one line */
+`;
+
+const Description = styled.p`
+    ${truncate}
+`;
+
+const Tags = styled.p`
+    ${truncate}
+    opacity: 0.6;
+`;
+
+const Deadline = styled.p`
+    font-size: small;
+`;
 
 const formatDate = (date: Date | undefined): string => {
     if (date === undefined) {
@@ -25,12 +48,12 @@ const formatDate = (date: Date | undefined): string => {
 
 const Task = ({ task }: { task: ITask }): JSX.Element => {
     return (
-        <div className={styler("container")}>
-            <h1 className={styler("name")}>{task.name}</h1>
-            <p className={styler("desc")}>{task.description}</p>
-            <p className={styler("tags")}>{task.tags.map((v) => "#" + v).join(" ")}</p>
-            <p className={styler("deadline")}>{formatDate(task.deadline)}</p>
-        </div>
+        <Container>
+            <Name>{task.name}</Name>
+            <Description>{task.description}</Description>
+            <Tags>{task.tags.map((v) => "#" + v).join(" ")}</Tags>
+            <Deadline>{formatDate(task.deadline)}</Deadline>
+        </Container>
     );
 };
 

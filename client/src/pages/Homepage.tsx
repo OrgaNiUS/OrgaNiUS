@@ -1,15 +1,12 @@
 import { useContext, useEffect, useState } from "react";
+import styled, { css } from "styled-components";
 import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
 import Todo from "../components/Todo";
 import AuthContext from "../context/AuthProvider";
 import { getCookie, setCookie } from "../functions/cookies";
 import { mergeEventArrays } from "../functions/events";
-import styles from "../styles/Homepage.module.css";
-import StylesMerger from "../styles/StyleMerging";
 import { IEvent, ITask } from "../types";
-
-const styler = StylesMerger(styles);
 
 // TODO: This is only for testing purposes because actual events and tasks integration are to be implemented later on.
 const events: IEvent[] = [
@@ -136,6 +133,54 @@ const tasks: ITask[] = [
     },
 ];
 
+const Message = styled.h1`
+    font-size: 2rem;
+    margin-top: 1rem;
+    margin-left: 3rem;
+    width: fit-content;
+`;
+
+const Container = styled.div`
+    display: flex;
+    height: 100%;
+    padding: 1rem 3rem;
+    width: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+`;
+
+const Panel = styled.div<{ ratio: number }>`
+    ${(props) => css`
+        flex: ${props.ratio};
+    `}
+
+    /* not sure why this works but it works */
+    width: 10%;
+`;
+
+const RContainer = styled.div`
+    display: flex;
+    justify-content: space-around;
+    height: 100%;
+`;
+
+const RWrapper = styled.div`
+    height: 100%;
+`;
+
+const RButton = styled.button`
+    height: fit-content;
+    position: relative;
+    top: 50%;
+    transform: scale(1.2);
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: scale(1.6);
+    }
+`;
+
 // This is the component for the homepage (user dashboard).
 const Homepage = (): JSX.Element => {
     const auth = useContext(AuthContext);
@@ -177,18 +222,18 @@ const Homepage = (): JSX.Element => {
         };
 
         return (
-            <div className={styler("resizer")}>
-                <div className={styler("resizer-button-wrapper")}>
-                    <button className={styler("resizer-button")} onClick={handleRight}>
+            <RContainer>
+                <RWrapper>
+                    <RButton onClick={handleRight} data-testid="resizer-left">
                         {">"}
-                    </button>
-                </div>
-                <div className={styler("resizer-button-wrapper")}>
-                    <button className={styler("resizer-button")} onClick={handleLeft}>
+                    </RButton>
+                </RWrapper>
+                <RWrapper>
+                    <RButton onClick={handleLeft} data-testid="resizer-right">
                         {"<"}
-                    </button>
-                </div>
-            </div>
+                    </RButton>
+                </RWrapper>
+            </RContainer>
         );
     };
 
@@ -196,19 +241,19 @@ const Homepage = (): JSX.Element => {
 
     return (
         <>
-            <h1 className={styler("welcome-msg")}>Hey {auth.auth.user}!</h1>
-            <div className={styler("container")}>
-                <div className={styler("panel")} style={{ flex: pageRatio }}>
+            <Message data-testid="welcome-message"> Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
+            <Container>
+                <Panel ratio={pageRatio}>
                     <Todo {...{ tasks }} />
-                </div>
+                </Panel>
                 <div style={{ flex: 0.5 }}>
                     <Resizer />
                 </div>
-                <div className={styler("panel")} style={{ flex: 10 - pageRatio }}>
+                <Panel ratio={10 - pageRatio}>
                     <Scheduler {...{ events: mergedEvents }} />
                     <Timeline {...{ events: mergedEvents }} />
-                </div>
-            </div>
+                </Panel>
+            </Container>
         </>
     );
 };
