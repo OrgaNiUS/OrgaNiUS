@@ -50,7 +50,9 @@ This contains the user's tasks.
 
 With the filter dropdown on the top right, the user can choose to filter by "done" or "expired" to hide those results.
 
-With the search bar, the user can search for specific task(s). Each space separated word in the search bar is considered a different search term. Any task with a name, or description or tag that partially (or completely) includes the search term will be shown in the results (provided it is not filtered out by the filter options).
+With the search bar, the user can search for specific task(s). Each space separated word in the search bar is considered a different search term. Any task with a name, or description or tag that partially (or completely) includes all search terms will be shown in the results (provided it is not filtered out by the filter options). Search terms are case insensitive.
+
+Example "ta do" will match "Task Done".
 
 The tasks can also be dragged and dropped into different positions. (to be implemented)
 

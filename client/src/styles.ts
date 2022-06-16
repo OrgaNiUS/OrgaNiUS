@@ -15,6 +15,16 @@ export const Button = styled.button`
     }
 `;
 
+// for buttons that are a SVG icon
+export const IconButton = styled.button`
+    position: absolute;
+    transition: transform 0.2s;
+
+    &:hover {
+        transform: scale(1.2);
+    }
+`;
+
 /* https://stackoverflow.com/a/26973672 */
 export const truncate = css`
     overflow-x: hidden;

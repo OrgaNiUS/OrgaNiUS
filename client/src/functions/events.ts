@@ -56,7 +56,7 @@ export interface filterTaskOptions {
  * Filter tasks by some options.
  *
  * @param tasks   Tasks to be filtered by.
- * @param options Filter by options, true to be filtered away. But for search term, the task will *not* be filtered away if the name, description or tags contain the search term. Search term is case-insensitive.
+ * @param options Filter by options, true to be filtered away. But for search term, the task will *not* be filtered away if the name, description or tags contain all the search terms. Search term is case-insensitive.
  *
  * @returns Filtered tasks.
  */
@@ -72,7 +72,10 @@ export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[]
         }
         if (options.searchTerm !== "") {
             const terms: string[] = options.searchTerm.split(" ");
-            return terms.some((term) => {
+            return terms.every((term) => {
+                if (term === "") {
+                    return true;
+                }
                 const st: string = term.toLowerCase();
                 if (t.name.toLowerCase().includes(st)) {
                     return true;

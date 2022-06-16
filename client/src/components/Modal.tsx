@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import styled, { css } from "styled-components";
 
@@ -55,6 +55,15 @@ const Modal = ({
     body: JSX.Element;
     callback: () => void;
 }): JSX.Element => {
+    useEffect(() => {
+        // Escape key to close modal.
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                callback();
+            }
+        });
+    }, [callback]);
+
     const handleClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
         event.preventDefault();
         // https://stackoverflow.com/a/47155034
@@ -65,7 +74,7 @@ const Modal = ({
     };
 
     return (
-        // onClick outer div to trigger close
+        // onClick outer div (or Escape key) to trigger close
         <Outer active={active} onClick={handleClick} data-testid="outer">
             <Inner active={active}>{body}</Inner>
         </Outer>
