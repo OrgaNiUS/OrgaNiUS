@@ -1,3 +1,14 @@
+import {
+    closestCenter,
+    DndContext,
+    DragEndEvent,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
+import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState } from "react";
 import styled from "styled-components";
 import { filterTaskOptions, filterTasks } from "../functions/events";
@@ -103,7 +114,9 @@ const SearchBox = styled.input`
     width: 100%;
 `;
 
-const Todo = ({ tasks }: { tasks: ITask[] }): JSX.Element => {
+const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
+    const [tasks, setTasks] = useState<ITask[]>(initialTasks);
+
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
         expired: false,
@@ -118,6 +131,39 @@ const Todo = ({ tasks }: { tasks: ITask[] }): JSX.Element => {
         setFilterOptions((opts) => {
             return { ...opts, searchTerm: event.target.value };
         });
+    };
+
+    // drag 10 pixels before dragging actually starts
+    const activationConstraint = { distance: 10 };
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint }),
+        useSensor(TouchSensor, { activationConstraint })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const uniqueIDToString = (x: number | string): number => {
+            // just to be extra safe even though I only use string as the UniqueIdentifier
+            return typeof x === "string" ? parseInt(x) : x;
+        };
+
+        const active = event.active;
+        const over = event.over;
+        if (over === null || active.id === over.id) {
+            return;
+        }
+
+        const startID: number = uniqueIDToString(active.id);
+        const endID: number = uniqueIDToString(over.id);
+        const tasksCopy: ITask[] = arrayMove(tasks, startID, endID);
+
+        const loopStart: number = Math.min(startID, endID);
+        const loopEnd: number = Math.max(startID, endID);
+        for (let i = loopStart; i <= loopEnd; i++) {
+            // update the IDs of those affected by the drag
+            tasksCopy[i].id = i.toString();
+            // TODO: need to send changes to server as well
+        }
+        setTasks(tasksCopy);
     };
 
     return (
@@ -135,9 +181,20 @@ const Todo = ({ tasks }: { tasks: ITask[] }): JSX.Element => {
                     {filteredTasks.length === 0 ? (
                         <div>Nothing here!</div>
                     ) : (
-                        filteredTasks.map((task, i) => {
-                            return <Task key={i} {...{ task }} />;
-                        })
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                            // restrictToVerticalAxis restricts to vertical dragging
+                            // restrictToFirstScrollableAncestor restricts to scroll container
+                            modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
+                        >
+                            <SortableContext items={filteredTasks} strategy={verticalListSortingStrategy}>
+                                {filteredTasks.map((task, i) => {
+                                    return <Task key={i} {...{ task }} />;
+                                })}
+                            </SortableContext>
+                        </DndContext>
                     )}
                 </Container>
                 <FDropdown>

@@ -5,20 +5,21 @@ import Todo from "../Todo";
 describe("Todo", () => {
     it("renders correctly", () => {
         const tasks: ITask[] = [];
-        render(<Todo {...{ tasks }} />);
+        render(<Todo {...{ initialTasks: tasks }} />);
         expect(screen.queryByText("To-Do")).toBeInTheDocument();
     });
 
     it("search with no results", () => {
         const tasks: ITask[] = [
             {
+                id: "0",
                 name: "Task",
                 description: "",
                 tags: [],
                 isDone: false,
             },
         ];
-        render(<Todo {...{ tasks }} />);
+        render(<Todo {...{ initialTasks: tasks }} />);
         const searchBox = screen.getByPlaceholderText(/Search/);
         fireEvent.change(searchBox, { target: { value: "x" } });
 
@@ -28,13 +29,14 @@ describe("Todo", () => {
     it("search with results", () => {
         const tasks: ITask[] = [
             {
+                id: "0",
                 name: "Task",
                 description: "",
                 tags: [],
                 isDone: false,
             },
         ];
-        render(<Todo {...{ tasks }} />);
+        render(<Todo {...{ initialTasks: tasks }} />);
         const searchBox = screen.getByPlaceholderText(/Search/);
         fireEvent.change(searchBox, { target: { value: "Task" } });
 
@@ -44,6 +46,7 @@ describe("Todo", () => {
     it("filter dropdown", async () => {
         const tasks: ITask[] = [
             {
+                id: "0",
                 name: "Task",
                 description: "",
                 tags: [],
@@ -51,7 +54,7 @@ describe("Todo", () => {
             },
         ];
 
-        render(<Todo {...{ tasks }} />);
+        render(<Todo {...{ initialTasks: tasks }} />);
 
         expect(screen.queryByText("Filter Options")).not.toBeVisible();
     });

@@ -38,6 +38,7 @@ const events: IEvent[] = [
 ];
 const tasks: ITask[] = [
     {
+        id: "0",
         name: "Task 1",
         description: "This is a short description.",
         deadline: new Date(2022, 6, 12),
@@ -45,6 +46,7 @@ const tasks: ITask[] = [
         tags: ["tag1", "tag2"],
     },
     {
+        id: "1",
         name: "5 Days Later",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
@@ -52,6 +54,7 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "2",
         name: "13 Hours Later",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 13),
@@ -59,30 +62,35 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "3",
         name: "Task with only Title",
         description: "",
         isDone: false,
         tags: [],
     },
     {
+        id: "4",
         name: "",
         description: "",
         isDone: false,
         tags: [],
     },
     {
+        id: "5",
         name: "Task above me is empty.",
         description: "Might as well not exist, I guess.",
         isDone: false,
         tags: [],
     },
     {
+        id: "6",
         name: "This task is done.",
         description: "",
         isDone: true,
         tags: [],
     },
     {
+        id: "7",
         name: "This task is expired but not done.",
         description: "",
         isDone: false,
@@ -90,6 +98,7 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "8",
         name: "This task is expired and done.",
         description: "",
         isDone: true,
@@ -97,6 +106,7 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "9",
         name: "Really looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong name",
         description: "",
         isDone: false,
@@ -104,12 +114,14 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "10",
         name: "Many many tags",
         description: "Just let them flow",
         isDone: false,
         tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
     },
     {
+        id: "11",
         name: "Very long word in tag",
         description: "truncate it!",
         isDone: false,
@@ -118,6 +130,7 @@ const tasks: ITask[] = [
         ],
     },
     {
+        id: "12",
         name: "Very long word in desc",
         description:
             "truncaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaate me",
@@ -125,6 +138,7 @@ const tasks: ITask[] = [
         tags: [],
     },
     {
+        id: "13",
         name: "Really long description...",
         description:
             " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla pharetra tincidunt condimentum. Fusce vitae consequat est, vitae convallis tellus. Fusce et ligula volutpat, consequat augue id, efficitur eros. Vivamus id metus orci. Donec eu felis at mauris tempus pellentesque sed id nibh.  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla pharetra tincidunt condimentum. Fusce vitae consequat est, vitae convallis tellus. Fusce et ligula volutpat, consequat augue id, efficitur eros. Vivamus id metus orci. Donec eu felis at mauris tempus pellentesque sed id nibh.  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla pharetra tincidunt condimentum. Fusce vitae consequat est, vitae convallis tellus. Fusce et ligula volutpat, consequat augue id, efficitur eros. Vivamus id metus orci. Donec eu felis at mauris tempus pellentesque sed id nibh.",
@@ -244,7 +258,7 @@ const Homepage = (): JSX.Element => {
             <Message data-testid="welcome-message"> Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
             <Container>
                 <Panel ratio={pageRatio}>
-                    <Todo {...{ tasks }} />
+                    <Todo {...{ initialTasks: tasks }} />
                 </Panel>
                 <div style={{ flex: 0.5 }}>
                     <Resizer />

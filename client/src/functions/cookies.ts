@@ -9,5 +9,5 @@ export const getCookie = (name: string): string | undefined => {
 };
 
 export const setCookie = (name: string, value: string): void => {
-    document.cookie = `${name}=${value}`;
+    document.cookie = `${name}=${value}; SameSite=Lax`;
 };

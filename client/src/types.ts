@@ -8,6 +8,7 @@ export interface IEvent {
 
 // some fields are marked as optional temporarily
 export interface ITask {
+    id: string;
     name: string;
     // change assignedTo to User[] type
     assignedTo?: string;
