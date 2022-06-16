@@ -46,7 +46,7 @@ describe("dateDiff", () => {
 
 describe("isLessThan", () => {
     it("10 minutes", () => {
-        const future: Date = new Date(Date.now() + 1000 * 60 * 10);
+        const future: Date = new Date(Date.now() + 1000 * 60 * 10 - 10);
 
         expect(isLessThan(future, 0, "hour")).toBe(false);
         expect(isLessThan(future, 1, "hour")).toBe(true);
@@ -54,7 +54,7 @@ describe("isLessThan", () => {
         expect(isLessThan(future, 1, "week")).toBe(true);
     });
     it("13 hours", () => {
-        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 13);
+        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 13 - 10);
 
         expect(isLessThan(future, 0, "hour")).toBe(false);
         expect(isLessThan(future, 1, "hour")).toBe(false);
@@ -62,7 +62,7 @@ describe("isLessThan", () => {
         expect(isLessThan(future, 1, "week")).toBe(true);
     });
     it("5 days", () => {
-        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 5);
+        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 5 - 10);
 
         expect(isLessThan(future, 0, "hour")).toBe(false);
         expect(isLessThan(future, 1, "hour")).toBe(false);
@@ -70,13 +70,13 @@ describe("isLessThan", () => {
         expect(isLessThan(future, 1, "week")).toBe(true);
     });
     it("7 weeks", () => {
-        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 7);
+        const future: Date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 7 - 10);
 
         expect(isLessThan(future, 0, "hour")).toBe(false);
         expect(isLessThan(future, 1, "hour")).toBe(false);
         expect(isLessThan(future, 1, "day")).toBe(false);
         expect(isLessThan(future, 1, "week")).toBe(false);
-        expect(isLessThan(future, 7, "week")).toBe(false);
+        expect(isLessThan(future, 7, "week")).toBe(true);
         expect(isLessThan(future, 8, "week")).toBe(true);
     });
 });

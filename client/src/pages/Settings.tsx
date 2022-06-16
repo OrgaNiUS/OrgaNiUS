@@ -1,11 +1,11 @@
-import AuthContext from "../context/AuthProvider";
-import Modal from "../components/Modal";
+import { AxiosInstance } from "axios";
 import React, { useContext, useEffect, useState } from "react";
-import axios from "../api/axios";
-import { toTitleCase } from "../functions/strings";
-import { validEmail, validPassword, validUsername } from "../components/regex";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
+import Modal from "../components/Modal";
+import { validEmail, validPassword, validUsername } from "../components/regex";
+import AuthContext from "../context/AuthProvider";
+import { toTitleCase } from "../functions/strings";
 import { Button } from "../styles";
 
 // when updating this interface Fields, do remember to update the following sections as well
@@ -139,7 +139,8 @@ const ButtonErrorClose = styled.button`
     }
 `;
 
-const Settings = (): JSX.Element => {
+// TODO: move axios under authconntext?
+const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -183,9 +184,10 @@ const Settings = (): JSX.Element => {
                 });
             })
             .catch((err) => {
+                console.log(err.config);
                 console.log(err);
             });
-    }, []);
+    }, [axios]);
 
     const handleClick = (key: keyof Fields) => {
         setSelection(key);
@@ -298,8 +300,8 @@ const Settings = (): JSX.Element => {
                     <H1>Setings</H1>
                     {keys.map((key, i) => {
                         return (
-                            <div>
-                                <ButtonChange key={i} onClick={() => handleClick(key)}>
+                            <div key={i}>
+                                <ButtonChange onClick={() => handleClick(key)}>
                                     {`Change ${toTitleCase(key)}`}
                                 </ButtonChange>
                             </div>
