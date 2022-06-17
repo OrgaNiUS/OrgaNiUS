@@ -6,5 +6,5 @@ import axios from "axios";
 const URL: string = process.env.REACT_APP_URL || "https://organius.herokuapp.com/";
 
 export default axios.create({
-  baseURL: URL,
+    baseURL: URL,
 });

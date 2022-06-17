@@ -1,4 +1,8 @@
+import { useContext, useEffect } from "react";
+import { Route, Routes } from "react-router-dom";
+import axios from "./api/axios";
 import "./App.css";
+import AuthContext from "./context/AuthProvider";
 import {
     ForgotPwd,
     Homepage,
@@ -12,13 +16,28 @@ import {
     UnauthorisedAccess,
     User,
 } from "./index";
-import React, { useContext } from "react";
-import { Route, Routes } from "react-router-dom";
-import AuthContext from "./context/AuthProvider";
-import axios from "./api/axios";
+
+const refreshTime = 1000 * 60 * 9.5;
+const refreshJWT = () => {
+    const URL = "/api/v1/refresh_jwt";
+    axios.get(URL).catch((err) => console.log(err));
+};
 
 function App() {
     const auth = useContext(AuthContext);
+
+    useEffect(() => {
+        // refresh JWT every 9.5 minutes (the actual expiration time is 10 minutes, but we refresh slightly earlier)
+        // https://stackoverflow.com/a/65049865
+        const interval = setInterval(() => {
+            if (auth.auth.loggedIn) {
+                // refresh JWT only if logged in
+                refreshJWT();
+            }
+        }, refreshTime);
+
+        return () => clearInterval(interval);
+    }, [auth.auth.loggedIn]);
 
     return !auth.auth.loggedIn ? (
         <Routes>
