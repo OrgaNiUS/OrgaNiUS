@@ -74,7 +74,7 @@ const Login = (): JSX.Element => {
                             <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                                 {errMsg}
                             </p>
-                            <form className="mt-3" onSubmit={handleSubmit}>
+                            <form data-testid="login-form" className="mt-3" onSubmit={handleSubmit}>
                                 <div className="mb-6">
                                     <input
                                         type="text"
@@ -116,6 +116,7 @@ const Login = (): JSX.Element => {
                                     </div>
 
                                     <Link
+                                        data-testid="forgot_pwd"
                                         to="/forgot_pwd"
                                         className="text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out hover:underline"
                                     >

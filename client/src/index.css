@@ -26,4 +26,8 @@
     .navbar-wrapper {
         @apply sticky top-0 z-50 bg-white w-full h-20 m-0 flex flex-row bg-blend-color text-white shadow-lg;
     }
+
+    .errmsg {
+        @apply text-xs rounded-lg text-black p-1 relative border-2 border-red-300;
+    }
 }

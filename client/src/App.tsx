@@ -2,20 +2,18 @@ import { useContext, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import axios from "./api/axios";
 import "./App.css";
+import Navbar from "./components/Navbar";
 import AuthContext from "./context/AuthProvider";
-import {
-    ForgotPwd,
-    Homepage,
-    Login,
-    Navbar,
-    Page404,
-    PageDoesNotExist,
-    Projects,
-    Registration,
-    Settings,
-    UnauthorisedAccess,
-    User,
-} from "./index";
+import Page404 from "./pages/ErrorPages/Page404";
+import PageDoesNotExist from "./pages/ErrorPages/PageDoesNotExist";
+import UnauthorisedAccess from "./pages/ErrorPages/UnauthorisedAccess";
+import ForgotPwd from "./pages/ForgotPwd";
+import Homepage from "./pages/Homepage";
+import Login from "./pages/Login";
+import Projects from "./pages/Projects";
+import Registration from "./pages/Registration";
+import Settings from "./pages/Settings";
+import User from "./pages/User";
 
 const refreshTime = 1000 * 60 * 9.5;
 const refreshJWT = () => {
