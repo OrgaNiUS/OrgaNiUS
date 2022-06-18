@@ -31,6 +31,12 @@ const events: IEvent[] = [
         end: new Date(2022, 5, 14),
         allDay: true,
     },
+    {
+        name: "Starts yesterday, ends tomorrow.",
+        start: new Date(Date.now() - 1000 * 60 * 60 * 24),
+        end: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        allDay: true,
+    },
 ];
 const tasks: ITask[] = [
     {

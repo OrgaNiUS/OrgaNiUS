@@ -1,5 +1,5 @@
 import { IEvent, ITask } from "../../types";
-import { filterTasks, mergeEventArrays } from "../events";
+import { filterEvents, filterTasks, mergeEventArrays } from "../events";
 
 describe("mergeEventArrays", () => {
     const event1: IEvent = {
@@ -48,6 +48,20 @@ describe("mergeEventArrays", () => {
         expect(merged[1]).toMatchObject(event1);
         expect(merged[2]).toMatchObject(event4);
         expect(merged[3]).toMatchObject(event3);
+    });
+});
+
+describe("filterEvents", () => {
+    it("filter over", () => {
+        const events: IEvent[] = [
+            {
+                name: "Ends yesterday.",
+                start: new Date(Date.now() - 1000 * 60 * 60 * 24),
+                end: new Date(Date.now() - 1000 * 60 * 60 * 24),
+                allDay: true,
+            },
+        ];
+        expect(filterEvents(events, { over: true })).toStrictEqual([]);
     });
 });
 

@@ -7,8 +7,8 @@ describe("Timeline", () => {
     const events: IEvent[] = [
         {
             name: "event 1",
-            start: new Date(2022, 5, 1),
-            end: new Date(2022, 5, 4),
+            start: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            end: new Date(Date.now() + 1000 * 60 * 60 * 24),
         },
     ];
     const tasks: ITask[] = [

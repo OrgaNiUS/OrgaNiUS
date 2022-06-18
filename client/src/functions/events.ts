@@ -45,6 +45,27 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
     return result;
 };
 
+export interface filterEventOptions {
+    over: boolean;
+}
+
+/**
+ * Filter events by some options.
+ *
+ * @param events  Events to be filtered by.
+ * @param options Filter by options, true to be filtered away.
+ *
+ * @returns Filtered events.
+ */
+export const filterEvents = (events: IEvent[], options: filterEventOptions): IEvent[] => {
+    return events.filter((e) => {
+        if (options.over && isLessThan(e.end, 0, "")) {
+            return false;
+        }
+        return true;
+    });
+};
+
 export interface filterTaskOptions {
     done: boolean;
     expired: boolean;

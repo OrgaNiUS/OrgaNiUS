@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import styled from "styled-components";
+import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
 import { IEvent } from "../types";
 
@@ -147,7 +148,7 @@ const Line = styled.hr`
 `;
 
 const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
-    // TODO: filter out events that are over?
+    const filteredEvents = filterEvents(events, { over: true });
 
     const rowRef = useRef<HTMLDivElement>(null);
 
@@ -168,7 +169,7 @@ const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
         <Container data-testid="timeline">
             <RowScrollerLeft onClick={() => handleScroll(true)}>{"<"}</RowScrollerLeft>
             <Row ref={rowRef}>
-                {events.map((event, i) => (
+                {filteredEvents.map((event, i) => (
                     <Item key={i} {...{ event }} />
                 ))}
             </Row>
