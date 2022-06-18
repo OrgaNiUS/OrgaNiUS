@@ -10,10 +10,10 @@ const (
 
 	Enter this pin "%s" in the prompt.
 
-	Please ignore this message if it was not you.
+Please ignore this message if it was not you.
 
-	Regards,
-	OrgaNiUS Team`
+Regards,
+OrgaNiUS Team`
 )
 
 func (m *Mailer) SendForgotPW(name, email, pin string) error {
