@@ -1,8 +1,10 @@
 import moment from "moment";
+import { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calendar's css file
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { IEvent } from "../types";
+import EventCard from "./EventCard";
 
 // moment is required for react-big-calendar
 const localizer = momentLocalizer(moment);
@@ -13,16 +15,45 @@ const Container = styled.div`
     /* 5rem from navbar, 3rem from welcome message */
     /* a further 3rem for timeline below */
     height: calc(100vh - 2 * (5rem + 1rem) - 5rem);
+    position: relative;
 `;
 
+const intervalDuration: number = 1000 * 5;
+
 const Scheduler = ({ events }: { events: IEvent[] }): JSX.Element => {
+    const [currentInterval, setCurrentInterval] = useState<NodeJS.Timer | null>(null);
+    const [eventCard, setEventCard] = useState<IEvent | null>(null);
+
     const handleSelectEvent = (event: IEvent) => {
-        // TODO: pop up event card
-        console.log(event);
+        setEventCard(event);
+
+        if (currentInterval !== null) {
+            // clear current interval (if there is one)
+            // so that there is only 1 interval active at any point in time
+            clearInterval(currentInterval);
+        }
+
+        const interval = setInterval(() => {
+            setEventCard(null);
+        }, intervalDuration);
+
+        setCurrentInterval(interval);
     };
 
     return (
         <Container>
+            {eventCard !== null && (
+                <EventCard
+                    {...{
+                        event: eventCard,
+                        position: css`
+                            right: 2rem;
+                            top: 5rem;
+                            z-index: 5;
+                        `,
+                    }}
+                />
+            )}
             <Calendar
                 localizer={localizer}
                 events={events}

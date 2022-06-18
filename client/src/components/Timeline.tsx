@@ -1,44 +1,15 @@
 import { useRef, useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
 import { IEvent } from "../types";
-
-const CardContainer = styled.div`
-    background-color: white;
-    border-radius: 5px;
-    border: 2px solid black;
-    box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-    padding: 0.2rem 0.6rem;
-    position: absolute;
-    top: -30%;
-    width: max-content;
-`;
+import EventCard from "./EventCard";
 
 const Name = styled.p`
     ${truncate}
     max-width: 10rem;
     white-space: nowrap;
 `;
-
-const Card = ({ event }: { event: IEvent }): JSX.Element => {
-    const options: Intl.DateTimeFormatOptions = {
-        day: "numeric",
-        month: "short",
-    };
-
-    const start: string = event.start.toLocaleDateString("en-SG", options);
-    const end: string = event.end.toLocaleDateString("en-SG", options);
-    const period: string = start === end ? start : `${start} - ${end}`;
-
-    // TODO: potentially link to future events page (?)
-    return (
-        <CardContainer>
-            <Name>{event.name}</Name>
-            <p>{period}</p>
-        </CardContainer>
-    );
-};
 
 const ItemContainer = styled.div`
     align-items: center;
@@ -82,7 +53,16 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
 
     return (
         <ItemContainer>
-            {showCard && <Card {...{ event }} />}
+            {showCard && (
+                <EventCard
+                    {...{
+                        event,
+                        position: css`
+                            top: -30%;
+                        `,
+                    }}
+                />
+            )}
             <Name>{event.name}</Name>
             <Circle height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={regular} onClick={handleClick} />
