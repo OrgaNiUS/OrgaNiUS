@@ -9,7 +9,6 @@ describe("Timeline", () => {
             name: "event 1",
             start: new Date(2022, 5, 1),
             end: new Date(2022, 5, 4),
-            important: false,
         },
     ];
     const tasks: ITask[] = [

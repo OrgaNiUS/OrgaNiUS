@@ -78,14 +78,12 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
     const regular: string = "#3B82F6";
     const important: string = "#FF5500";
 
-    const colour: string = event.important ? important : regular;
-
     return (
         <ItemContainer>
             {showCard && <Card {...{ event }} />}
             <Name>{event.name}</Name>
             <Circle height="30" width="30">
-                <circle cx="15" cy="15" r="15" fill={colour} onClick={handleClick} />
+                <circle cx="15" cy="15" r="15" fill={regular} onClick={handleClick} />
             </Circle>
             <VertLine />
         </ItemContainer>

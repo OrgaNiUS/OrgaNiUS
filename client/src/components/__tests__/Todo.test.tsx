@@ -20,10 +20,10 @@ describe("Todo", () => {
             },
         ];
         render(<Todo {...{ initialTasks: tasks }} />);
-        const searchBox = screen.getByPlaceholderText(/Search/);
-        fireEvent.change(searchBox, { target: { value: "x" } });
+        const searchBox = screen.getAllByPlaceholderText(/Search/);
+        fireEvent.change(searchBox[0], { target: { value: "x" } });
 
-        expect(screen.queryByText("Nothing here!")).toBeInTheDocument();
+        screen.queryAllByText("Nothing here!").forEach((item) => expect(item).toBeInTheDocument());
     });
 
     it("search with results", () => {
@@ -37,8 +37,8 @@ describe("Todo", () => {
             },
         ];
         render(<Todo {...{ initialTasks: tasks }} />);
-        const searchBox = screen.getByPlaceholderText(/Search/);
-        fireEvent.change(searchBox, { target: { value: "Task" } });
+        const searchBox = screen.getAllByPlaceholderText(/Search/);
+        fireEvent.change(searchBox[0], { target: { value: "Task" } });
 
         expect(screen.queryByText("Nothing here!")).not.toBeInTheDocument();
     });
@@ -56,6 +56,7 @@ describe("Todo", () => {
 
         render(<Todo {...{ initialTasks: tasks }} />);
 
-        expect(screen.queryByText("Filter Options")).not.toBeVisible();
+        // both list and grid
+        screen.queryAllByText("Filter Options").forEach((item) => expect(item).not.toBeVisible());
     });
 });

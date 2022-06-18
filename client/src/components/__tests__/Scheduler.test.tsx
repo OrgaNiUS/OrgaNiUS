@@ -8,25 +8,21 @@ describe("Scheduler", () => {
             name: "event 1",
             start: new Date(2022, 5, 1),
             end: new Date(2022, 5, 4),
-            important: false,
         },
         {
             name: "event 2",
             start: new Date(2022, 5, 1),
             end: new Date(2022, 5, 1),
-            important: true,
         },
         {
             name: "very loooooooooooooooooooooooooooooooooooong name",
             start: new Date(2022, 5, 1),
             end: new Date(2022, 5, 1),
-            important: true,
         },
         {
             name: "All day event!",
             start: new Date(2022, 5, 14),
             end: new Date(2022, 5, 14),
-            important: false,
             allDay: true,
         },
     ];

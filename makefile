@@ -20,15 +20,15 @@ build-client:
 
 # run all tests
 .PHONY: test
-test: go-test postman-test
+test: go-test client-test
 
 .PHONY: gt go-test
 gt: go-test
 go-test:
-	go test -v ./...
+	go test ./...
 
 # run all API tests using newman/postman
-.PHONY: pm postman-test
-pm: postman-test
-postman-test:
-	newman run server/postman_tests/*.json
+.PHONY: ct client-test
+ct: client-test
+client-test:
+	npm test --prefix "client"

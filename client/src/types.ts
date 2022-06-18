@@ -2,7 +2,6 @@ export interface IEvent {
     name: string;
     start: Date;
     end: Date;
-    important: boolean;
     allDay?: boolean;
 }
 

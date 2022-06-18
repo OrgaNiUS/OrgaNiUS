@@ -31,6 +31,6 @@ describe("setCookie", () => {
         let value: string = "cookie-value!";
 
         setCookie(key, value);
-        expect(window.document.cookie).toBe(`${key}=${value}`);
+        expect(window.document.cookie).toBe(`${key}=${value}; SameSite=Lax`);
     });
 });

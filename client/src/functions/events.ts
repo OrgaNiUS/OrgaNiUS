@@ -24,7 +24,6 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
             name: t.name,
             start: t.deadline,
             end: t.deadline,
-            important: isLessThan(t.deadline, 3, "day"),
         });
     });
 
