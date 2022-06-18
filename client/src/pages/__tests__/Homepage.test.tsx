@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import AuthContext from "../../context/AuthProvider";
+import MockAuthProvider from "../../context/MockAuthProvider";
 import Homepage from "../Homepage";
 
 describe("welcome message", () => {
@@ -7,9 +7,9 @@ describe("welcome message", () => {
         const user: string = "test";
 
         const homepage: JSX.Element = (
-            <AuthContext.Provider value={{ auth: { user: user, loggedIn: true }, setAuth: jest.fn() }}>
+            <MockAuthProvider {...{ user }}>
                 <Homepage />
-            </AuthContext.Provider>
+            </MockAuthProvider>
         );
         render(homepage);
 
@@ -22,9 +22,9 @@ describe("welcome message", () => {
         const user: string = "";
 
         const homepage: JSX.Element = (
-            <AuthContext.Provider value={{ auth: { user: user, loggedIn: true }, setAuth: jest.fn() }}>
+            <MockAuthProvider {...{ user }}>
                 <Homepage />
-            </AuthContext.Provider>
+            </MockAuthProvider>
         );
         render(homepage);
 
@@ -35,10 +35,12 @@ describe("welcome message", () => {
 });
 
 describe("contains inner components", () => {
+    const user = "";
+
     const homepage: JSX.Element = (
-        <AuthContext.Provider value={{ auth: { user: "test", loggedIn: true }, setAuth: jest.fn() }}>
+        <MockAuthProvider {...{ user }}>
             <Homepage />
-        </AuthContext.Provider>
+        </MockAuthProvider>
     );
 
     it("contains todo", () => {

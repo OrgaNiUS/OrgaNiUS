@@ -40,8 +40,6 @@ const TodoDropdown = ({
         event.preventDefault();
 
         const key: "done" | "expired" = event.target.name as "done" | "expired";
-        const value: boolean = event.target.checked;
-        console.log(key, value);
 
         setFilterOptions((opts) => {
             return { ...opts, [key]: !opts[key] };

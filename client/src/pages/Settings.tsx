@@ -1,7 +1,7 @@
-import { AxiosInstance } from "axios";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
+import { UserDelete, UserGetSelf, UserPatch } from "../api/UserAPI";
 import Modal from "../components/Modal";
 import { validEmail, validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
@@ -24,10 +24,6 @@ const defaultFields: Fields = {
     password: "",
     confirm_password: "",
 };
-
-const GET_SELF_URL: string = "api/v1/own_user";
-const USER_PATCH_URL: string = "api/v1/user";
-const DELETE_ACC_URL: string = "api/v1/user";
 
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
@@ -139,8 +135,7 @@ const ButtonErrorClose = styled.button`
     }
 `;
 
-// TODO: move axios under authconntext?
-const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
+const Settings = (): JSX.Element => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -175,19 +170,20 @@ const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
 
     useEffect(() => {
         // get user name and email and populate fields on page load
-        axios
-            .get(GET_SELF_URL)
-            .then((response) => {
+        UserGetSelf(
+            auth.axiosInstance,
+            (response) => {
                 const data = response.data;
                 setFields((f) => {
                     return { ...f, name: data["name"], email: data["email"] };
                 });
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 console.log(err.config);
                 console.log(err);
-            });
-    }, [axios]);
+            }
+        );
+    }, [auth.axiosInstance]);
 
     const handleClick = (key: keyof Fields) => {
         setSelection(key);
@@ -213,9 +209,10 @@ const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
             [key]: fields[key],
         };
 
-        axios
-            .patch(USER_PATCH_URL, payload)
-            .then((response) => {
+        UserPatch(
+            auth.axiosInstance,
+            payload,
+            (response) => {
                 if (key === "name") {
                     // when name changes, update the context
                     auth.setAuth((current) => {
@@ -231,10 +228,11 @@ const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
 
                 // Delete any previous message.
                 setMessage("");
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 console.log(err);
-            });
+            }
+        );
     };
 
     const dismissMessage: React.MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -244,18 +242,19 @@ const Settings = ({ axios }: { axios: AxiosInstance }): JSX.Element => {
 
     const handleConfirmDelete: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
-        axios
-            .delete(DELETE_ACC_URL)
-            .then((resp) => {
+        UserDelete(
+            auth.axiosInstance,
+            (_) => {
                 auth.setAuth({
                     user: undefined,
                     loggedIn: false,
                 });
                 navigate("/");
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 console.log(err);
-            });
+            }
+        );
     };
 
     const DeleteModal = (

@@ -1,14 +1,13 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import App from "../App";
 
-import axios from "../api/axios";
-import AuthContext from "../context/AuthProvider";
 import { AxiosError } from "axios";
-
-const LOGIN_URL: string = "/api/v1/login";
+import { UserLogin } from "../api/UserAPI";
+import AuthContext from "../context/AuthProvider";
 
 const Login = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const userRef = useRef<HTMLInputElement>(null);
     const errRef = useRef<HTMLParagraphElement>(null);
 
@@ -30,29 +29,28 @@ const Login = (): JSX.Element => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios
-            .post(
-                LOGIN_URL,
-                { name: user, password: pwd },
-                {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true,
-                }
-            )
-            .then((success) => {
+        UserLogin(
+            auth.axiosInstance,
+            { name: user, password: pwd },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (_) => {
                 // const accessToken = response?.data?.accessToken; response = await axios.post etc etc
                 Auth.setAuth({ user, loggedIn: true });
                 //Reset User inputs
                 setUser("");
                 setPwd("");
                 setSuccess(true);
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 if (err instanceof AxiosError) {
                     console.log(err);
                     setErrMsg(err.response?.data.error);
                 } else setErrMsg("Login Failed");
-            });
+            }
+        );
     };
 
     return (

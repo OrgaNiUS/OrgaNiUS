@@ -1,3 +1,4 @@
+import axios, { AxiosInstance } from "axios";
 import React, { createContext, useState } from "react";
 import { getCookie } from "../functions/cookies";
 
@@ -9,6 +10,7 @@ interface AuthInterface {
 interface IAuthContext {
     auth: AuthInterface;
     setAuth: React.Dispatch<React.SetStateAction<AuthInterface>>;
+    axiosInstance: AxiosInstance;
 }
 
 // Gets information from JWT and returns an AuthInterface.
@@ -38,13 +40,22 @@ const ParseJWT = (): AuthInterface => {
     }
 };
 
+// Very difficult (impossible?) to load heroku environment variables into react app.
+// Thus, opt to override it with a local environment variable for development instead.
+// This requires an extra .env to be placed inside "/client" folder.
+const group: string = "api/v1/";
+const url: string = process.env.REACT_APP_URL || "https://organius.herokuapp.com/";
+
+const axiosInstance: AxiosInstance = axios.create({
+    baseURL: url + group,
+});
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
 export const AuthProvider = ({ children }: { children: JSX.Element }) => {
     const authStatus: AuthInterface = ParseJWT();
     const [auth, setAuth] = useState<AuthInterface>(authStatus);
 
-    return <AuthContext.Provider value={{ auth, setAuth }}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={{ auth, setAuth, axiosInstance }}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;

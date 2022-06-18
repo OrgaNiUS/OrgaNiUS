@@ -1,11 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AxiosStatic } from "axios";
 import { BrowserRouter as Router } from "react-router-dom";
+import MockAuthProvider from "../../context/MockAuthProvider";
 import Settings from "../Settings";
 
 jest.mock("axios");
 
 const MockSettings = () => {
+    const user = "test";
     const mockAxios = jest.createMockFromModule<AxiosStatic>("axios");
     mockAxios.create = jest.fn(() => mockAxios);
     const axios = mockAxios.create();
@@ -19,7 +21,9 @@ const MockSettings = () => {
 
     return (
         <Router>
-            <Settings {...{ axios }} />
+            <MockAuthProvider {...{ user, axiosInstance: axios }}>
+                <Settings />
+            </MockAuthProvider>
         </Router>
     );
 };

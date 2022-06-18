@@ -76,7 +76,8 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
     };
 
     const regular: string = "#3B82F6";
-    const important: string = "#FF5500";
+    // storing this colour here as comment for (potential) future usage
+    // const important: string = "#FF5500";
 
     return (
         <ItemContainer>

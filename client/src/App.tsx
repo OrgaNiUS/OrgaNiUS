@@ -1,6 +1,6 @@
 import { useContext, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
-import axios from "./api/axios";
+import { UserRefreshJWT } from "./api/UserAPI";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import AuthContext from "./context/AuthProvider";
@@ -15,11 +15,8 @@ import Registration from "./pages/Registration";
 import Settings from "./pages/Settings";
 import User from "./pages/User";
 
-const refreshTime = 1000 * 60 * 9.5;
-const refreshJWT = () => {
-    const URL = "/api/v1/refresh_jwt";
-    axios.get(URL).catch((err) => console.log(err));
-};
+// JWT refresh time.
+const refreshTime: number = 1000 * 60 * 9.5;
 
 function App() {
     const auth = useContext(AuthContext);
@@ -30,12 +27,12 @@ function App() {
         const interval = setInterval(() => {
             if (auth.auth.loggedIn) {
                 // refresh JWT only if logged in
-                refreshJWT();
+                UserRefreshJWT(auth.axiosInstance, undefined, (err) => console.log(err));
             }
         }, refreshTime);
 
         return () => clearInterval(interval);
-    }, [auth.auth.loggedIn]);
+    }, [auth.axiosInstance, auth.auth.loggedIn]);
 
     return !auth.auth.loggedIn ? (
         <Routes>
@@ -53,7 +50,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Homepage />} />
                 <Route path="/projects" element={<Projects />} />
-                <Route path="/settings" element={<Settings {...{ axios }} />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/user/:username" element={<User />} />
                 {/* catch all path send to Page404 */}
                 <Route path="*" element={<Page404 />} />

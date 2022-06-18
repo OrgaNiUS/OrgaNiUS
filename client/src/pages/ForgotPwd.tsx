@@ -1,14 +1,12 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import {validPassword, validPinCode, validUsername,} from "../components/regex";
-import axios from "../api/axios";
-import {AxiosError} from "axios";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { validPassword, validPinCode, validUsername } from "../components/regex";
+import { AxiosError } from "axios";
+import { UserFP, UserFPChange, UserFPVerify } from "../api/UserAPI";
+import AuthContext from "../context/AuthProvider";
 
 const ForgotPwd = (): JSX.Element => {
-    const FORGOT_PWD_URL = "/api/v1/forgot_pw";
-    const VERIFY_PIN_URL = "/api/v1/verify_forgot_pw";
-    const CHANGE_PWD_URL = "/api/v1/change_forgot_pw";
-
+    const auth = useContext(AuthContext);
     const navigate = useNavigate();
 
     const userRef = useRef<HTMLInputElement>(null);
@@ -29,7 +27,6 @@ const ForgotPwd = (): JSX.Element => {
     const [errMsg, setErrMsg] = useState("");
     const [success, setSuccess] = useState(false);
     const [verifySuccess, setVerifySuccess] = useState(false);
-    // const [resetSuccess, setResetSuccess] = useState(true);
 
     useEffect(() => {
         userRef.current?.focus();
@@ -50,65 +47,69 @@ const ForgotPwd = (): JSX.Element => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(
-            FORGOT_PWD_URL,
-            {name: user},
+        UserFP(
+            auth.axiosInstance,
+            { name: user },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
+            },
+            (_) => {
+                setSuccess(true);
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.message);
+                } else setErrMsg("Username Error");
             }
-        ).then((success) => {
-            setSuccess(true);
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.message);
-            } else setErrMsg("Username Error");
-        });
+        );
     };
 
     const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(
-            VERIFY_PIN_URL,
-            {name: user, pin},
+        UserFPVerify(
+            auth.axiosInstance,
+            { name: user, pin },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
+            },
+            (_) => {
+                setVerifySuccess(true);
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.message);
+                } else setErrMsg("Verify Pin Error");
             }
-        ).then((success) => {
-            setVerifySuccess(true);
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.message);
-            } else setErrMsg("Verify Pin Error");
-        });
+        );
     };
 
     const handleChangePwd = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(
-            CHANGE_PWD_URL,
-            {name: user, pin, password: pwd},
+        UserFPChange(
+            auth.axiosInstance,
+            { name: user, pin, password: pwd },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
+            },
+            (_) => {
+                navigate("/");
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.message);
+                } else setErrMsg("Reset Password Error");
             }
-        ).then((success) => {
-            // setResetSuccess(true);
-            navigate('/');
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.message);
-            } else setErrMsg("Reset Password Error");
-        });
+        );
     };
 
     return (
         <>
-
             <div className="flex flex-col h-screen">
                 <div className="flex fixed top-0 left-0 w-screen h-20 m-0 flex-row bg-blend-color shadow-lg ">
                     <Link
@@ -119,13 +120,18 @@ const ForgotPwd = (): JSX.Element => {
                     </Link>
                 </div>
 
-                <div className={`flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800 ${
-                    !verifySuccess && !success ? "" : "hidden"
-                }`}>
+                <div
+                    className={`flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800 ${
+                        !verifySuccess && !success ? "" : "hidden"
+                    }`}
+                >
                     <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-              <span data-testid='fgt-pwd-indicator' className="text-3xl justify-center items-center text-center ">
-                OrgaNiUS Reset Password
-              </span>
+                        <span
+                            data-testid="fgt-pwd-indicator"
+                            className="text-3xl justify-center items-center text-center "
+                        >
+                            OrgaNiUS Reset Password
+                        </span>
                         <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                             {errMsg}
                         </p>
@@ -140,9 +146,11 @@ const ForgotPwd = (): JSX.Element => {
                                     placeholder="Enter your Username here"
                                     required
                                 />
-                                <p className={`${user && !validName ? 'errmsg' : 'hidden'}`}>
-                                    At least 5 characters long.<br/>
-                                    Only contains alphanumeric characters.<br/>
+                                <p className={`${user && !validName ? "errmsg" : "hidden"}`}>
+                                    At least 5 characters long.
+                                    <br />
+                                    Only contains alphanumeric characters.
+                                    <br />
                                     Allowed special characters ' ', '_', '.'
                                 </p>
                             </div>
@@ -166,9 +174,7 @@ const ForgotPwd = (): JSX.Element => {
                     }`}
                 >
                     <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-                            <span className="text-3xl justify-center items-center text-center ">
-                                Email Verification
-                            </span>
+                        <span className="text-3xl justify-center items-center text-center ">Email Verification</span>
                         <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                             {errMsg}
                         </p>
@@ -179,16 +185,12 @@ const ForgotPwd = (): JSX.Element => {
                                     id="pin"
                                     onChange={(e) => setPin(e.target.value)}
                                     className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white border-gray-300 bg-clip-padding border border-solid ${
-                                        !validPin && pin
-                                            ? "uppercase"
-                                            : !pin
-                                                ? ""
-                                                : "uppercase"
+                                        !validPin && pin ? "uppercase" : !pin ? "" : "uppercase"
                                     } rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
                                     placeholder="Enter your 6 digit pin here"
                                     required
                                 />
-                                <p className={`${pin && !validPin ? 'errmsg' : 'hidden'}`}>
+                                <p className={`${pin && !validPin ? "errmsg" : "hidden"}`}>
                                     Pin is a 6 Digit AlphaNumeric value.
                                 </p>
                             </div>
@@ -212,9 +214,7 @@ const ForgotPwd = (): JSX.Element => {
                     }`}
                 >
                     <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-                            <span className="text-3xl justify-center items-center text-center ">
-                                Change password
-                            </span>
+                        <span className="text-3xl justify-center items-center text-center ">Change password</span>
                         <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                             {errMsg}
                         </p>
@@ -228,9 +228,11 @@ const ForgotPwd = (): JSX.Element => {
                                     placeholder="New Password"
                                     required
                                 />
-                                <p className={`${pwd && !validPwd ? 'errmsg' : 'hidden'}`}>
-                                    At least 8 characters long.<br/>
-                                    Contains at least 1 uppercase, 1 lowercase and 1 digit.<br/>
+                                <p className={`${pwd && !validPwd ? "errmsg" : "hidden"}`}>
+                                    At least 8 characters long.
+                                    <br />
+                                    Contains at least 1 uppercase, 1 lowercase and 1 digit.
+                                    <br />
                                     Does not contain username.
                                 </p>
                             </div>
@@ -244,7 +246,7 @@ const ForgotPwd = (): JSX.Element => {
                                     placeholder="Re-Enter your new Password"
                                     required
                                 />
-                                <p className={`${matchPwd && !validMatch ? 'errmsg' : 'hidden'}`}>
+                                <p className={`${matchPwd && !validMatch ? "errmsg" : "hidden"}`}>
                                     Does not match password
                                 </p>
                             </div>
@@ -262,7 +264,6 @@ const ForgotPwd = (): JSX.Element => {
                     </div>
                 </div>
             </div>
-
         </>
     );
 };
