@@ -10,7 +10,8 @@ react:
 
 .PHONY: init-client
 init-client:
-	npm install --prefix "client"
+ 	# legacy peer deps flag required because react-big-calendar does not officially support react 18 (they did not update their package.json)
+	npm install --prefix "client" --legacy-peer-deps
 
 .PHONY: bc build-client
 bc: build-client
@@ -19,15 +20,15 @@ build-client:
 
 # run all tests
 .PHONY: test
-test: go-test postman-test
+test: go-test client-test
 
 .PHONY: gt go-test
 gt: go-test
 go-test:
-	go test -v ./...
+	go test ./...
 
 # run all API tests using newman/postman
-.PHONY: pm postman-test
-pm: postman-test
-postman-test:
-	newman run server/postman_tests/*.json
+.PHONY: ct client-test
+ct: client-test
+client-test:
+	npm test --prefix "client"

@@ -8,10 +8,10 @@ const (
 	SignupSubject = "Welcome to OrgaNiUS! Confirm Your Email!"
 	SignupFormat  = `Hey %s!
 
-	Enter this pin "%s" in the prompt.
+Enter this pin "%s" in the prompt.
 
-	Regards,
-	OrgaNiUS Team`
+Regards,
+OrgaNiUS Team`
 )
 
 func (m *Mailer) SendVerification(name, email, pin string) error {

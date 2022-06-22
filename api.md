@@ -14,9 +14,9 @@ Input: A JSON body with the following **required** parameters. You may include o
 
 ```typescript
 {
-  name: string;
-  password: string;
-  email: string;
+    name: string;
+    password: string;
+    email: string;
 }
 ```
 
@@ -29,7 +29,7 @@ Please ensure that these requirements are met on the client side before sending 
 
 Status Code: 201 or 400
 
-Username requirements
+Username requirements:
 
 1. Must be unique
 2. At least 5 characters long
@@ -77,8 +77,8 @@ Input: A JSON body with the following **required** parameters.
 
 ```typescript
 {
-  name: string;
-  password: string;
+    name: string;
+    password: string;
 }
 ```
 
@@ -91,9 +91,11 @@ Status Code: 201 or 400
 
 ### Refresh JWT
 
-GET "/refresh-jwt" request
+GET "/refresh_jwt" request
 
 Refreshes the JWT such that the token expires 10 minutes from the time this request is made. This is useful to prevent the user from being logged out due to inactivity.
+
+The client calls this every 9.5 minutes if logged in to prevent being logged out.
 
 Input: Nothing
 
@@ -160,7 +162,7 @@ Output:
 
 ```json
 {
-  "valid": true
+    "valid": true
 }
 ```
 
@@ -230,7 +232,7 @@ Output:
 
 ```json
 {
-  "exists": true
+    "exists": true
 }
 ```
 
@@ -272,65 +274,65 @@ Status Code: 200 or 400
 // All types here are defined as per Typescript conventions.
 
 interface User {
-  id: number;
-  name: string;
-  password: string;
-  email: string;
-  events: Event[];
-  tasks: Task[];
-  projects: Project[];
-  settings: UserSettings;
+    id: number;
+    name: string;
+    password: string;
+    email: string;
+    events: Event[];
+    tasks: Task[];
+    projects: Project[];
+    settings: UserSettings;
 }
 
 interface Event {
-  id: number;
-  name: string;
-  start: Date;
-  end: Date;
+    id: number;
+    name: string;
+    start: Date;
+    end: Date;
 }
 
 interface Task {
-  id: number;
-  name: string;
-  assignedTo: User[];
-  description: string;
-  creationTime: Date;
-  deadline: Date;
-  isDone: boolean;
-  tags: string[];
+    id: number;
+    name: string;
+    assignedTo: User[];
+    description: string;
+    creationTime: Date;
+    deadline: Date;
+    isDone: boolean;
+    tags: string[];
 }
 
 interface Project {
-  id: number;
-  name: string;
-  description: string;
-  members: User[];
-  tasks: Task[];
-  state: string;
-  creationTime: Date;
-  settings: ProjectSettings;
+    id: number;
+    name: string;
+    description: string;
+    members: User[];
+    tasks: Task[];
+    state: string;
+    creationTime: Date;
+    settings: ProjectSettings;
 }
 
 interface ProjectSettings {
-  roles: { [key: string]: Permissions };
-  deadlineNotification: Date;
+    roles: { [key: string]: Permissions };
+    deadlineNotification: Date;
 }
 
 interface Permissions {
-  addMember: boolean;
-  removeMember: boolean;
-  editName: boolean;
-  editDesc: boolean;
-  editSettings: boolean;
-  addTask: boolean;
-  removeTask: boolean;
-  canAssignOthers: boolean;
+    addMember: boolean;
+    removeMember: boolean;
+    editName: boolean;
+    editDesc: boolean;
+    editSettings: boolean;
+    addTask: boolean;
+    removeTask: boolean;
+    canAssignOthers: boolean;
 }
 
 interface UserSettings {
-  deadlineNotification: Date;
-  webNotification: boolean;
-  telegramNotification: boolean;
-  emailNotification: boolean;
+    deadlineNotification: Date;
+    webNotification: boolean;
+    telegramNotification: boolean;
+    emailNotification: boolean;
 }
 ```

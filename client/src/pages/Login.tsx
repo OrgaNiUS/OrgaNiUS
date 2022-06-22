@@ -1,14 +1,13 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import App from "../App";
 
-import axios from "../api/axios";
+import { AxiosError } from "axios";
+import { UserLogin } from "../api/UserAPI";
 import AuthContext from "../context/AuthProvider";
-import {AxiosError} from "axios";
-
-const LOGIN_URL: string = "/api/v1/login";
 
 const Login = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const userRef = useRef<HTMLInputElement>(null);
     const errRef = useRef<HTMLParagraphElement>(null);
 
@@ -30,45 +29,46 @@ const Login = (): JSX.Element => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(
-            LOGIN_URL,
-            {name: user, password: pwd},
+        UserLogin(
+            auth.axiosInstance,
+            { name: user, password: pwd },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
+            },
+            (_) => {
+                // const accessToken = response?.data?.accessToken; response = await axios.post etc etc
+                Auth.setAuth({ user, loggedIn: true });
+                //Reset User inputs
+                setUser("");
+                setPwd("");
+                setSuccess(true);
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.response?.data.error);
+                } else setErrMsg("Login Failed");
             }
-        ).then((success) => {
-            // const accessToken = response?.data?.accessToken; response = await axios.post etc etc
-            Auth.setAuth({user, loggedIn: true});
-            //Reset User inputs
-            setUser("");
-            setPwd("");
-            setSuccess(true);
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.response?.data.error);
-            } else setErrMsg("Login Failed");
-        });
+        );
     };
 
     return (
         <>
             {success ? (
-                {App}
+                { App }
             ) : (
                 <div className="flex flex-col h-screen">
                     <div className="navbar-wrapper">
-                        <div
-                            className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased">
+                        <div className="relative flex items-center justify-start content-start h-auto w-auto mt-2 mb-2 mx-auto text-4xl text-orange-500 antialiased">
                             OrgaNiUS
                         </div>
                     </div>
                     <section className="flex grow mt-20 justify-center items-center overflow-auto g-6 text-gray-800">
                         <div className="md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl">
-              <span className="text-3xl justify-center items-center text-center ">
-                Welcome to OrgaNiUS!
-              </span>
+                            <span className="text-3xl justify-center items-center text-center ">
+                                Welcome to OrgaNiUS!
+                            </span>
                             <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"}>
                                 {errMsg}
                             </p>
@@ -81,7 +81,7 @@ const Login = (): JSX.Element => {
                                         onChange={(e) => setUser(e.target.value)}
                                         value={user}
                                         className="form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                                        placeholder="Email address or Username"
+                                        placeholder="Username"
                                         required
                                     />
                                 </div>

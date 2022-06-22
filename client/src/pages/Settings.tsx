@@ -1,12 +1,12 @@
-import AuthContext from "../context/AuthProvider";
-import Modal from "../components/Modal";
 import React, { useContext, useEffect, useState } from "react";
-import StylesMerger from "../styles/StyleMerging";
-import axios from "../api/axios";
-import styles from "../styles/Settings.module.css";
-import { toTitleCase } from "../functions/strings";
-import { validEmail, validPassword, validUsername } from "../components/regex";
 import { useNavigate } from "react-router-dom";
+import styled, { css } from "styled-components";
+import { UserDelete, UserGetSelf, UserPatch } from "../api/UserAPI";
+import Modal from "../components/Modal";
+import { validEmail, validPassword, validUsername } from "../components/regex";
+import AuthContext from "../context/AuthProvider";
+import { toTitleCase } from "../functions/strings";
+import { Button } from "../styles";
 
 // when updating this interface Fields, do remember to update the following sections as well
 // keys array
@@ -25,16 +25,115 @@ const defaultFields: Fields = {
     confirm_password: "",
 };
 
-const GET_SELF_URL: string = "api/v1/own_user";
-const USER_PATCH_URL: string = "api/v1/user";
-const DELETE_ACC_URL: string = "api/v1/user";
-
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
 // https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings
 const keys: (keyof Fields)[] = ["name", "email", "password"];
 
-const styler = StylesMerger(styles);
+const centered = css`
+    text-align: center;
+    padding: 3rem;
+`;
+
+const Container = styled.div`
+    align-items: center;
+    justify-content: center;
+    margin-left: 5rem;
+    margin-right: 5rem;
+    margin-top: 2.5rem;
+`;
+
+const Left = styled.div`
+    border-right: 1px solid grey;
+    float: left;
+    width: 40%;
+
+    ${centered}
+`;
+
+const Right = styled.div`
+    float: right;
+    width: 60%;
+
+    ${centered}
+`;
+
+const VertCenter = styled.div`
+    flex: auto;
+    justify-content: center;
+    align-items: center;
+    height: 100;
+`;
+
+const H1 = styled.h1`
+    font-size: xx-large;
+    margin-bottom: 1rem;
+`;
+
+const H2 = styled.h2`
+    font-size: x-large;
+    margin-bottom: 1.25rem;
+`;
+
+const Form = styled.form`
+    display: inline-block;
+    vertical-align: center;
+`;
+
+const Label = styled.label`
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+`;
+
+const Input = styled.input`
+    border: 1px solid grey;
+    padding: 7px;
+    color: grey;
+`;
+
+const ButtonChange = styled(Button)`
+    background-color: rgb(0, 85, 255);
+`;
+
+const ButtonDeleteAccount = styled(Button)`
+    background-color: rgb(255, 0, 90);
+`;
+
+const ButtonConfirmDelete = styled(ButtonDeleteAccount)`
+    float: right;
+    margin-left: 0.75rem;
+    margin-top: 1rem;
+`;
+
+const ButtonConfirmCancel = styled(Button)`
+    background-color: white;
+    border: 1px solid black;
+    color: black;
+    float: right;
+    margin-top: 1rem;
+`;
+
+const ButtonSubmit = styled(Button)`
+    background-color: rgb(255, 85, 0);
+    float: right;
+    margin: 0.6vh;
+`;
+
+const ErrorMessage = styled.span`
+    background-color: red;
+    border-radius: 6px;
+    color: white;
+    padding: 0.2rem 0.5rem;
+`;
+
+const ButtonErrorClose = styled.button`
+    padding-left: 0.5rem;
+
+    &:hover {
+        color: black;
+    }
+`;
 
 const Settings = (): JSX.Element => {
     const auth = useContext(AuthContext);
@@ -71,18 +170,20 @@ const Settings = (): JSX.Element => {
 
     useEffect(() => {
         // get user name and email and populate fields on page load
-        axios
-            .get(GET_SELF_URL)
-            .then((response) => {
+        UserGetSelf(
+            auth.axiosInstance,
+            (response) => {
                 const data = response.data;
                 setFields((f) => {
                     return { ...f, name: data["name"], email: data["email"] };
                 });
-            })
-            .catch((err) => {
+            },
+            (err) => {
+                console.log(err.config);
                 console.log(err);
-            });
-    }, []);
+            }
+        );
+    }, [auth.axiosInstance]);
 
     const handleClick = (key: keyof Fields) => {
         setSelection(key);
@@ -108,9 +209,10 @@ const Settings = (): JSX.Element => {
             [key]: fields[key],
         };
 
-        axios
-            .patch(USER_PATCH_URL, payload)
-            .then((response) => {
+        UserPatch(
+            auth.axiosInstance,
+            payload,
+            (response) => {
                 if (key === "name") {
                     // when name changes, update the context
                     auth.setAuth((current) => {
@@ -126,10 +228,11 @@ const Settings = (): JSX.Element => {
 
                 // Delete any previous message.
                 setMessage("");
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 console.log(err);
-            });
+            }
+        );
     };
 
     const dismissMessage: React.MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -139,18 +242,19 @@ const Settings = (): JSX.Element => {
 
     const handleConfirmDelete: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
-        axios
-            .delete(DELETE_ACC_URL)
-            .then((resp) => {
+        UserDelete(
+            auth.axiosInstance,
+            (_) => {
                 auth.setAuth({
                     user: undefined,
                     loggedIn: false,
                 });
                 navigate("/");
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 console.log(err);
-            });
+            }
+        );
     };
 
     const DeleteModal = (
@@ -174,17 +278,8 @@ const Settings = (): JSX.Element => {
                 Are you sure you want to delete this account?
             </div>
             <div>This is irreversible.</div>
-            <button className={`float-right ml-3 mt-4 ${styler("confirmDelete")}`} onClick={handleConfirmDelete}>
-                Confirm
-            </button>
-            <button
-                className={styler("confirmCancel")}
-                onClick={() => {
-                    setShowDeleteModal(false);
-                }}
-            >
-                Cancel
-            </button>
+            <ButtonConfirmDelete onClick={handleConfirmDelete}>Confirm</ButtonConfirmDelete>
+            <ButtonConfirmCancel onClick={() => setShowDeleteModal(false)}>Cancel</ButtonConfirmCancel>
         </>
     );
 
@@ -199,94 +294,78 @@ const Settings = (): JSX.Element => {
                     },
                 }}
             />
-            <div className="flex flex-col relative top-20 margin-top">
-                <div className="mx-20 mt-10 justify-center items-center">
-                    <div className={styler("left", "centered")}>
-                        <h1 className={styler("header1")}>Settings</h1>
-                        {keys.map((key, i) => {
-                            return (
-                                <div>
-                                    <button className={styler("changeButton")} key={i} onClick={() => handleClick(key)}>
-                                        {`Change ${toTitleCase(key)}`}
-                                    </button>
-                                </div>
-                            );
-                        })}
-                        <button className={`mt-1 ${styler("confirmDelete")}`} onClick={() => setShowDeleteModal(true)}>
-                            Delete Account
-                        </button>
-                    </div>
-                    <div className={styler("right", "centered")}>
-                        {selection === undefined ? (
-                            // show this when the user has not selected an option
-                            <div className={styler("vert-center")}>
-                                {"<- Please choose the field you want to edit!"}
+            <Container>
+                <Left>
+                    <H1>Setings</H1>
+                    {keys.map((key, i) => {
+                        return (
+                            <div key={i}>
+                                <ButtonChange onClick={() => handleClick(key)}>
+                                    {`Change ${toTitleCase(key)}`}
+                                </ButtonChange>
                             </div>
-                        ) : (
-                            // show the form when the user has selected an option
-                            <>
-                                <form className={styler("form")} onSubmit={handleSubmit}>
-                                    <h1 className={`mb-5 ${styler("header2")}`}>Changing...</h1>
-                                    {selection !== "password" ? (
+                        );
+                    })}
+                    <ButtonDeleteAccount onClick={() => setShowDeleteModal(true)}>Delete Account</ButtonDeleteAccount>
+                </Left>
+                <Right>
+                    {selection === undefined ? (
+                        <VertCenter>{"<- Please choose the field you want to edit!"}</VertCenter>
+                    ) : (
+                        <>
+                            <Form onSubmit={handleSubmit}>
+                                <H2>Changing...</H2>
+                                {selection !== "password" ? (
+                                    <div>
+                                        <Label>{toTitleCase(selection)}</Label>
+                                        <Input
+                                            type="text"
+                                            name={selection}
+                                            onChange={handleChange}
+                                            value={fields[selection]}
+                                            required
+                                        />
+                                    </div>
+                                ) : (
+                                    <>
                                         <div>
-                                            <label className={styler("form-elem")}>{toTitleCase(selection)}</label>
-                                            <input
-                                                className={`mb-5 ${styler("inputField")}`}
-                                                type="text"
-                                                name={selection}
+                                            <Label>Password</Label>
+                                            <Input
+                                                type="password"
+                                                name="password"
                                                 onChange={handleChange}
                                                 value={fields[selection]}
                                                 required
                                             />
                                         </div>
-                                    ) : (
-                                        <>
-                                            <div>
-                                                <label className={styler("form-elem")}>Password</label>
-                                                <input
-                                                    className={`mb-5 ${styler("inputField")}`}
-                                                    type="password"
-                                                    name="password"
-                                                    onChange={handleChange}
-                                                    value={fields[selection]}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className={styler("form-elem")}>Confirm Password</label>
-                                                <input
-                                                    className={`mb-5 ${styler("inputField")}`}
-                                                    type="password"
-                                                    name="confirm_password"
-                                                    onChange={handleChange}
-                                                    value={fields["confirm_password"]}
-                                                    required
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                    <input className={styler("submitButton")} type="submit" value="Submit" />
-                                </form>
-                                {/* render div iff message is not empty */}
-                                {message !== "" && (
-                                    <div className="mt-5">
-                                        <span className={styler("error")}>
-                                            {message}
-                                            <button
-                                                className={`ml-5 ${styler("errorClose")}`}
-                                                title="Close"
-                                                onClick={dismissMessage}
-                                            >
-                                                &times;
-                                            </button>
-                                        </span>
-                                    </div>
+                                        <div>
+                                            <Label>Confirm Password</Label>
+                                            <Input
+                                                type="password"
+                                                name="confirm_password"
+                                                onChange={handleChange}
+                                                value={fields["confirm_password"]}
+                                                required
+                                            />
+                                        </div>
+                                    </>
                                 )}
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
+                                <ButtonSubmit type="submit">Submit</ButtonSubmit>
+                            </Form>
+                            {message !== "" && (
+                                <div className="mt-5">
+                                    <ErrorMessage>
+                                        {message}
+                                        <ButtonErrorClose title="Close" onClick={dismissMessage}>
+                                            &times;
+                                        </ButtonErrorClose>
+                                    </ErrorMessage>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </Right>
+            </Container>
         </>
     );
 };

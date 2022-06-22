@@ -1,16 +1,14 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-import {Link} from "react-router-dom";
-import {validEmail, validPassword, validPinCode, validUsername,} from "../components/regex";
-import axios from "../api/axios";
+import { AxiosError } from "axios";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserRegister, UserRegisterVerify } from "../api/UserAPI";
 import App from "../App";
+import { validEmail, validPassword, validPinCode, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
-import {AxiosError} from "axios";
 
 const Registration = (): JSX.Element => {
-    const REGISTRATION_URL = "/api/v1/signup";
-    const VERIFY_URL = "/api/v1/verify";
-
-    const Auth = useContext(AuthContext);
+    const auth = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const userRef = useRef<HTMLInputElement>(null);
     const mailRef = useRef<HTMLInputElement>(null);
@@ -67,46 +65,53 @@ const Registration = (): JSX.Element => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(
-            REGISTRATION_URL,
-            {name: user, password: pwd, email: mail},
+        UserRegister(
+            auth.axiosInstance,
+            { name: user, password: pwd, email: mail },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
+            },
+            (_) => {
+                auth.setAuth({ user, loggedIn: false });
+                setSuccess(true);
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.message);
+                } else setErrMsg("Registration failed");
             }
-        ).then((success) => {
-            Auth.setAuth({user, loggedIn: false});
-            setSuccess(true);
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.message);
-            } else setErrMsg("Registration failed");
-        });
+        );
     };
 
     const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        axios.post(VERIFY_URL,
-            {name: user, pin},
+        UserRegisterVerify(
+            auth.axiosInstance,
+            { name: user, pin },
             {
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 withCredentials: true,
-            }).then((success) => {
-            Auth.setAuth({user, loggedIn: true});
-            setVerifySuccess(true);
-        }).catch((err) => {
-            if (err instanceof AxiosError) {
-                console.log(err);
-                setErrMsg(err.message);
-            } else setErrMsg("Verification Failed");
-        });
+            },
+            (_) => {
+                auth.setAuth({ user, loggedIn: true });
+                setVerifySuccess(true);
+                navigate("/");
+            },
+            (err) => {
+                if (err instanceof AxiosError) {
+                    console.log(err);
+                    setErrMsg(err.message);
+                } else setErrMsg("Verification Failed");
+            }
+        );
     };
 
     return (
         <>
             {verifySuccess ? (
-                {App}
+                { App }
             ) : (
                 <div className="flex flex-col h-screen">
                     <div className="flex sticky top-0 z-50 bg-white w-screen h-20 m-0 flex-row bg-blend-color shadow-lg">
@@ -119,7 +124,11 @@ const Registration = (): JSX.Element => {
                     </div>
 
                     <div className="flex grow justify-center items-center g-6 text-gray-800 overflow-auto">
-                        <div className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${!success ? '' : 'hidden'}`}>
+                        <div
+                            className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${
+                                !success ? "" : "hidden"
+                            }`}
+                        >
                             <span className="text-3xl justify-center items-center text-center ">
                                 OrgaNiUS Registration
                             </span>
@@ -137,9 +146,11 @@ const Registration = (): JSX.Element => {
                                         placeholder="Username (Min. 5 characters)"
                                         required
                                     />
-                                    <p className={`${user && !validName ? 'errmsg' : 'hidden'}`}>
-                                        At least 5 characters long.<br/>
-                                        Only contains alphanumeric characters.<br/>
+                                    <p className={`${user && !validName ? "errmsg" : "hidden"}`}>
+                                        At least 5 characters long.
+                                        <br />
+                                        Only contains alphanumeric characters.
+                                        <br />
                                         Allowed special characters ' ', '_', '.'
                                     </p>
                                 </div>
@@ -154,7 +165,7 @@ const Registration = (): JSX.Element => {
                                         placeholder="Email address"
                                         required
                                     />
-                                    <p className={`${mail && !validMail ? 'errmsg' : 'hidden'}`}>
+                                    <p className={`${mail && !validMail ? "errmsg" : "hidden"}`}>
                                         Invalid Email Format
                                     </p>
                                 </div>
@@ -168,9 +179,11 @@ const Registration = (): JSX.Element => {
                                         placeholder="Password"
                                         required
                                     />
-                                    <p className={`${pwd && !validPwd ? 'errmsg' : 'hidden'}`}>
-                                        At least 8 characters long.<br/>
-                                        Contains at least 1 uppercase, 1 lowercase and 1 digit.<br/>
+                                    <p className={`${pwd && !validPwd ? "errmsg" : "hidden"}`}>
+                                        At least 8 characters long.
+                                        <br />
+                                        Contains at least 1 uppercase, 1 lowercase and 1 digit.
+                                        <br />
                                         Does not contain username.
                                     </p>
                                 </div>
@@ -184,16 +197,14 @@ const Registration = (): JSX.Element => {
                                         placeholder="Re-Enter Your Password"
                                         required
                                     />
-                                    <p className={`${matchPwd && !validMatch ? 'errmsg' : 'hidden'}`}>
+                                    <p className={`${matchPwd && !validMatch ? "errmsg" : "hidden"}`}>
                                         Does not match password
                                     </p>
                                 </div>
 
                                 <button
                                     type="submit"
-                                    disabled={
-                                        !validName || !validMail || !validPwd || !validMatch
-                                    }
+                                    disabled={!validName || !validMail || !validPwd || !validMatch}
                                     className="mt-2 inline-block px-7 py-3 bg-orange-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-orange-700 hover:shadow-lg focus:bg-orange-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-orange-800 active:shadow-lg transition duration-150 ease-in-out w-full disabled:bg-gray-600 disabled:hover:shadow"
                                     data-mdb-ripple="true"
                                     data-mdb-ripple-color="light"
@@ -203,7 +214,11 @@ const Registration = (): JSX.Element => {
                             </form>
                         </div>
 
-                        <div className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${success? '' : 'hidden'}`}>
+                        <div
+                            className={`md:w-8/12 lg:w-6/12 lg:ml-20 justify-center items-center max-w-2xl ${
+                                success ? "" : "hidden"
+                            }`}
+                        >
                             <span className="text-3xl justify-center items-center text-center ">
                                 Email Verification
                             </span>
@@ -217,17 +232,13 @@ const Registration = (): JSX.Element => {
                                         id="pin"
                                         onChange={(e) => setPin(e.target.value)}
                                         className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none ${
-                                            !validPin && pin
-                                                ? "uppercase"
-                                                : !pin
-                                                    ? ""
-                                                    : "uppercase"
+                                            !validPin && pin ? "uppercase" : !pin ? "" : "uppercase"
                                         }`}
                                         placeholder="Enter your 6 digit pin here"
                                         required
                                     />
                                 </div>
-                                <p className={`${pin && !validPin ? 'errmsg' : 'hidden'}`}>
+                                <p className={`${pin && !validPin ? "errmsg" : "hidden"}`}>
                                     Pin is a 6 Digit AlphaNumeric value.
                                 </p>
 
