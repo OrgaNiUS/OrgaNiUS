@@ -101,6 +101,7 @@ const ButtonDeleteAccount = styled(Button)`
 `;
 
 const ButtonConfirmDelete = styled(ButtonDeleteAccount)`
+    border: 1px solid rgb(255, 0, 90);
     float: right;
     margin-left: 0.75rem;
     margin-top: 1rem;
@@ -191,7 +192,9 @@ const Settings = (): JSX.Element => {
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
-        setFields({ ...fields, [event.target.name]: event.target.value });
+        setFields((f) => {
+            return { ...f, [event.target.name]: event.target.value };
+        });
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {

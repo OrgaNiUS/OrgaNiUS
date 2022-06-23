@@ -1,3 +1,4 @@
+import { arrayMove } from "@dnd-kit/sortable";
 import { createContext, useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, ITask } from "../types";
@@ -144,20 +145,26 @@ const initialTasks: ITask[] = [
     },
 ];
 
+/**
+ * addTask: the "id" field will be overridden so you can leave it blank.
+ * removeTask: provide the "id" of the task to be removed.
+ */
 interface IDataContext {
     tasks: ITask[];
     events: IEvent[];
     mergedEvents: IEvent[];
-    setTasks: React.Dispatch<React.SetStateAction<ITask[]>>;
-    setEvents: React.Dispatch<React.SetStateAction<IEvent[]>>;
+    addTask: (task: ITask) => void;
+    removeTask: (id: string) => void;
+    swapTasks: (startID: string, endID: string) => void;
 }
 
 const defaultDataContext: IDataContext = {
     tasks: [],
     events: [],
     mergedEvents: [],
-    setTasks: (_) => {},
-    setEvents: (_) => {},
+    addTask: (_) => {},
+    removeTask: (_) => {},
+    swapTasks: (_, __) => {},
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -171,8 +178,41 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
 
+    const addTask = (task: ITask) => {
+        setTasks((t) => {
+            return [...t, { ...task, id: tasks.length.toString() }];
+        });
+        // TODO: add to server
+    };
+
+    const removeTask = (id: string) => {
+        const tasksCopy: ITask[] = tasks.filter((t) => t.id !== id);
+
+        for (let i = parseInt(id); i < tasks.length - 1; i++) {
+            tasksCopy[i].id = i.toString();
+        }
+        setTasks(tasksCopy);
+        // TODO: remove from server
+    };
+
+    const swapTasks = (startID: string, endID: string) => {
+        const start: number = parseInt(startID);
+        const end: number = parseInt(endID);
+
+        const tasksCopy: ITask[] = arrayMove(tasks, start, end);
+
+        const loopStart: number = Math.min(start, end);
+        const loopEnd: number = Math.max(start, end);
+        for (let i = loopStart; i <= loopEnd; i++) {
+            // update the IDs of those affected by the drag
+            tasksCopy[i].id = i.toString();
+        }
+        // TODO: send changes to server
+        setTasks(tasksCopy);
+    };
+
     return (
-        <DataContext.Provider value={{ tasks, events, mergedEvents, setTasks, setEvents }}>
+        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, removeTask, swapTasks }}>
             {children}
         </DataContext.Provider>
     );

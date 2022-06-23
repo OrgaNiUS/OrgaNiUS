@@ -13,6 +13,7 @@ import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
 import { ITask } from "../types";
 import Task from "./Task";
+import TodoCreate from "./TodoCreate";
 import TodoDropdown from "./TodoDropdown";
 import TodoExpand from "./TodoExpand";
 
@@ -66,12 +67,12 @@ const TodoList = ({
     );
 
     const ddContentCSS: FlattenSimpleInterpolation = css`
-        right: -20%;
+        right: -10%;
         top: 3rem;
     `;
 
     const ddIconCSS: FlattenSimpleInterpolation = css`
-        right: 1rem;
+        right: 3rem;
         top: 1rem;
     `;
 
@@ -105,6 +106,15 @@ const TodoList = ({
                 )}
             </Container>
             <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS, iconCSS: ddIconCSS }} />
+            <TodoCreate
+                {...{
+                    containerWidth: 80,
+                    iconCSS: css`
+                        top: 1rem;
+                        right: 1rem;
+                    `,
+                }}
+            />
             <TodoExpand {...{ onClick: expandClick }} />
         </Wrapper>
     );

@@ -13,6 +13,7 @@ import { filterTaskOptions } from "../functions/events";
 import { IconButton } from "../styles";
 import { ITask } from "../types";
 import Task from "./Task";
+import TodoCreate from "./TodoCreate";
 import TodoDropdown from "./TodoDropdown";
 
 const Container = styled.div`
@@ -92,6 +93,16 @@ const TodoGrid = ({
 
     return (
         <Container>
+            <TodoCreate
+                {...{
+                    containerWidth: 50,
+                    // this css is a bit hacky but seems to work well with most resolutions (potentially use calc() to get better estimates?)
+                    iconCSS: css`
+                        top: 15.6%;
+                        right: 22.5%;
+                    `,
+                }}
+            />
             <ButtonClose onClick={hideModal}>&times;</ButtonClose>
             <Title>To-Do Grid</Title>
             <div className="w-full flex justify-center">

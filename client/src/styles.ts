@@ -25,6 +25,13 @@ export const IconButton = styled.button`
     }
 `;
 
+// usable for text/password input, textarea
+export const InputCSS = css`
+    border: 1px solid grey;
+    padding: 7px;
+    color: grey;
+`;
+
 /* https://stackoverflow.com/a/26973672 */
 export const truncate = css`
     overflow-x: hidden;
