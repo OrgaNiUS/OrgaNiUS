@@ -5,6 +5,7 @@ export interface IEvent {
     allDay?: boolean;
 }
 
+// update IFields in TodoEdit and TodoCreate as well (if needed)
 // some fields are marked as optional temporarily
 export interface ITask {
     id: string;

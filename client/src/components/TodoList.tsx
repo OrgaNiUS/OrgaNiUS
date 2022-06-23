@@ -18,6 +18,7 @@ import { todoModes } from "./Todo";
 import TodoCreate from "./TodoCreate";
 import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
+import TodoEdit from "./TodoEdit";
 import TodoExpand from "./TodoExpand";
 
 const Wrapper = styled.div`
@@ -64,6 +65,8 @@ const TodoList = ({
     taskCheck,
     checkedTasks,
     trashChecked,
+    editingTask,
+    setEditingTask,
     filteredTasks,
     handleDragEnd,
     filterOptions,
@@ -76,6 +79,8 @@ const TodoList = ({
     taskCheck: (id: string) => void;
     checkedTasks: Set<string>;
     trashChecked: () => void;
+    editingTask: ITask | undefined;
+    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
     filteredTasks: ITask[];
     handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
@@ -133,9 +138,10 @@ const TodoList = ({
                                         key={task.id}
                                         {...{
                                             task,
+                                            mode,
                                             checked: checkedTasks.has(task.id),
-                                            showCheck: mode === "trash",
                                             onCheck: taskCheck,
+                                            setEditingTask: () => setEditingTask(task),
                                         }}
                                     />
                                 );
@@ -151,6 +157,7 @@ const TodoList = ({
             </IconsContainer>
             {createForm}
             <TodoExpand {...{ onClick: expandClick }} />
+            {editingTask !== undefined && <TodoEdit {...{ width: 80, editingTask, setEditingTask }} />}
         </Wrapper>
     );
 };

@@ -17,6 +17,7 @@ import { todoModes } from "./Todo";
 import TodoCreate from "./TodoCreate";
 import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
+import TodoEdit from "./TodoEdit";
 
 const Container = styled.div`
     position: relative;
@@ -79,6 +80,8 @@ const TodoGrid = ({
     taskCheck,
     checkedTasks,
     trashChecked,
+    editingTask,
+    setEditingTask,
     filteredTasks,
     handleDragEnd,
     filterOptions,
@@ -91,6 +94,8 @@ const TodoGrid = ({
     taskCheck: (id: string) => void;
     checkedTasks: Set<string>;
     trashChecked: () => void;
+    editingTask: ITask | undefined;
+    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
     filteredTasks: ITask[];
     handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
@@ -136,6 +141,7 @@ const TodoGrid = ({
                 </div>
             </div>
             <GridWrapper>
+                {editingTask !== undefined && <TodoEdit {...{ width: 60, editingTask, setEditingTask }} />}
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
@@ -158,9 +164,10 @@ const TodoGrid = ({
                                             key={task.id}
                                             {...{
                                                 task,
+                                                mode,
                                                 checked: checkedTasks.has(task.id),
-                                                showCheck: mode === "trash",
                                                 onCheck: taskCheck,
+                                                setEditingTask: () => setEditingTask(task),
                                             }}
                                         />
                                     );

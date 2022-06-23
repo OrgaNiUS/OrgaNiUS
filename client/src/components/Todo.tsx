@@ -16,9 +16,11 @@ const Todo = (): JSX.Element => {
     const data = useContext(DataContext);
     const [mode, setMode] = useState<todoModes>("normal");
     const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
+    const [editingTask, setEditingTask] = useState<ITask | undefined>(undefined);
 
     const cycleModes = () => {
         setCheckedTasks(new Set());
+        setEditingTask(undefined);
         setMode((m) => {
             switch (m) {
                 case "normal":
@@ -99,6 +101,8 @@ const Todo = (): JSX.Element => {
         taskCheck,
         checkedTasks,
         trashChecked,
+        editingTask,
+        setEditingTask,
         tasks: data.tasks,
         filteredTasks,
         handleDragEnd,

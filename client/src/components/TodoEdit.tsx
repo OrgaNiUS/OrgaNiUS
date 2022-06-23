@@ -2,7 +2,7 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { Button, IconButton, InputCSS } from "../styles";
+import { Button, InputCSS } from "../styles";
 import { ITask } from "../types";
 
 const Container = styled.div<{ width: number }>`
@@ -56,32 +56,32 @@ const ButtonCancel = styled(Button)`
 `;
 
 interface IFields {
+    id: string;
     name: string;
+    assignedTo?: string;
     description: string;
-    tags: string;
+    creationTime?: Date;
     deadline?: Date;
+    isDone: boolean;
+    // essentially only tags is different
+    tags: string;
 }
 
-const emptyFields: IFields = {
-    name: "",
-    description: "",
-    tags: "",
-};
-
-const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Element, JSX.Element] => {
+const TodoEdit = ({
+    width,
+    editingTask,
+    setEditingTask,
+}: {
+    width: number;
+    editingTask: ITask;
+    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
+}): JSX.Element => {
     const data = useContext(DataContext);
 
-    const [fields, setFields] = useState<IFields>(emptyFields);
-    const [displayForm, setDisplayForm] = useState<boolean>(false);
-
-    const showForm = () => {
-        setDisplayForm(true);
-        setFields(emptyFields);
-    };
+    const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
 
     const hideForm = () => {
-        setDisplayForm(false);
-        setFields(emptyFields);
+        setEditingTask(undefined);
     };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
@@ -102,6 +102,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
+
         if (fields.name === "") {
             // Double check that name is not empty.
             return;
@@ -110,24 +111,16 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
-        const task: ITask = {
-            id: "",
-            name: fields.name,
-            description: fields.description,
-            creationTime: new Date(),
-            deadline: fields.deadline,
-            isDone: false,
-            tags: tags,
-        };
+        const task: ITask = { ...fields, tags };
 
-        data.addTask(task);
+        data.patchTask(task);
         hideForm();
     };
 
-    const form: JSX.Element = displayForm ? (
-        <Container width={containerWidth}>
+    return (
+        <Container width={width}>
             <Form onSubmit={handleSubmit}>
-                <Title>Add Task</Title>
+                <Title>Editing Task</Title>
                 <Label>Name</Label>
                 <Input
                     type="text"
@@ -157,29 +150,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>
         </Container>
-    ) : (
-        <></>
     );
-
-    const button = (
-        <IconButton>
-            {/* plus from https://heroicons.com/ */}
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                onClick={showForm}
-            >
-                <title>Add Task</title>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-        </IconButton>
-    );
-
-    return [button, form];
 };
 
-export default TodoCreate;
+export default TodoEdit;
