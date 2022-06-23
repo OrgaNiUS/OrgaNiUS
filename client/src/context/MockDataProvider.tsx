@@ -24,13 +24,14 @@ const MockDataProvider = ({
         });
     };
 
-    const removeTask = (id: string) => {
-        const tasksCopy: ITask[] = tasks.filter((t) => t.id !== id);
+    const removeTasks = (ids: string[]) => {
+        const tasksCopy: ITask[] = tasks.filter((t) => !ids.includes(t.id));
 
-        for (let i = parseInt(id) + 1; i < tasks.length; i++) {
+        for (let i = 0; i < tasks.length - 1; i++) {
             tasksCopy[i].id = i.toString();
         }
         setTasks(tasksCopy);
+        // TODO: remove from server
     };
 
     const swapTasks = (startID: string, endID: string) => {
@@ -44,13 +45,12 @@ const MockDataProvider = ({
         for (let i = loopStart; i <= loopEnd; i++) {
             // update the IDs of those affected by the drag
             tasksCopy[i].id = i.toString();
-            // TODO: send changes to server
         }
         setTasks(tasksCopy);
     };
 
     return (
-        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, removeTask, swapTasks }}>
+        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, removeTasks, swapTasks }}>
             {children}
         </DataContext.Provider>
     );

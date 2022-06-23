@@ -17,7 +17,6 @@ export const Button = styled.button`
 
 // for buttons that are a SVG icon
 export const IconButton = styled.button`
-    position: absolute;
     transition: transform 0.2s;
 
     &:hover {

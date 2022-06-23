@@ -56,9 +56,15 @@ Example "ta do" will match "Task Done".
 
 The user can click on the "+" icon to create a new personal Task.
 
-The tasks can also be dragged and dropped into different positions.
+The user can click on the book/trash bin/pen icons to cycle through the different modes.
 
-With the expand button on the bottom right, the user can expand the To-Do List into a grid view that takes up the entire page.
+Book is the normal and default mode. The tasks can also be dragged and dropped into different positions.
+
+Trash bin is the trash mode, where the user can select the tasks to be trashed with the checkbox beside each task. After which, the user can click on the "Trash Selected" button to remove the selected tasks.
+
+Pen is the edit mode. (to be implemented)
+
+With the expand button on the bottom right, the user can expand the To-Do List into a grid view that takes up the entire page. It offers similar functionality just with a different view.
 
 ### Scheduler
 

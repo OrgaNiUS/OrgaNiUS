@@ -11,9 +11,12 @@ import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
+import { Button } from "../styles";
 import { ITask } from "../types";
 import Task from "./Task";
+import { todoModes } from "./Todo";
 import TodoCreate from "./TodoCreate";
+import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
 import TodoExpand from "./TodoExpand";
 
@@ -41,10 +44,26 @@ const SearchBox = styled.input`
     width: 100%;
 `;
 
+const ButtonTrash = styled(Button)`
+    background-color: rgb(255, 0, 90);
+`;
+
+const IconsContainer = styled.div`
+    display: flex;
+    position: absolute;
+    right: 2rem;
+    top: 1.5rem;
+`;
+
 /**
  * Handles the Todo list.
  */
 const TodoList = ({
+    mode,
+    cycleModes,
+    taskCheck,
+    checkedTasks,
+    trashChecked,
     filteredTasks,
     handleDragEnd,
     filterOptions,
@@ -52,6 +71,11 @@ const TodoList = ({
     handleSearch,
     expandClick,
 }: {
+    mode: todoModes;
+    cycleModes: () => void;
+    taskCheck: (id: string) => void;
+    checkedTasks: Set<string>;
+    trashChecked: () => void;
     filteredTasks: ITask[];
     handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
@@ -68,13 +92,12 @@ const TodoList = ({
 
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -10%;
-        top: 3rem;
+        top: 2rem;
     `;
 
-    const ddIconCSS: FlattenSimpleInterpolation = css`
-        right: 3rem;
-        top: 1rem;
-    `;
+    const [createButton, createForm] = TodoCreate({
+        containerWidth: 80,
+    });
 
     return (
         <Wrapper>
@@ -86,6 +109,7 @@ const TodoList = ({
                     value={filterOptions.searchTerm}
                     onChange={handleSearch}
                 />
+                {mode === "trash" && <ButtonTrash onClick={trashChecked}>Trash Selected</ButtonTrash>}
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
@@ -97,24 +121,35 @@ const TodoList = ({
                         // restrictToFirstScrollableAncestor restricts to scroll container
                         modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
                     >
-                        <SortableContext items={filteredTasks} strategy={verticalListSortingStrategy}>
+                        <SortableContext
+                            items={filteredTasks}
+                            strategy={verticalListSortingStrategy}
+                            // disable if not normal mode
+                            disabled={mode !== "normal"}
+                        >
                             {filteredTasks.map((task) => {
-                                return <Task key={task.id} {...{ task }} />;
+                                return (
+                                    <Task
+                                        key={task.id}
+                                        {...{
+                                            task,
+                                            checked: checkedTasks.has(task.id),
+                                            showCheck: mode === "trash",
+                                            onCheck: taskCheck,
+                                        }}
+                                    />
+                                );
                             })}
                         </SortableContext>
                     </DndContext>
                 )}
             </Container>
-            <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS, iconCSS: ddIconCSS }} />
-            <TodoCreate
-                {...{
-                    containerWidth: 80,
-                    iconCSS: css`
-                        top: 1rem;
-                        right: 1rem;
-                    `,
-                }}
-            />
+            <IconsContainer>
+                {createButton}
+                <TodoCycleModes {...{ mode, cycleModes }} />
+                <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS }} />
+            </IconsContainer>
+            {createForm}
             <TodoExpand {...{ onClick: expandClick }} />
         </Wrapper>
     );

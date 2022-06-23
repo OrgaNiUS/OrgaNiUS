@@ -1,19 +1,21 @@
 import {
+    closestCenter,
     DndContext,
     DragEndEvent,
-    useSensor,
-    useSensors,
     PointerSensor,
     TouchSensor,
-    closestCenter,
+    useSensor,
+    useSensors,
 } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
-import { IconButton } from "../styles";
+import { Button, IconButton } from "../styles";
 import { ITask } from "../types";
 import Task from "./Task";
+import { todoModes } from "./Todo";
 import TodoCreate from "./TodoCreate";
+import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
 
 const Container = styled.div`
@@ -53,13 +55,30 @@ const Grid = styled.div`
     overflow-y: auto;
 `;
 
+const ButtonTrash = styled(Button)`
+    background-color: rgb(255, 0, 90);
+`;
+
 const ButtonClose = styled(IconButton)`
-    top: 0;
-    right: 1rem;
     font-size: xx-large;
+    position: absolute;
+    right: 1rem;
+    top: 0;
+`;
+
+const IconsContainer = styled.div`
+    display: flex;
+    position: absolute;
+    right: -2rem; // increment this when adding more icons
+    top: 1.3rem;
 `;
 
 const TodoGrid = ({
+    mode,
+    cycleModes,
+    taskCheck,
+    checkedTasks,
+    trashChecked,
     filteredTasks,
     handleDragEnd,
     filterOptions,
@@ -67,6 +86,11 @@ const TodoGrid = ({
     handleSearch,
     hideModal,
 }: {
+    mode: todoModes;
+    cycleModes: () => void;
+    taskCheck: (id: string) => void;
+    checkedTasks: Set<string>;
+    trashChecked: () => void;
     filteredTasks: ITask[];
     handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
@@ -82,27 +106,17 @@ const TodoGrid = ({
     );
 
     const ddContentCSS: FlattenSimpleInterpolation = css`
-        right: -6rem;
-        top: 4rem;
+        right: -4rem; // change this when adding more icons
+        top: 2rem;
     `;
 
-    const ddIconCSS: FlattenSimpleInterpolation = css`
-        right: 0;
-        top: 1.5rem;
-    `;
+    const [createButton, createForm] = TodoCreate({
+        containerWidth: 50,
+    });
 
     return (
         <Container>
-            <TodoCreate
-                {...{
-                    containerWidth: 50,
-                    // this css is a bit hacky but seems to work well with most resolutions (potentially use calc() to get better estimates?)
-                    iconCSS: css`
-                        top: 15.6%;
-                        right: 22.5%;
-                    `,
-                }}
-            />
+            {createForm}
             <ButtonClose onClick={hideModal}>&times;</ButtonClose>
             <Title>To-Do Grid</Title>
             <div className="w-full flex justify-center">
@@ -113,9 +127,12 @@ const TodoGrid = ({
                         value={filterOptions.searchTerm}
                         onChange={handleSearch}
                     ></SearchBox>
-                    <TodoDropdown
-                        {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS, iconCSS: ddIconCSS }}
-                    />
+                    {mode === "trash" && <ButtonTrash onClick={trashChecked}>Trash Selected</ButtonTrash>}
+                    <IconsContainer>
+                        {createButton}
+                        <TodoCycleModes {...{ mode, cycleModes }} />
+                        <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS }} />
+                    </IconsContainer>
                 </div>
             </div>
             <GridWrapper>
@@ -128,10 +145,25 @@ const TodoGrid = ({
                         onDragEnd={handleDragEnd}
                         autoScroll
                     >
-                        <SortableContext items={filteredTasks} strategy={rectSortingStrategy}>
+                        <SortableContext
+                            items={filteredTasks}
+                            strategy={rectSortingStrategy}
+                            // disable if not normal mode
+                            disabled={mode !== "normal"}
+                        >
                             <Grid>
                                 {filteredTasks.map((task) => {
-                                    return <Task key={task.id} {...{ task }} />;
+                                    return (
+                                        <Task
+                                            key={task.id}
+                                            {...{
+                                                task,
+                                                checked: checkedTasks.has(task.id),
+                                                showCheck: mode === "trash",
+                                                onCheck: taskCheck,
+                                            }}
+                                        />
+                                    );
                                 })}
                             </Grid>
                         </SortableContext>

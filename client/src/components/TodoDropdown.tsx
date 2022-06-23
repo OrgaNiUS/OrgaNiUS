@@ -7,10 +7,11 @@ const FDropdownContent = styled.div<{ custom: FlattenSimpleInterpolation }>`
     background-color: white;
     border-radius: 6px;
     border: 1px solid black;
+    padding: 0.2rem 0.4rem;
     position: absolute;
     transition: 0s visibility 0.3s;
     visibility: hidden;
-    padding: 0.2rem 0.4rem;
+    width: max-content;
     z-index: 1;
 `;
 
@@ -21,20 +22,16 @@ const FDropdown = styled.div`
     }
 `;
 
-const ButtonFilter = styled(IconButton)<{ custom: FlattenSimpleInterpolation }>`
-    ${(props) => props.custom}
-`;
+const ButtonFilter = styled(IconButton)``;
 
 const TodoDropdown = ({
     filterOptions,
     setFilterOptions,
     contentCSS,
-    iconCSS,
 }: {
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     contentCSS: FlattenSimpleInterpolation;
-    iconCSS: FlattenSimpleInterpolation;
 }): JSX.Element => {
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
@@ -48,7 +45,7 @@ const TodoDropdown = ({
 
     return (
         <FDropdown>
-            <ButtonFilter custom={iconCSS}>
+            <ButtonFilter>
                 {/* "filter" from https://heroicons.com/ */}
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

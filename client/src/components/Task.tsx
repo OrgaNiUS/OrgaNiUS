@@ -48,7 +48,17 @@ const formatDate = (date: Date | undefined): string => {
     return `Due on ${d}`;
 };
 
-const Task = ({ task }: { task: ITask }): JSX.Element => {
+const Task = ({
+    task,
+    checked,
+    showCheck,
+    onCheck,
+}: {
+    task: ITask;
+    checked: boolean;
+    showCheck: boolean;
+    onCheck: (id: string) => void;
+}): JSX.Element => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
 
     if (transform !== null) {
@@ -64,7 +74,12 @@ const Task = ({ task }: { task: ITask }): JSX.Element => {
 
     return (
         <Container ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <Name>{task.name}</Name>
+            <Name>
+                {showCheck && (
+                    <input className="mr-1" type="checkbox" onChange={() => onCheck(task.id)} checked={checked} />
+                )}
+                {task.name}
+            </Name>
             <Description>{task.description}</Description>
             <Tags>{task.tags.map((v) => "#" + v).join(" ")}</Tags>
             <Deadline>{formatDate(task.deadline)}</Deadline>

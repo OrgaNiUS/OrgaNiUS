@@ -7,11 +7,57 @@ import Modal from "./Modal";
 import TodoGrid from "./TodoGrid";
 import TodoList from "./TodoList";
 
+export type todoModes = "normal" | "trash" | "edit";
+
 /**
  * Handles data and functions related to both TodoList and TodoGrid.
  */
 const Todo = (): JSX.Element => {
     const data = useContext(DataContext);
+    const [mode, setMode] = useState<todoModes>("normal");
+    const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
+
+    const cycleModes = () => {
+        setCheckedTasks(new Set());
+        setMode((m) => {
+            switch (m) {
+                case "normal":
+                    return "trash";
+                case "trash":
+                    return "edit";
+                case "edit":
+                    return "normal";
+            }
+        });
+    };
+
+    const taskCheck = (id: string) => {
+        if (mode !== "trash") {
+            // Should not happen.
+            return;
+        }
+        setCheckedTasks((t) => {
+            const newSet = new Set(t);
+
+            if (t.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+
+            return newSet;
+        });
+    };
+
+    const trashChecked = () => {
+        if (mode !== "trash") {
+            // Should not happen.
+            return;
+        }
+        const toBeTrashed: string[] = Array.from(checkedTasks);
+        data.removeTasks(toBeTrashed);
+        setCheckedTasks(new Set());
+    };
 
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
@@ -48,6 +94,11 @@ const Todo = (): JSX.Element => {
 
     // same props passed to both TodoList and TodoGrid
     const TodoProps = {
+        mode,
+        cycleModes,
+        taskCheck,
+        checkedTasks,
+        trashChecked,
         tasks: data.tasks,
         filteredTasks,
         handleDragEnd,

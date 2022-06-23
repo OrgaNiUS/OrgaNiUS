@@ -154,7 +154,7 @@ interface IDataContext {
     events: IEvent[];
     mergedEvents: IEvent[];
     addTask: (task: ITask) => void;
-    removeTask: (id: string) => void;
+    removeTasks: (ids: string[]) => void;
     swapTasks: (startID: string, endID: string) => void;
 }
 
@@ -163,7 +163,7 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     addTask: (_) => {},
-    removeTask: (_) => {},
+    removeTasks: (_) => {},
     swapTasks: (_, __) => {},
 };
 
@@ -185,10 +185,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         // TODO: add to server
     };
 
-    const removeTask = (id: string) => {
-        const tasksCopy: ITask[] = tasks.filter((t) => t.id !== id);
+    const removeTasks = (ids: string[]) => {
+        const tasksCopy: ITask[] = tasks.filter((t) => !ids.includes(t.id));
 
-        for (let i = parseInt(id); i < tasks.length - 1; i++) {
+        for (let i = 0; i < tasksCopy.length; i++) {
             tasksCopy[i].id = i.toString();
         }
         setTasks(tasksCopy);
@@ -212,7 +212,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     };
 
     return (
-        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, removeTask, swapTasks }}>
+        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, removeTasks, swapTasks }}>
             {children}
         </DataContext.Provider>
     );

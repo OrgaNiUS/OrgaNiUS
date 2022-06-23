@@ -4,6 +4,7 @@ import { IconButton } from "../styles";
 const ButtonExpand = styled(IconButton)`
     bottom: 1rem;
     right: 1rem;
+    position: absolute;
 `;
 
 const TodoExpand = ({ onClick }: { onClick: React.MouseEventHandler<SVGSVGElement> }): JSX.Element => {
