@@ -54,13 +54,17 @@ With the search bar, the user can search for specific task(s). Each space separa
 
 Example "ta do" will match "Task Done".
 
-The tasks can also be dragged and dropped into different positions. (to be implemented)
+The user can click on the "+" icon to create a new personal Task.
 
-With the expand button on the bottom right, the user can expand the To-Do List into a grid view that takes up the entire page. (to be implemented)
+The tasks can also be dragged and dropped into different positions.
+
+With the expand button on the bottom right, the user can expand the To-Do List into a grid view that takes up the entire page.
 
 ### Scheduler
 
-The user can see their tasks and events in this calendar-like view. (to be implemented)
+The user can see their tasks and events in this calendar-like view.
+
+The user can click on the "+" icon to create a new personal Event.
 
 ### Timeline
 

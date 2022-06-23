@@ -1,6 +1,7 @@
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
 import { ITask } from "../types";
 import Modal from "./Modal";
@@ -38,8 +39,8 @@ const handleDragEnd = (tasks: ITask[], setTasks: React.Dispatch<React.SetStateAc
 /**
  * Handles data and functions related to both TodoList and TodoGrid.
  */
-const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
-    const [tasks, setTasks] = useState<ITask[]>(initialTasks);
+const Todo = (): JSX.Element => {
+    const data = useContext(DataContext);
 
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
@@ -48,7 +49,7 @@ const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
     });
     const [showModal, setShowModal] = useState<boolean>(false);
 
-    const filteredTasks: ITask[] = filterTasks(tasks, filterOptions);
+    const filteredTasks: ITask[] = filterTasks(data.tasks, filterOptions);
 
     const handleSearch: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
@@ -59,9 +60,9 @@ const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
 
     // same props passed to both TodoList and TodoGrid
     const TodoProps = {
-        tasks,
+        tasks: data.tasks,
         filteredTasks,
-        handleDragEnd: handleDragEnd(tasks, setTasks),
+        handleDragEnd: handleDragEnd(data.tasks, data.setTasks),
         filterOptions,
         setFilterOptions,
         handleSearch,

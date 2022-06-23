@@ -13,7 +13,7 @@ describe("welcome message", () => {
         );
         render(homepage);
 
-        const welcomeMsg = screen.queryByTestId("welcome-message");
+        const welcomeMsg = screen.queryByText(/Hey/);
         expect(welcomeMsg).toBeInTheDocument();
         expect(welcomeMsg).toHaveTextContent(user);
     });
@@ -28,7 +28,7 @@ describe("welcome message", () => {
         );
         render(homepage);
 
-        const welcomeMsg = screen.queryByTestId("welcome-message");
+        const welcomeMsg = screen.queryByText(/Hey/);
         expect(welcomeMsg).toBeInTheDocument();
         expect(welcomeMsg).toHaveTextContent("user");
     });
