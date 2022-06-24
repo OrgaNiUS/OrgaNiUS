@@ -14,9 +14,9 @@ Input: A JSON body with the following **required** parameters. You may include o
 
 ```typescript
 {
-  name: string;
-  password: string;
-  email: string;
+    name: string;
+    password: string;
+    email: string;
 }
 ```
 
@@ -77,8 +77,8 @@ Input: A JSON body with the following **required** parameters.
 
 ```typescript
 {
-  name: string;
-  password: string;
+    name: string;
+    password: string;
 }
 ```
 
@@ -160,7 +160,7 @@ Output:
 
 ```json
 {
-  "valid": true
+    "valid": true
 }
 ```
 
@@ -230,7 +230,7 @@ Output:
 
 ```json
 {
-  "exists": true
+    "exists": true
 }
 ```
 
@@ -266,71 +266,157 @@ Output:
 
 Status Code: 200 or 400
 
+### Create Project
+
+POST "/project_create"
+
+This will create a project with the current user as the admin.
+
+Only requires name and description of the project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+    name: string;
+    description: string;
+}
+```
+
+Status Code: 201 or 400
+
+### Get Project
+
+GET "/project_get"
+
+This will get the project's name, description and creation time.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+    projectid: string;
+}
+```
+
+Status Code: 200 or 400
+
+### Create Task
+
+POST "/task_create"
+
+This will create either a personal task or project task based on if a project ID is passed in.
+No projectid passed in, the task will be created for current user.
+If specified, will create a task for the project and assign users in user array to that task.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+  name: string;
+  description: string;
+  users: string[];
+  projectID: string;
+}
+```
+
+### Add User to Task
+
+PATCH "/task_add_user"
+
+This will add users to the aforementioned task.
+Only call on tasks in projects.
+All users in the users array will be given this task.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+  taskid: string;
+  users: string[];
+}
+```
+
+### Delete Task
+
+PATCH "/task_delete"
+
+Deletes all tasks that are given. Provide projectid if its a task belonging to a project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+  projectid: string;
+  tasks: string[];
+}
+```
+
 ## Definitions
 
 ```typescript
 // All types here are defined as per Typescript conventions.
 
 interface User {
-  id: number;
-  name: string;
-  password: string;
-  email: string;
-  events: Event[];
-  tasks: Task[];
-  projects: Project[];
-  settings: UserSettings;
+    id: number;
+    name: string;
+    password: string;
+    email: string;
+    events: Event[];
+    tasks: Task[];
+    projects: Project[];
+    settings: UserSettings;
 }
 
 interface Event {
-  id: number;
-  name: string;
-  start: Date;
-  end: Date;
+    id: number;
+    name: string;
+    start: Date;
+    end: Date;
 }
 
 interface Task {
-  id: number;
-  name: string;
-  assignedTo: User[];
-  description: string;
-  creationTime: Date;
-  deadline: Date;
-  isDone: boolean;
-  tags: string[];
+    id: number;
+    name: string;
+    assignedTo: User[];
+    description: string;
+    creationTime: Date;
+    deadline: Date;
+    isDone: boolean;
+    tags: string[];
 }
 
 interface Project {
-  id: number;
-  name: string;
-  description: string;
-  members: User[];
-  tasks: Task[];
-  state: string;
-  creationTime: Date;
-  settings: ProjectSettings;
+    id: number;
+    name: string;
+    description: string;
+    members: User[];
+    tasks: Task[];
+    state: string;
+    creationTime: Date;
+    settings: ProjectSettings;
 }
 
 interface ProjectSettings {
-  roles: { [key: string]: Permissions };
-  deadlineNotification: Date;
+    roles: { [key: string]: Permissions };
+    deadlineNotification: Date;
 }
 
 interface Permissions {
-  addMember: boolean;
-  removeMember: boolean;
-  editName: boolean;
-  editDesc: boolean;
-  editSettings: boolean;
-  addTask: boolean;
-  removeTask: boolean;
-  canAssignOthers: boolean;
+    addMember: boolean;
+    removeMember: boolean;
+    editName: boolean;
+    editDesc: boolean;
+    editSettings: boolean;
+    addTask: boolean;
+    removeTask: boolean;
+    canAssignOthers: boolean;
 }
 
 interface UserSettings {
-  deadlineNotification: Date;
-  webNotification: boolean;
-  telegramNotification: boolean;
-  emailNotification: boolean;
+    deadlineNotification: Date;
+    webNotification: boolean;
+    telegramNotification: boolean;
+    emailNotification: boolean;
 }
 ```
