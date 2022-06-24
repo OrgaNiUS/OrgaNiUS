@@ -18,3 +18,42 @@ export interface ITask {
     isDone: boolean;
     tags: string[];
 }
+
+// only storing other users data
+// own user data is stored in DataContext
+export interface IUser {
+    name: string;
+}
+
+export interface IUserSettings {
+    deadlineNotification: Date;
+    webNotification: boolean;
+    telegramNotification: boolean;
+    emailNotification: boolean;
+}
+
+export interface IProject {
+    id: string;
+    name: string;
+    description: string;
+    members: IUser[];
+    events: string[]; // storing only ids
+    tasks: string[]; // storing only ids
+    creationTime: Date;
+}
+
+export interface IProjectSettings {
+    roles: { [key: string]: IProjectPermissions };
+    deadlineNotification: Date;
+}
+
+export interface IProjectPermissions {
+    addMember: boolean;
+    removeMember: boolean;
+    editName: boolean;
+    editDesc: boolean;
+    editSettings: boolean;
+    addTask: boolean;
+    removeTask: boolean;
+    canAssignOthers: boolean;
+}

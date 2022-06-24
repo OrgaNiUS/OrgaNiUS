@@ -7,7 +7,7 @@ const MockTodo = ({ tasks }: { tasks: ITask[] }): JSX.Element => {
     const initialEvents: IEvent[] = [];
 
     return (
-        <MockDataProvider {...{ initialTasks: tasks, initialEvents }}>
+        <MockDataProvider {...{ initialTasks: tasks, initialEvents, initialProjects: [] }}>
             <Todo />
         </MockDataProvider>
     );

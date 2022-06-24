@@ -4,12 +4,14 @@ import { UserRefreshJWT } from "./api/UserAPI";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import AuthContext from "./context/AuthProvider";
-import Page404 from "./pages/ErrorPages/Page404";
+import { DataProvider } from "./context/DataProvider";
 import PageDoesNotExist from "./pages/ErrorPages/PageDoesNotExist";
 import UnauthorisedAccess from "./pages/ErrorPages/UnauthorisedAccess";
 import ForgotPwd from "./pages/ForgotPwd";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
+import Project from "./pages/Project";
+import ProjectCreate from "./pages/ProjectCreate";
 import Projects from "./pages/Projects";
 import Registration from "./pages/Registration";
 import Settings from "./pages/Settings";
@@ -39,23 +41,28 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/forgot_pwd" element={<ForgotPwd />} />
+            <Route path="/project_create" element={<ProjectCreate />} />
             <Route path="/projects" element={<UnauthorisedAccess />} />
+            <Route path="/project/:id" element={<Project />} />
             <Route path="/settings" element={<UnauthorisedAccess />} />
             <Route path="/user/:username" element={<UnauthorisedAccess />} />
             <Route path="*" element={<PageDoesNotExist />} />
         </Routes>
     ) : (
-        <>
-            <Navbar />
-            <Routes>
-                <Route path="/" element={<Homepage />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/user/:username" element={<User />} />
-                {/* catch all path send to Page404 */}
-                <Route path="*" element={<Page404 />} />
-            </Routes>
-        </>
+        <DataProvider>
+            <>
+                <Navbar />
+                <Routes>
+                    <Route path="/" element={<Homepage />} />
+                    <Route path="/project_create" element={<ProjectCreate />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/project/:id" element={<Project />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/user/:username" element={<User />} />
+                    <Route path="*" element={<PageDoesNotExist />} />
+                </Routes>
+            </>
+        </DataProvider>
     );
 }
 

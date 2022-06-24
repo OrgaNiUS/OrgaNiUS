@@ -1,7 +1,7 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { createContext, useState } from "react";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, ITask } from "../types";
+import { IEvent, IProject, ITask, IUser } from "../types";
 
 // TODO: This is only for testing purposes because actual events and tasks integration are to be implemented later on.
 const initialEvents: IEvent[] = [
@@ -145,28 +145,58 @@ const initialTasks: ITask[] = [
     },
 ];
 
+const user0: IUser = {
+    name: "admin",
+};
+const user1: IUser = {
+    name: "saraan",
+};
+const user2: IUser = {
+    name: "jin wei",
+};
+const user3: IUser = {
+    name: "bob",
+};
+const user4: IUser = {
+    name: "tim",
+};
+
+const initialProjects: IProject[] = [
+    {
+        id: "0",
+        name: "First ever project",
+        description: "this is description",
+        members: [user0, user1, user2, user3, user4],
+        events: [],
+        tasks: [],
+        creationTime: new Date(),
+    },
+];
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
  */
 interface IDataContext {
     tasks: ITask[];
-    events: IEvent[];
-    mergedEvents: IEvent[];
     addTask: (task: ITask) => void;
     patchTask: (task: ITask) => void;
     removeTasks: (ids: string[]) => void;
     swapTasks: (startID: string, endID: string) => void;
+    events: IEvent[];
+    mergedEvents: IEvent[];
+    projects: IProject[];
 }
 
 const defaultDataContext: IDataContext = {
     tasks: [],
-    events: [],
-    mergedEvents: [],
     addTask: (_) => {},
     patchTask: (_) => {},
     removeTasks: (_) => {},
     swapTasks: (_, __) => {},
+    events: [],
+    mergedEvents: [],
+    projects: [],
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -179,6 +209,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [tasks, setTasks] = useState<ITask[]>(initialTasks);
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [projects, setProjects] = useState<IProject[]>(initialProjects);
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
@@ -229,7 +260,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     };
 
     return (
-        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, patchTask, removeTasks, swapTasks }}>
+        <DataContext.Provider
+            value={{ tasks, addTask, patchTask, removeTasks, swapTasks, events, mergedEvents, projects }}
+        >
             {children}
         </DataContext.Provider>
     );

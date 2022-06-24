@@ -1,11 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import MockDataProvider from "../../context/MockDataProvider";
-import { IEvent, ITask } from "../../types";
+import { IEvent, IProject, ITask } from "../../types";
 import Timeline from "../Timeline";
 
 const MockTimeline = ({ events, tasks }: { events: IEvent[]; tasks: ITask[] }): JSX.Element => {
     return (
-        <MockDataProvider {...{ initialTasks: tasks, initialEvents: events }}>
+        <MockDataProvider {...{ initialTasks: tasks, initialEvents: events, initialProjects: [] }}>
             <Timeline />
         </MockDataProvider>
     );

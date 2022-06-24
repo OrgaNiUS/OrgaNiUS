@@ -1,21 +1,24 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, ITask } from "../types";
+import { IEvent, IProject, ITask } from "../types";
 import { DataContext } from "./DataProvider";
 
 const MockDataProvider = ({
     initialTasks,
     initialEvents,
+    initialProjects,
     children,
 }: {
     initialTasks: ITask[];
     initialEvents: IEvent[];
+    initialProjects: IProject[];
     children: JSX.Element;
 }): JSX.Element => {
     const [tasks, setTasks] = useState<ITask[]>(initialTasks);
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [projects, setProjects] = useState<IProject[]>(initialProjects);
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
@@ -62,7 +65,9 @@ const MockDataProvider = ({
     };
 
     return (
-        <DataContext.Provider value={{ tasks, events, mergedEvents, addTask, patchTask, removeTasks, swapTasks }}>
+        <DataContext.Provider
+            value={{ tasks, addTask, patchTask, removeTasks, swapTasks, events, mergedEvents, projects }}
+        >
             {children}
         </DataContext.Provider>
     );

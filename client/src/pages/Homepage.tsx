@@ -4,7 +4,6 @@ import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
 import Todo from "../components/Todo";
 import AuthContext from "../context/AuthProvider";
-import { DataProvider } from "../context/DataProvider";
 import { getCookie, setCookie } from "../functions/cookies";
 
 const Message = styled.h1`
@@ -112,23 +111,21 @@ const Homepage = (): JSX.Element => {
     };
 
     return (
-        <DataProvider>
-            <>
-                <Message>Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
-                <Container>
-                    <Panel ratio={pageRatio}>
-                        <Todo />
-                    </Panel>
-                    <div style={{ flex: 0.5 }}>
-                        <Resizer />
-                    </div>
-                    <Panel ratio={10 - pageRatio}>
-                        <Scheduler />
-                        <Timeline />
-                    </Panel>
-                </Container>
-            </>
-        </DataProvider>
+        <>
+            <Message>Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
+            <Container>
+                <Panel ratio={pageRatio}>
+                    <Todo />
+                </Panel>
+                <div style={{ flex: 0.5 }}>
+                    <Resizer />
+                </div>
+                <Panel ratio={10 - pageRatio}>
+                    <Scheduler />
+                    <Timeline />
+                </Panel>
+            </Container>
+        </>
     );
 };
 
