@@ -8,7 +8,8 @@ export interface IEvent {
 // update IFields in TodoEdit and TodoCreate as well (if needed)
 // some fields are marked as optional temporarily
 export interface ITask {
-    id: string;
+    id?: string; // actual task objectid from database (optional temporarily)
+    dnd_id: string; // dnd_id used for dnd-kit positioning
     name: string;
     // change assignedTo to User[] type
     assignedTo?: string;

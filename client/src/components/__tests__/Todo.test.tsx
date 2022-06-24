@@ -23,7 +23,7 @@ describe("Todo", () => {
     it("search with no results", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "Task",
                 description: "",
                 tags: [],
@@ -40,7 +40,7 @@ describe("Todo", () => {
     it("search with results", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "Task",
                 description: "",
                 tags: [],
@@ -57,7 +57,7 @@ describe("Todo", () => {
     it("filter dropdown", async () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "Task",
                 description: "",
                 tags: [],

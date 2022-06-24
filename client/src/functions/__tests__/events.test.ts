@@ -14,7 +14,7 @@ describe("mergeEventArrays", () => {
     };
     const events: IEvent[] = [event1, event2];
     const task1: ITask = {
-        id: "0",
+        dnd_id: "0",
         name: "Some task",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
@@ -27,7 +27,7 @@ describe("mergeEventArrays", () => {
         end: task1.deadline as Date,
     };
     const task2: ITask = {
-        id: "0",
+        dnd_id: "0",
         name: "Another task",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3 - 1),
@@ -69,7 +69,7 @@ describe("filterTasks", () => {
     it("filter done", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "name",
                 description: "",
                 isDone: true,
@@ -81,7 +81,7 @@ describe("filterTasks", () => {
     it("filter expired", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "name",
                 description: "",
                 isDone: false,
@@ -94,7 +94,7 @@ describe("filterTasks", () => {
     it("filter both expired and done", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "name",
                 description: "",
                 isDone: true,
@@ -110,7 +110,7 @@ describe("filterTasks", () => {
     it("searchTerm name", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "nameX X",
                 description: "",
                 isDone: true,
@@ -123,7 +123,7 @@ describe("filterTasks", () => {
     it("searchTerm description", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "name",
                 description: "desc1",
                 isDone: true,
@@ -136,7 +136,7 @@ describe("filterTasks", () => {
     it("searchTerm tag", () => {
         const tasks: ITask[] = [
             {
-                id: "0",
+                dnd_id: "0",
                 name: "name",
                 description: "desc",
                 isDone: true,

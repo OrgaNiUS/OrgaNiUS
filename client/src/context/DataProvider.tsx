@@ -1,7 +1,8 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { createContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, ITask, IUser } from "../types";
+import AuthContext from "./AuthProvider";
 
 // TODO: This is only for testing purposes because actual events and tasks integration are to be implemented later on.
 const initialEvents: IEvent[] = [
@@ -35,7 +36,7 @@ const initialEvents: IEvent[] = [
 ];
 const initialTasks: ITask[] = [
     {
-        id: "0",
+        dnd_id: "0",
         name: "Task 1",
         description: "This is a short description.",
         deadline: new Date(2022, 6, 12),
@@ -43,7 +44,7 @@ const initialTasks: ITask[] = [
         tags: ["tag1", "tag2"],
     },
     {
-        id: "1",
+        dnd_id: "1",
         name: "5 Days Later",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
@@ -51,7 +52,7 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        id: "2",
+        dnd_id: "2",
         name: "13 Hours Later",
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 13),
@@ -59,35 +60,35 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        id: "3",
+        dnd_id: "3",
         name: "Task with only Title",
         description: "",
         isDone: false,
         tags: [],
     },
     {
-        id: "4",
+        dnd_id: "4",
         name: "",
         description: "",
         isDone: false,
         tags: [],
     },
     {
-        id: "5",
+        dnd_id: "5",
         name: "Task above me is empty.",
         description: "Might as well not exist, I guess.",
         isDone: false,
         tags: [],
     },
     {
-        id: "6",
+        dnd_id: "6",
         name: "This task is done.",
         description: "",
         isDone: true,
         tags: [],
     },
     {
-        id: "7",
+        dnd_id: "7",
         name: "This task is expired but not done.",
         description: "",
         isDone: false,
@@ -95,7 +96,7 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        id: "8",
+        dnd_id: "8",
         name: "This task is expired and done.",
         description: "",
         isDone: true,
@@ -103,7 +104,7 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        id: "9",
+        dnd_id: "9",
         name: "Really looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong name",
         description: "",
         isDone: false,
@@ -111,14 +112,14 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        id: "10",
+        dnd_id: "10",
         name: "Many many tags",
         description: "Just let them flow",
         isDone: false,
         tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
     },
     {
-        id: "11",
+        dnd_id: "11",
         name: "Very long word in tag",
         description: "truncate it!",
         isDone: false,
@@ -127,7 +128,7 @@ const initialTasks: ITask[] = [
         ],
     },
     {
-        id: "12",
+        dnd_id: "12",
         name: "Very long word in desc",
         description:
             "truncaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaate me",
@@ -136,7 +137,7 @@ const initialTasks: ITask[] = [
     },
     // don't support something that is too ridiculously long
     {
-        id: "13",
+        dnd_id: "13",
         name: "Really long description...",
         description:
             " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.",
@@ -186,6 +187,8 @@ interface IDataContext {
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProject[];
+    getProject: (id: string) => IProject | undefined;
+    addProject: (project: IProject) => [string, string];
 }
 
 const defaultDataContext: IDataContext = {
@@ -197,6 +200,8 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     projects: [],
+    getProject: (_) => undefined,
+    addProject: (_) => ["", ""],
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -205,21 +210,26 @@ export const DataContext = createContext<IDataContext>(defaultDataContext);
  * Responsible for passing data between the client and the server, from the client side.
  */
 export const DataProvider = ({ children }: { children: JSX.Element }) => {
+    const auth = useContext(AuthContext);
+
     // TODO: get initialEvents and initialTasks from server
     const [tasks, setTasks] = useState<ITask[]>(initialTasks);
+    // until events CRUD is implemented
+    // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [projects, setProjects] = useState<IProject[]>(initialProjects);
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
-            return [...t, { ...task, id: tasks.length.toString() }];
+            return [...t, { ...task, dnd_id: tasks.length.toString() }];
         });
-        // TODO: add to server
+        // TODO: add to server (update id as well)
     };
 
     const patchTask = (task: ITask) => {
-        const id: number = parseInt(task.id);
+        // TODO: make this an actual patch and not put
+        const id: number = parseInt(task.dnd_id);
 
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
@@ -231,10 +241,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
 
     const removeTasks = (ids: string[]) => {
         setTasks((t) => {
-            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
+            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.dnd_id));
 
             for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].id = i.toString();
+                tasksCopy[i].dnd_id = i.toString();
             }
             return tasksCopy;
         });
@@ -253,15 +263,45 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             const loopEnd: number = Math.max(start, end);
             for (let i = loopStart; i <= loopEnd; i++) {
                 // update the IDs of those affected by the drag
-                tasksCopy[i].id = i.toString();
+                tasksCopy[i].dnd_id = i.toString();
             }
             return tasksCopy;
         });
     };
 
+    const getProject = (id: string): IProject | undefined => {
+        // Simple O(n) for now, potentially use objects for O(1).
+        const project: IProject | undefined = projects.find((project) => project.id === id);
+        // TODO: get from server as well, if need be, update it locally
+        return project;
+    };
+
+    const addProject = (project: IProject): [string, string] => {
+        const ownUser: IUser = { name: auth.auth.user ?? "" };
+        const id: string = projects.length.toString();
+
+        setProjects((p) => {
+            return [...p, { ...project, id, members: [ownUser] }];
+        });
+        // TODO: add to server (update ID as well)
+        // and return invite code
+        return [id, "A72BC1"];
+    };
+
     return (
         <DataContext.Provider
-            value={{ tasks, addTask, patchTask, removeTasks, swapTasks, events, mergedEvents, projects }}
+            value={{
+                tasks,
+                addTask,
+                patchTask,
+                removeTasks,
+                swapTasks,
+                events,
+                mergedEvents,
+                projects,
+                getProject,
+                addProject,
+            }}
         >
             {children}
         </DataContext.Provider>

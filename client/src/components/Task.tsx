@@ -63,7 +63,7 @@ const Task = ({
     setEditingTask: () => void;
 }): JSX.Element => {
     // For @dnd-kit
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id });
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.dnd_id });
     if (transform !== null) {
         // I have no idea why @dnd-kit transforms the scaleY but it makes things look very bad, so I set it back to 1.
         transform.scaleY = 1;
@@ -85,7 +85,7 @@ const Task = ({
         <Container ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={handleClick}>
             <Name>
                 {mode === "trash" && (
-                    <input className="mr-1" type="checkbox" onChange={() => onCheck(task.id)} checked={checked} />
+                    <input className="mr-1" type="checkbox" onChange={() => onCheck(task.dnd_id)} checked={checked} />
                 )}
                 {task.name}
             </Name>

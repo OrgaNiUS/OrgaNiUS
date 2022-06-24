@@ -7,18 +7,21 @@ const Project = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const { id } = useParams();
-    // Simple O(n) for now, potentially use objects for O(1).
-    const initialProject = data.projects.find((project) => project.id === id);
-    const [project, setProject] = useState<IProject | undefined>(initialProject);
+    const [project, setProject] = useState<IProject | undefined>(undefined);
 
     useEffect(() => {
-        // TODO: get from server and update project
-    }, []);
+        if (id === undefined) {
+            return;
+        }
+
+        const project = data.getProject(id);
+        setProject(project);
+    }, [data, id]);
 
     if (project === undefined) {
         return (
             <div>
-                <Link to="/projects">{"<- Back to projects"}</Link>
+                <Link to="/projects">⬅️ Back to Project</Link>
                 <div>Loading... (or you have no permissions?)</div>
             </div>
         );
@@ -26,7 +29,7 @@ const Project = (): JSX.Element => {
 
     return (
         <div>
-            <Link to="/projects">{"<- Back to projects"}</Link>
+            <Link to="/projects">⬅️ Back to Project</Link>
             <div>{project.name}</div>
             <div>{project.description}</div>
             <div>Members: {project.members.map((m) => m.name).join(", ")}</div>

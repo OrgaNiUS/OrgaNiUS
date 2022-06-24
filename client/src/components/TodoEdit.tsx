@@ -2,7 +2,7 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { Button, InputCSS } from "../styles";
+import { BaseButton, InputCSS } from "../styles";
 import { ITask } from "../types";
 
 const Container = styled.div<{ width: number }>`
@@ -40,14 +40,14 @@ const TextArea = styled.textarea`
     width: 100%;
 `;
 
-const ButtonSubmit = styled(Button)`
+const ButtonSubmit = styled(BaseButton)`
     background-color: rgb(255, 85, 0);
     border: 1px solid rgb(255, 85, 0);
     float: right;
     margin-top: 1rem;
 `;
 
-const ButtonCancel = styled(Button)`
+const ButtonCancel = styled(BaseButton)`
     background-color: white;
     border: 1px solid black;
     color: black;
@@ -56,7 +56,7 @@ const ButtonCancel = styled(Button)`
 `;
 
 interface IFields {
-    id: string;
+    dnd_id: string;
     name: string;
     assignedTo?: string;
     description: string;

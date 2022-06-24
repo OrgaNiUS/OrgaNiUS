@@ -2,7 +2,7 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { Button, IconButton, InputCSS } from "../styles";
+import { BaseButton, IconButton, InputCSS } from "../styles";
 import { ITask } from "../types";
 
 const Container = styled.div<{ width: number }>`
@@ -40,14 +40,14 @@ const TextArea = styled.textarea`
     width: 100%;
 `;
 
-const ButtonSubmit = styled(Button)`
+const ButtonSubmit = styled(BaseButton)`
     background-color: rgb(255, 85, 0);
     border: 1px solid rgb(255, 85, 0);
     float: right;
     margin-top: 1rem;
 `;
 
-const ButtonCancel = styled(Button)`
+const ButtonCancel = styled(BaseButton)`
     background-color: white;
     border: 1px solid black;
     color: black;
@@ -111,7 +111,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
         const task: ITask = {
-            id: "",
+            dnd_id: "",
             name: fields.name,
             description: fields.description,
             creationTime: new Date(),

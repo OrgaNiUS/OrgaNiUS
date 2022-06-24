@@ -22,12 +22,12 @@ const MockDataProvider = ({
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
-            return [...t, { ...task, id: tasks.length.toString() }];
+            return [...t, { ...task, dnd_id: tasks.length.toString() }];
         });
     };
 
     const patchTask = (task: ITask) => {
-        const id: number = parseInt(task.id);
+        const id: number = parseInt(task.dnd_id);
 
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
@@ -38,10 +38,10 @@ const MockDataProvider = ({
 
     const removeTasks = (ids: string[]) => {
         setTasks((t) => {
-            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
+            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.dnd_id));
 
             for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].id = i.toString();
+                tasksCopy[i].dnd_id = i.toString();
             }
             return tasksCopy;
         });
@@ -58,15 +58,40 @@ const MockDataProvider = ({
             const loopEnd: number = Math.max(start, end);
             for (let i = loopStart; i <= loopEnd; i++) {
                 // update the IDs of those affected by the drag
-                tasksCopy[i].id = i.toString();
+                tasksCopy[i].dnd_id = i.toString();
             }
             return tasksCopy;
         });
     };
 
+    const getProject = (id: string): IProject | undefined => {
+        const project: IProject | undefined = projects.find((project) => project.id === id);
+        return project;
+    };
+
+    const addProject = (project: IProject): [string, string] => {
+        const id: string = projects.length.toString();
+
+        setProjects((p) => {
+            return [...p, { ...project, id, members: [] }];
+        });
+        return [id, "A72BC1"];
+    };
+
     return (
         <DataContext.Provider
-            value={{ tasks, addTask, patchTask, removeTasks, swapTasks, events, mergedEvents, projects }}
+            value={{
+                tasks,
+                addTask,
+                patchTask,
+                removeTasks,
+                swapTasks,
+                events,
+                mergedEvents,
+                projects,
+                getProject,
+                addProject,
+            }}
         >
             {children}
         </DataContext.Provider>

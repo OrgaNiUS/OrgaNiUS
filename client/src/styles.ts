@@ -3,7 +3,7 @@ import styled, { css } from "styled-components";
 // This file contains some styled components and css interpolation which are generic enough to be globally applied.
 
 // recommended to change background-color as well
-export const Button = styled.button`
+export const BaseButton = styled.button`
     border-radius: 6px; /* border-radius for rounded button */
     color: white;
     margin: 0.25rem;
@@ -28,7 +28,7 @@ export const IconButton = styled.button`
 export const InputCSS = css`
     border: 1px solid grey;
     padding: 7px;
-    color: grey;
+    color: black;
 `;
 
 /* https://stackoverflow.com/a/26973672 */

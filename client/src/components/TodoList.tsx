@@ -11,7 +11,7 @@ import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
-import { Button } from "../styles";
+import { BaseButton } from "../styles";
 import { ITask } from "../types";
 import Task from "./Task";
 import { todoModes } from "./Todo";
@@ -45,7 +45,7 @@ const SearchBox = styled.input`
     width: 100%;
 `;
 
-const ButtonTrash = styled(Button)`
+const ButtonTrash = styled(BaseButton)`
     background-color: rgb(255, 0, 90);
 `;
 
@@ -127,7 +127,7 @@ const TodoList = ({
                         modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
                     >
                         <SortableContext
-                            items={filteredTasks}
+                            items={filteredTasks.map((x) => x.dnd_id)}
                             strategy={verticalListSortingStrategy}
                             // disable if not normal mode
                             disabled={mode !== "normal"}
@@ -135,11 +135,11 @@ const TodoList = ({
                             {filteredTasks.map((task) => {
                                 return (
                                     <Task
-                                        key={task.id}
+                                        key={task.dnd_id}
                                         {...{
                                             task,
                                             mode,
-                                            checked: checkedTasks.has(task.id),
+                                            checked: checkedTasks.has(task.dnd_id),
                                             onCheck: taskCheck,
                                             setEditingTask: () => setEditingTask(task),
                                         }}

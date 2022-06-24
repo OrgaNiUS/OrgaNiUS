@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { Button } from "../styles";
+import { BaseButton } from "../styles";
 import ProjectsList from "./ProjectsList";
 
 const Message = styled.h1`
@@ -24,13 +24,13 @@ const ListContainer = styled.div`
 `;
 
 const Buttons = styled.div`
-    width: 20%;
+    align-items: flex-end;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    width: 20%;
 `;
 
-const ProjectButton = styled(Button)`
+const ProjectButton = styled(BaseButton)`
     background-color: rgb(59, 130, 246);
     height: 3rem;
     width: fit-content;
@@ -49,7 +49,7 @@ const Projects = (): JSX.Element => {
                         <ProjectButton>Create Project</ProjectButton>
                     </Link>
                     {/* TODO: join project pops up a modal */}
-                    <ProjectButton>Join Project</ProjectButton>
+                    <ProjectButton>Join Project (in the future!)</ProjectButton>
                     <ProjectButton disabled>Find Project (in the future!)</ProjectButton>
                 </Buttons>
             </Container>

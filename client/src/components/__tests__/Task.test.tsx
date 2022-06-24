@@ -5,7 +5,7 @@ import Task from "../Task";
 describe("Task", () => {
     it("standard task", () => {
         const task: ITask = {
-            id: "0",
+            dnd_id: "0",
             name: "name",
             description: "description",
             deadline: new Date(3022, 0, 1),
@@ -23,7 +23,7 @@ describe("Task", () => {
 
     it("expired task", () => {
         const task: ITask = {
-            id: "0",
+            dnd_id: "0",
             name: "name",
             description: "",
             deadline: new Date(0, 0, 1),
@@ -37,7 +37,7 @@ describe("Task", () => {
 
     it("due in less than 1 day", () => {
         const task: ITask = {
-            id: "0",
+            dnd_id: "0",
             name: "name",
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 5),
@@ -51,7 +51,7 @@ describe("Task", () => {
 
     it("due in less than 1 week", () => {
         const task: ITask = {
-            id: "0",
+            dnd_id: "0",
             name: "name",
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),

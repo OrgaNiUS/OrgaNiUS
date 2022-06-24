@@ -21,7 +21,7 @@ describe("Timeline", () => {
     ];
     const tasks: ITask[] = [
         {
-            id: "0",
+            dnd_id: "0",
             name: "Task 1",
             description: "This is a short description.",
             deadline: new Date(2022, 6, 12),
