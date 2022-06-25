@@ -33,6 +33,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
+
 	v1.POST("/signup", handlers.UserSignup(userController, jwtParser, mailer))
 	v1.POST("/verify", handlers.UserVerify(userController, jwtParser))
 	v1.POST("/login", handlers.UserLogin(userController, jwtParser))
