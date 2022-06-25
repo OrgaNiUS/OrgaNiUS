@@ -13,26 +13,27 @@ import (
 )
 
 const (
-	collection = "users"
+	userCollection = "users"
 )
 
 // Retrives a user by id or name.
-func (c *Controller) UserRetrieve(ctx context.Context, id, name string) (models.User, error) {
+func (c *UserController) UserRetrieve(ctx context.Context, id, name string) (models.User, error) {
 	var user models.User
 	if id == "" && name == "" {
-		return user, errors.New("cannot leave both id and name empty")
+		return user, errors.New("cannot leave both user id and name empty")
 	}
-	_, err := c.Collection(collection).FindOne(ctx, &user, id, name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, id, name, "")
+
 	return user, err
 }
 
 // Checks if a user with a particular name OR email exists.
-func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, error) {
+func (c *UserController) UserExists(ctx context.Context, name, email string) (bool, error) {
 	var user models.User
 	if name == "" && email == "" {
 		return false, errors.New("cannot leave both name and email empty")
 	}
-	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, email)
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, "", name, email)
 	if err == nil {
 		return true, nil
 	} else if err != mongo.ErrNoDocuments {
@@ -42,8 +43,8 @@ func (c *Controller) UserExists(ctx context.Context, name, email string) (bool, 
 }
 
 // Creates a new user.
-func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
-	id, err := c.Collection(collection).InsertOne(ctx, user)
+func (c *UserController) UserCreate(ctx context.Context, user *models.User) error {
+	id, err := c.Collection(userCollection).InsertOne(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -53,9 +54,9 @@ func (c *Controller) UserCreate(ctx context.Context, user *models.User) error {
 
 // Verifies PIN from email verification. If successful, also marks the user as verified in the database.
 // Also returns the user ID for creation of JWT.
-func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primitive.ObjectID, error) {
+func (c *UserController) UserVerifyPin(ctx context.Context, name, pin string) (primitive.ObjectID, error) {
 	var user models.User
-	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -64,7 +65,7 @@ func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primi
 			{Key: "verified", Value: true},
 			{Key: "verificationPin", Value: ""},
 		}}}
-		if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+		if _, err := c.Collection(userCollection).UpdateByID(ctx, user.Id, update); err != nil {
 			return primitive.NilObjectID, err
 		}
 		return user.Id, nil
@@ -74,9 +75,9 @@ func (c *Controller) UserVerifyPin(ctx context.Context, name, pin string) (primi
 
 // Checks whether the password matches the hashed password for a particular username.
 // Also validates if the user is verified.
-func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (bool, error) {
+func (c *UserController) UserCheckPassword(ctx context.Context, user *models.User) (bool, error) {
 	password := user.Password
-	_, err := c.Collection(collection).FindOne(ctx, user, "", user.Name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, user, "", user.Name, "")
 	if err != nil {
 		return false, errors.New("username and password do not match")
 	} else if !user.Verified {
@@ -90,9 +91,9 @@ func (c *Controller) UserCheckPassword(ctx context.Context, user *models.User) (
 
 // Step 1 of Forgot Password protocol.
 // If user requests for password reset multiple times, only the latest one will be valid.
-func (c *Controller) UserForgotPW(ctx context.Context, name, hash string) (string, error) {
+func (c *UserController) UserForgotPW(ctx context.Context, name, hash string) (string, error) {
 	var user models.User
-	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return "", err
 	} else if !user.Verified {
@@ -102,16 +103,16 @@ func (c *Controller) UserForgotPW(ctx context.Context, name, hash string) (strin
 		{Key: "forgotPw", Value: true},
 		{Key: "forgotPwPin", Value: hash},
 	}}}
-	if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+	if _, err := c.Collection(userCollection).UpdateByID(ctx, user.Id, update); err != nil {
 		return "", err
 	}
 	return user.Email, nil
 }
 
 // Step 2 of Forgot Password protocol.
-func (c *Controller) UserVerifyForgotPW(ctx context.Context, name, pin string) (bool, error) {
+func (c *UserController) UserVerifyForgotPW(ctx context.Context, name, pin string) (bool, error) {
 	var user models.User
-	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return false, err
 	} else if !user.ForgotPW {
@@ -123,9 +124,9 @@ func (c *Controller) UserVerifyForgotPW(ctx context.Context, name, pin string) (
 }
 
 // Step 3 of Forgot Password protocol.
-func (c *Controller) UserChangeForgotPW(ctx context.Context, name, pin, hash string) error {
+func (c *UserController) UserChangeForgotPW(ctx context.Context, name, pin, hash string) error {
 	var user models.User
-	_, err := c.Collection(collection).FindOne(ctx, &user, "", name, "")
+	_, err := c.Collection(userCollection).FindOne(ctx, &user, "", name, "")
 	if err != nil {
 		return err
 	} else if !user.ForgotPW {
@@ -138,14 +139,14 @@ func (c *Controller) UserChangeForgotPW(ctx context.Context, name, pin, hash str
 		{Key: "forgotPwPin", Value: ""},
 		{Key: "password", Value: hash},
 	}}}
-	if _, err := c.Collection(collection).UpdateByID(ctx, user.Id, update); err != nil {
+	if _, err := c.Collection(userCollection).UpdateByID(ctx, user.Id, update); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Modifies the user's Name, Password, Email.
-func (c *Controller) UserModify(ctx context.Context, user *models.User) {
+func (c *UserController) UserModify(ctx context.Context, user *models.User) {
 	params := bson.D{}
 	if user.Name != "" {
 		params = append(params, bson.E{Key: "name", Value: user.Name})
@@ -157,14 +158,36 @@ func (c *Controller) UserModify(ctx context.Context, user *models.User) {
 		params = append(params, bson.E{Key: "email", Value: user.Email})
 	}
 	update := bson.D{{Key: "$set", Value: params}}
-	c.Collection(collection).UpdateByID(ctx, user.Id, update)
+	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
 // Deletes the user.
-func (c *Controller) UserDelete(ctx context.Context, id string) error {
-	_, err := c.Collection(collection).DeleteByID(ctx, id)
+func (c *UserController) UserDelete(ctx context.Context, id string) error {
+	_, err := c.Collection(userCollection).DeleteByID(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c *UserController) UserAddProject(ctx context.Context, user *models.User) {
+	params := bson.D{}
+	params = append(params, bson.E{Key: "projects", Value: user.Projects})
+	update := bson.D{{Key: "$set", Value: params}}
+	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
+}
+
+func (c *UserController) UserAddTask(ctx context.Context, user *models.User) {
+	params := bson.D{}
+	params = append(params, bson.E{Key: "tasks", Value: user.Tasks})
+	update := bson.D{{Key: "$set", Value: params}}
+	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
+}
+
+// Deletes a task if it exists in UserTasks
+func (c *UserController) UserDeleteTasks(ctx context.Context, user *models.User) {
+	params := bson.D{}
+	params = append(params, bson.E{Key: "tasks", Value: user.Tasks})
+	update := bson.D{{Key: "$set", Value: params}}
+	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }

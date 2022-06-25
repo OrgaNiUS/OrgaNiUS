@@ -109,7 +109,7 @@ const (
 )
 
 // Creates a controller populated with some data.
-func GetMockController(data []*models.User) ([]primitive.ObjectID, Controller) {
+func GetMockController(data []*models.User) ([]primitive.ObjectID, UserController) {
 	collection := &MockCollection{
 		Data: map[primitive.ObjectID]*models.User{},
 	}
@@ -126,8 +126,8 @@ func GetMockController(data []*models.User) ([]primitive.ObjectID, Controller) {
 		collection.Data[id] = user
 	}
 
-	controller := Controller{
-		Collection: func(name string, opts ...*options.CollectionOptions) CollectionInterface {
+	controller := UserController{
+		Collection: func(name string, opts ...*options.CollectionOptions) UserCollectionInterface {
 			return collection
 		},
 		URL: TEST_URL,
