@@ -215,7 +215,7 @@ const initialProjects: IProject[] = [
 interface IDataContext {
     tasks: ITask[];
     addTask: (task: ITask) => void;
-    patchTask: (task: ITask) => void;
+    patchTask: (task: Partial<ITask>) => void;
     removeTasks: (ids: string[]) => void;
     events: IEvent[];
     mergedEvents: IEvent[];

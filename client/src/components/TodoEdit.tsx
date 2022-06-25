@@ -2,6 +2,7 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
+import { isEqualArrays } from "../functions/arrays";
 import { BaseButton, InputCSS } from "../styles";
 import { ITask } from "../types";
 
@@ -60,7 +61,7 @@ interface IFields {
     name: string;
     assignedTo: string[];
     description: string;
-    creationTime?: Date;
+    creationTime: Date;
     deadline?: Date;
     isDone: boolean;
     // essentially only tags is different
@@ -111,7 +112,32 @@ const TodoEdit = ({
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
-        const task: ITask = { ...fields, creationTime: new Date(), tags };
+        const task: Partial<ITask> = {
+            id: editingTask.id,
+        };
+
+        // Add to partial task if not the same.
+        if (fields.name !== editingTask.name) {
+            task.name = fields.name;
+        }
+        if (!isEqualArrays(fields.assignedTo, editingTask.assignedTo)) {
+            task.assignedTo = fields.assignedTo;
+        }
+        if (fields.description !== editingTask.description) {
+            task.description = fields.description;
+        }
+        if (fields.creationTime !== editingTask.creationTime) {
+            task.creationTime = fields.creationTime;
+        }
+        if (fields.deadline !== editingTask.deadline) {
+            task.deadline = fields.deadline;
+        }
+        if (fields.isDone !== editingTask.isDone) {
+            task.isDone = fields.isDone;
+        }
+        if (!isEqualArrays(tags, editingTask.tags)) {
+            task.tags = tags;
+        }
 
         data.patchTask(task);
         hideForm();
