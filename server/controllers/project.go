@@ -13,9 +13,7 @@ const (
 	projectCollection = "projects"
 )
 
-// This handler is meant to be accessed without an account.
-// Thus, no sensitive information should be leaked from this!
-// SHLD WE MAKE IT BY ID ONLY SINCE NAME MIGHT NOT BE UNIQUE
+// Returns the project associated with the id
 func (c *ProjectController) ProjectRetrieve(ctx context.Context, id string) (models.Project, error) {
 	var project models.Project
 	if id == "" {
@@ -52,9 +50,8 @@ func (c *ProjectController) ProjectModifyTask(ctx context.Context, project *mode
 	c.Collection(projectCollection).UpdateByID(ctx, project.Id, update)
 }
 
-func (c *ProjectController) ProjectIdToArray(ctx context.Context, Projects map[string]struct{}) []models.Project {
-	var projectsArray []models.Project
-	projectsArray = []models.Project{}
+func (c *ProjectController) ProjectMapToArray(ctx context.Context, Projects map[string]struct{}) []models.Project {
+	projectsArray := []models.Project{}
 	for projectid := range Projects {
 		var project models.Project
 		c.Collection(projectCollection).FindOne(ctx, &project, projectid)

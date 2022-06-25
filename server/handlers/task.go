@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
@@ -12,7 +13,8 @@ import (
 
 // name: string,
 // description: string,
-// users: string[userids],
+// assignedTo: string[userids],
+// deadline: time.Time
 // projectID: string
 // No projectid -> Personal Task
 // Projectid and No Users -> A project task, waiting to be assigned
@@ -28,8 +30,9 @@ func TaskCreate(userController controllers.UserController, projectController con
 		type Query struct {
 			Name        string   `bson:"name" json:"name"`
 			Description string   `bson:"description" json:"description"`
-			Users       []string `bson:"users" json:"users"`
+			Users       []string `bson:"assignedTo" json:"assignedTo"`
 			ProjectId   string   `bson:"projectid" json:"projectid"`
+			Deadline    string   `bson:"deadline" json:"deadline"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
@@ -38,6 +41,14 @@ func TaskCreate(userController controllers.UserController, projectController con
 		}
 		task.Name = query.Name
 		task.Description = query.Description
+		if query.Deadline != "" {
+			deadline, err := time.Parse("2006-01-02T15:04:05-0700", query.Deadline)
+			if err != nil {
+				DisplayError(ctx, "Please provide time in proper ISO8601 format")
+				return
+			}
+			task.Deadline = deadline
+		}
 
 		if query.ProjectId == "" {
 			if err := taskController.TaskCreate(ctx, &task); err != nil {
@@ -51,7 +62,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 				DisplayError(ctx, err.Error())
 			}
 			user.Tasks[task.Id.Hex()] = true
-			userController.UserAddTask(ctx, &user)
+			userController.UserModifyTask(ctx, &user)
 		} else {
 			project, err := projectController.ProjectRetrieve(ctx, query.ProjectId)
 			if err == mongo.ErrNoDocuments {
@@ -78,14 +89,16 @@ func TaskCreate(userController controllers.UserController, projectController con
 					DisplayError(ctx, err.Error())
 				}
 				user.Tasks[taskid] = false
-				userController.UserAddTask(ctx, &user)
+				userController.UserModifyTask(ctx, &user)
 			}
 			// Add Task to Project.Tasks Array
 			project.Tasks[taskid] = struct{}{}
 			projectController.ProjectModifyTask(ctx, &project)
 		}
 
-		ctx.JSON(http.StatusCreated, gin.H{})
+		ctx.JSON(http.StatusCreated, gin.H{
+			"taskid": task.Id.Hex(),
+		})
 	}
 }
 
@@ -127,7 +140,7 @@ func TaskDelete(userController controllers.UserController, projectController con
 					DisplayError(ctx, err.Error())
 				}
 			}
-			userController.UserDeleteTasks(ctx, &user)
+			userController.UserModifyTask(ctx, &user)
 			ctx.JSON(http.StatusOK, gin.H{})
 		} else {
 			project, err := projectController.ProjectRetrieve(ctx, query.ProjectId)
@@ -156,7 +169,7 @@ func TaskDelete(userController controllers.UserController, projectController con
 						DisplayError(ctx, err.Error())
 					}
 					delete(user.Tasks, taskid)
-					userController.UserDeleteTasks(ctx, &user)
+					userController.UserModifyTask(ctx, &user)
 				}
 
 				delete(project.Tasks, taskid)
@@ -170,8 +183,8 @@ func TaskDelete(userController controllers.UserController, projectController con
 	}
 }
 
-// taskid: string, users: string[userid]
-func TaskAddUser(userController controllers.UserController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+// taskid: string, name: string, assignedTo: string[userid], description: string, deadline: string, isDone: bool
+func TaskModify(userController controllers.UserController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		_, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -179,32 +192,110 @@ func TaskAddUser(userController controllers.UserController, taskController contr
 			return
 		}
 		type Query struct {
-			TaskId string   `bson:"taskid" json:"taskid"`
-			Users  []string `bson:"users" json:"users"`
+			TaskId      string   `bson:"taskid" json:"taskid"`
+			Name        string   `bson:"name" json:"name"`
+			AssignedTo  []string `bson:"assignedTo" json:"assignedTo"`
+			Description string   `bson:"description" json:"description"`
+			Deadline    string   `bson:"deadline" json:"deadline"`
+			IsDone      bool     `bson:"isDone" json:"isDone"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
+		if query.TaskId == "" {
+			DisplayError(ctx, "Please provide taskid of task to modify")
+			return
+		}
+		var newTask models.Task
+		newTask.Name = query.Name
+		newTask.Description = query.Description
+		newTask.AssignedTo = make(map[string]struct{})
+		for _, userid := range query.AssignedTo {
+			newTask.AssignedTo[userid] = struct{}{}
+		}
+		if query.Deadline != "" {
+			newTask.Deadline, _ = time.Parse("2006-01-02T15:04:05-0700", query.Deadline)
+		}
+		newTask.IsDone = query.IsDone
+
 		task, err := taskController.TaskRetrieve(ctx, query.TaskId)
 		if err == mongo.ErrNoDocuments {
 			DisplayError(ctx, "task does not exist")
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		}
-		for _, userid := range query.Users {
-			user, err := userController.UserRetrieve(ctx, userid, "")
+		newTask.Id = task.Id
+		if len(query.AssignedTo) != 0 {
+			// Delete users from task
+			for userid := range task.AssignedTo {
+				_, found := newTask.AssignedTo[userid]
+				if !found {
+					user, err := userController.UserRetrieve(ctx, userid, "")
+					if err == mongo.ErrNoDocuments {
+						DisplayError(ctx, "user does not exist")
+					} else if err != nil {
+						DisplayError(ctx, err.Error())
+					}
+					delete(user.Tasks, task.Id.Hex())
+					userController.UserModifyTask(ctx, &user)
+				}
+			}
+
+			// Add users to task
+			for _, userid := range query.AssignedTo {
+				user, err := userController.UserRetrieve(ctx, userid, "")
+				if err == mongo.ErrNoDocuments {
+					DisplayError(ctx, "user does not exist")
+				} else if err != nil {
+					DisplayError(ctx, err.Error())
+				}
+				user.Tasks[query.TaskId] = false
+				userController.UserModifyTask(ctx, &user)
+				task.AssignedTo[userid] = struct{}{}
+			}
+		}
+
+		taskController.TaskModify(ctx, &newTask)
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+func TaskGetAll(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			ProjectId string `bson:"projectid" json:"projectid"`
+		}
+		var q Query
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		var taskArr []models.Task
+		if q.ProjectId == "" {
+			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "user does not exist")
 			} else if err != nil {
 				DisplayError(ctx, err.Error())
 			}
-			user.Tasks[query.TaskId] = false
-			userController.UserAddTask(ctx, &user)
-			task.AssignedTo[userid] = struct{}{}
+			taskArr = taskController.TaskMapToArrayUser(ctx, user.Tasks)
+		} else {
+			project, err := projectController.ProjectRetrieve(ctx, q.ProjectId)
+			if err == mongo.ErrNoDocuments {
+				DisplayError(ctx, "project does not exist")
+			} else if err != nil {
+				DisplayError(ctx, err.Error())
+			}
+			taskArr = taskController.TaskMapToArray(ctx, project.Tasks)
 		}
-		taskController.TaskAddUser(ctx, &task)
-		ctx.JSON(http.StatusOK, gin.H{})
+
+		ctx.JSON(http.StatusOK, gin.H{"tasks": taskArr})
 	}
 }

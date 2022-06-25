@@ -25,10 +25,8 @@ func (c *TaskController) TaskRetrieve(ctx context.Context, id string) (models.Ta
 
 func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) error {
 	task.CreationTime = time.Now()
-	task.Deadline = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
 	task.IsDone = false
 	task.Tags = []string{}
-
 	id, err := c.Collection(taskCollection).InsertOne(ctx, task)
 
 	if err != nil {
@@ -39,9 +37,21 @@ func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) erro
 	return nil
 }
 
-func (c *TaskController) TaskAddUser(ctx context.Context, task *models.Task) {
+func (c *TaskController) TaskModify(ctx context.Context, task *models.Task) {
 	params := bson.D{}
-	params = append(params, bson.E{Key: "assignedTo", Value: task.AssignedTo})
+	if task.Name != "" {
+		params = append(params, bson.E{Key: "name", Value: task.Name})
+	}
+	if task.Description != "" {
+		params = append(params, bson.E{Key: "description", Value: task.Description})
+	}
+	if !task.Deadline.IsZero() {
+		params = append(params, bson.E{Key: "deadline", Value: task.Deadline})
+	}
+	if len(task.AssignedTo) != 0 {
+		params = append(params, bson.E{Key: "assignedTo", Value: task.AssignedTo})
+	}
+	params = append(params, bson.E{Key: "isDone", Value: task.IsDone})
 	update := bson.D{{Key: "$set", Value: params}}
 	c.Collection(taskCollection).UpdateByID(ctx, task.Id, update)
 }
@@ -52,4 +62,24 @@ func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
 		return err
 	}
 	return nil
+}
+
+func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.Task {
+	tasksArray := []models.Task{}
+	for taskid := range Tasks {
+		var task models.Task
+		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
+		tasksArray = append(tasksArray, task)
+	}
+	return tasksArray
+}
+
+func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.Task {
+	tasksArray := []models.Task{}
+	for taskid := range Tasks {
+		var task models.Task
+		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
+		tasksArray = append(tasksArray, task)
+	}
+	return tasksArray
 }

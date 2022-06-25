@@ -16,6 +16,3 @@ type Task struct {
 	IsDone       bool                `bson:"isDone" json:"isDone"`
 	Tags         []string            `bson:"tags" json:"tags"`
 }
-
-// Change AssignedTo to a map of primitive.ObjectID and void -> creating a Set data structure, prevent duplicate values
-//

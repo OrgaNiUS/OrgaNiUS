@@ -283,6 +283,14 @@ Input: A JSON body with the following **required** parameters.
 }
 ```
 
+Output:
+
+```json
+{
+  "projectid": string
+}
+```
+
 Status Code: 201 or 400
 
 ### Get Project
@@ -299,6 +307,24 @@ Input: A JSON body with the following **required** parameters.
 }
 ```
 
+Output:
+
+```json
+{
+  "creationTime": string,
+  "description": string,
+  "events": {},
+  "members": [
+      {
+          "name": string,
+          "id": string
+      }
+  ],
+  "name": "Project1",
+  "tasks": []models.Task
+}
+```
+
 Status Code: 200 or 400
 
 ### Create Task
@@ -309,31 +335,64 @@ This will create either a personal task or project task based on if a project ID
 No projectid passed in, the task will be created for current user.
 If specified, will create a task for the project and assign users in user array to that task.
 
-Input: A JSON body with the following **required** parameters.
+Input: A JSON body with the following parameters. name is only **required** parameter.
 
 ```typescript
 {
-  name: string;
+  name: string; // required, rest optional
   description: string;
   users: string[];
   projectID: string;
 }
 ```
 
-### Add User to Task
+Output:
 
-PATCH "/task_add_user"
+```json
+{
+  "taskid": string
+}
+```
 
-This will add users to the aforementioned task.
-Only call on tasks in projects.
-All users in the users array will be given this task.
+### Task Modify
 
-Input: A JSON body with the following **required** parameters.
+PATCH "/task_modify"
+
+Modifies the below mentioned parameters of the task.
+
+Input: A JSON body with the following parameters. taskid is only **required** parameter.
 
 ```typescript
 {
   taskid: string;
-  users: string[];
+  name: string;
+  assignedTo: string[]; // array of userids
+  description: string;
+  deadline: string; // ISO8601 format
+  isDone: bool;
+}
+```
+
+### Task Get All
+
+PATCH "/task_get_all"
+
+Gets all the User's tasks if no projectid given.
+Otherwise returns task's associated with the projectid.
+
+Input: A JSON body with the following parameter.
+
+```typescript
+{
+    projectid: string;
+}
+```
+
+Output:
+
+```json
+{
+  "tasks": []models.Task
 }
 ```
 
@@ -356,6 +415,8 @@ Input: A JSON body with the following **required** parameters.
 
 ```typescript
 // All types here are defined as per Typescript conventions.
+// Project[], User[], Task[] and Events[] are actually stored as a string[],
+// where each string is the objectid of the relevant Object
 
 interface User {
     id: number;

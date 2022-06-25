@@ -177,17 +177,21 @@ func (c *UserController) UserAddProject(ctx context.Context, user *models.User) 
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-func (c *UserController) UserAddTask(ctx context.Context, user *models.User) {
+// Modifies task array of user
+func (c *UserController) UserModifyTask(ctx context.Context, user *models.User) {
 	params := bson.D{}
 	params = append(params, bson.E{Key: "tasks", Value: user.Tasks})
 	update := bson.D{{Key: "$set", Value: params}}
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-// Deletes a task if it exists in UserTasks
-func (c *UserController) UserDeleteTasks(ctx context.Context, user *models.User) {
-	params := bson.D{}
-	params = append(params, bson.E{Key: "tasks", Value: user.Tasks})
-	update := bson.D{{Key: "$set", Value: params}}
-	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
+// converts a map of userids to an array of models.User
+func (c *UserController) UserMapToArray(ctx context.Context, Users map[string]struct{}) []models.User {
+	usersArray := []models.User{}
+	for userid := range Users {
+		var user models.User
+		c.Collection(userCollection).FindOne(ctx, &user, userid, "", "")
+		usersArray = append(usersArray, user)
+	}
+	return usersArray
 }

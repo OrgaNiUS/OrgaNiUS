@@ -51,11 +51,12 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/user", handlers.UserGet(userController))
 
 	v1.POST("/project_create", handlers.ProjectCreate(userController, projectController, jwtParser))
-	v1.GET("/project_get", handlers.ProjectGet(projectController))
+	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, jwtParser))
 
 	v1.POST("/task_create", handlers.TaskCreate(userController, projectController, taskController, jwtParser))
 	v1.DELETE("/task_delete", handlers.TaskDelete(userController, projectController, taskController, jwtParser))
-	v1.PATCH("/task_add_user", handlers.TaskAddUser(userController, taskController, jwtParser))
+	v1.PATCH("/task_modify", handlers.TaskModify(userController, taskController, jwtParser))
+	v1.GET("/task_get_all", handlers.TaskGetAll(userController, projectController, taskController, jwtParser))
 }
 
 func main() {
