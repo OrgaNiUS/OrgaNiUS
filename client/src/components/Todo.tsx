@@ -1,4 +1,3 @@
-import { DragEndEvent } from "@dnd-kit/core";
 import { useContext, useState } from "react";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
@@ -77,23 +76,6 @@ const Todo = (): JSX.Element => {
         });
     };
 
-    const handleDragEnd = (event: DragEndEvent) => {
-        const uniqueIDToString = (x: number | string): string => {
-            // just to be extra safe even though I only use string as the UniqueIdentifier
-            return typeof x === "string" ? x : x.toString();
-        };
-
-        const active = event.active;
-        const over = event.over;
-        if (over === null || active.id === over.id) {
-            return;
-        }
-
-        const startID: string = uniqueIDToString(active.id);
-        const endID: string = uniqueIDToString(over.id);
-        data.swapTasks(startID, endID);
-    };
-
     // same props passed to both TodoList and TodoGrid
     const TodoProps = {
         mode,
@@ -105,7 +87,6 @@ const Todo = (): JSX.Element => {
         setEditingTask,
         tasks: data.tasks,
         filteredTasks,
-        handleDragEnd,
         filterOptions,
         setFilterOptions,
         handleSearch,

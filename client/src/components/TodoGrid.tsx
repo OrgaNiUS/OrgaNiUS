@@ -1,13 +1,3 @@
-import {
-    closestCenter,
-    DndContext,
-    DragEndEvent,
-    PointerSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-} from "@dnd-kit/core";
-import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
 import { BaseButton, IconButton } from "../styles";
@@ -83,7 +73,6 @@ const TodoGrid = ({
     editingTask,
     setEditingTask,
     filteredTasks,
-    handleDragEnd,
     filterOptions,
     setFilterOptions,
     handleSearch,
@@ -97,19 +86,11 @@ const TodoGrid = ({
     editingTask: ITask | undefined;
     setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
     filteredTasks: ITask[];
-    handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
     hideModal: () => void;
 }): JSX.Element => {
-    // drag 10 pixels before dragging actually starts
-    const activationConstraint = { distance: 20 };
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint }),
-        useSensor(TouchSensor, { activationConstraint })
-    );
-
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -4rem; // change this when adding more icons
         top: 2rem;
@@ -145,36 +126,22 @@ const TodoGrid = ({
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                        autoScroll
-                    >
-                        <SortableContext
-                            items={filteredTasks.map((x) => x.dnd_id)}
-                            strategy={rectSortingStrategy}
-                            // disable if not normal mode
-                            disabled={mode !== "normal"}
-                        >
-                            <Grid>
-                                {filteredTasks.map((task) => {
-                                    return (
-                                        <Task
-                                            key={task.dnd_id}
-                                            {...{
-                                                task,
-                                                mode,
-                                                checked: checkedTasks.has(task.dnd_id),
-                                                onCheck: taskCheck,
-                                                setEditingTask: () => setEditingTask(task),
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </Grid>
-                        </SortableContext>
-                    </DndContext>
+                    <Grid>
+                        {filteredTasks.map((task, i) => {
+                            return (
+                                <Task
+                                    key={i}
+                                    {...{
+                                        task,
+                                        mode,
+                                        checked: checkedTasks.has(task.id),
+                                        onCheck: taskCheck,
+                                        setEditingTask: () => setEditingTask(task),
+                                    }}
+                                />
+                            );
+                        })}
+                    </Grid>
                 )}
             </GridWrapper>
         </Container>

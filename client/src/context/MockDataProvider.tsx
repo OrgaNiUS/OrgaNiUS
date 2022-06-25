@@ -1,4 +1,3 @@
-import { arrayMove } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, ITask, MaybeProject } from "../types";
@@ -22,43 +21,36 @@ const MockDataProvider = ({
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
-            return [...t, { ...task, dnd_id: tasks.length.toString() }];
+            return [...t, { ...task, id: tasks.length.toString() }];
         });
     };
 
-    const patchTask = (task: ITask) => {
-        const id: number = parseInt(task.dnd_id);
-
+    const patchTask = (task: Partial<ITask>) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
-            tasksCopy[id] = task;
-            return tasksCopy;
-        });
-    };
-
-    const removeTasks = (ids: string[]) => {
-        setTasks((t) => {
-            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.dnd_id));
-
             for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].dnd_id = i.toString();
+                const t: ITask = tasksCopy[i];
+                if (t.id !== task.id) {
+                    continue;
+                }
+                Object.entries(task).forEach(([k, v]) => {
+                    const key = k as keyof ITask;
+                    // not fully typed but Partial<ITask> ensures types will match
+                    (t[key] as any) = v;
+                });
+                tasksCopy[i] = t;
+                break;
             }
             return tasksCopy;
         });
     };
 
-    const swapTasks = (startID: string, endID: string) => {
-        const start: number = parseInt(startID);
-        const end: number = parseInt(endID);
-
+    const removeTasks = (ids: string[], projectid?: string) => {
         setTasks((t) => {
-            const tasksCopy: ITask[] = arrayMove(t, start, end);
+            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
 
-            const loopStart: number = Math.min(start, end);
-            const loopEnd: number = Math.max(start, end);
-            for (let i = loopStart; i <= loopEnd; i++) {
-                // update the IDs of those affected by the drag
-                tasksCopy[i].dnd_id = i.toString();
+            for (let i = 0; i < tasksCopy.length; i++) {
+                tasksCopy[i].id = i.toString();
             }
             return tasksCopy;
         });
@@ -85,7 +77,6 @@ const MockDataProvider = ({
                 addTask,
                 patchTask,
                 removeTasks,
-                swapTasks,
                 events,
                 mergedEvents,
                 projects,

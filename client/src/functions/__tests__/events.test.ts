@@ -14,10 +14,12 @@ describe("mergeEventArrays", () => {
     };
     const events: IEvent[] = [event1, event2];
     const task1: ITask = {
-        dnd_id: "0",
+        id: "0",
         name: "Some task",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+        creationTime: new Date(),
         isDone: false,
         tags: [],
     };
@@ -27,10 +29,12 @@ describe("mergeEventArrays", () => {
         end: task1.deadline as Date,
     };
     const task2: ITask = {
-        dnd_id: "0",
+        id: "0",
         name: "Another task",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3 - 1),
+        creationTime: new Date(),
         isDone: false,
         tags: [],
     };
@@ -69,9 +73,11 @@ describe("filterTasks", () => {
     it("filter done", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
+                creationTime: new Date(),
                 isDone: true,
                 tags: [],
             },
@@ -81,11 +87,13 @@ describe("filterTasks", () => {
     it("filter expired", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
-                isDone: false,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: false,
                 tags: [],
             },
         ];
@@ -94,11 +102,13 @@ describe("filterTasks", () => {
     it("filter both expired and done", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
-                isDone: true,
                 deadline: new Date(Date.now() - 10),
+                creationTime: new Date(),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -110,11 +120,13 @@ describe("filterTasks", () => {
     it("searchTerm name", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "nameX X",
+                assignedTo: [],
                 description: "",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -123,11 +135,13 @@ describe("filterTasks", () => {
     it("searchTerm description", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "desc1",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -136,11 +150,13 @@ describe("filterTasks", () => {
     it("searchTerm tag", () => {
         const tasks: ITask[] = [
             {
-                dnd_id: "0",
+                id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "desc",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: ["tag2"],
             },
         ];

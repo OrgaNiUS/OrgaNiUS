@@ -1,14 +1,3 @@
-import {
-    closestCenter,
-    DndContext,
-    DragEndEvent,
-    PointerSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-} from "@dnd-kit/core";
-import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
 import { BaseButton } from "../styles";
@@ -68,7 +57,6 @@ const TodoList = ({
     editingTask,
     setEditingTask,
     filteredTasks,
-    handleDragEnd,
     filterOptions,
     setFilterOptions,
     handleSearch,
@@ -82,19 +70,11 @@ const TodoList = ({
     editingTask: ITask | undefined;
     setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
     filteredTasks: ITask[];
-    handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
     expandClick: () => void;
 }): JSX.Element => {
-    // drag 10 pixels before dragging actually starts
-    const activationConstraint = { distance: 10 };
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint }),
-        useSensor(TouchSensor, { activationConstraint })
-    );
-
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -10%;
         top: 2rem;
@@ -118,36 +98,22 @@ const TodoList = ({
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                        // restrictToVerticalAxis restricts to vertical dragging
-                        // restrictToFirstScrollableAncestor restricts to scroll container
-                        modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
-                    >
-                        <SortableContext
-                            items={filteredTasks.map((x) => x.dnd_id)}
-                            strategy={verticalListSortingStrategy}
-                            // disable if not normal mode
-                            disabled={mode !== "normal"}
-                        >
-                            {filteredTasks.map((task) => {
-                                return (
-                                    <Task
-                                        key={task.dnd_id}
-                                        {...{
-                                            task,
-                                            mode,
-                                            checked: checkedTasks.has(task.dnd_id),
-                                            onCheck: taskCheck,
-                                            setEditingTask: () => setEditingTask(task),
-                                        }}
-                                    />
-                                );
-                            })}
-                        </SortableContext>
-                    </DndContext>
+                    <div>
+                        {filteredTasks.map((task, i) => {
+                            return (
+                                <Task
+                                    key={i}
+                                    {...{
+                                        task,
+                                        mode,
+                                        checked: checkedTasks.has(task.id),
+                                        onCheck: taskCheck,
+                                        setEditingTask: () => setEditingTask(task),
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
                 )}
             </Container>
             <IconsContainer>

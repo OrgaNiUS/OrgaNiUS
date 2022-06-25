@@ -114,7 +114,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
         const task: ITask = {
-            dnd_id: "",
+            id: "",
             name: fields.name,
             assignedTo,
             description: fields.description,

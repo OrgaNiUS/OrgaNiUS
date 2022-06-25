@@ -6,14 +6,12 @@ export interface IEvent {
 }
 
 // update IFields in TodoEdit and TodoCreate as well (if needed)
-// some fields are marked as optional temporarily
 export interface ITask {
-    id?: string; // actual task objectid from database (optional temporarily)
-    dnd_id: string; // dnd_id used for dnd-kit positioning
+    id: string;
     name: string;
     assignedTo: string[];
     description: string;
-    creationTime?: Date;
+    creationTime: Date;
     deadline?: Date;
     isDone: boolean;
     tags: string[];
@@ -23,6 +21,7 @@ export interface ITask {
 // only storing other users data
 // own user data is stored in DataContext
 export interface IUser {
+    id: string;
     name: string;
 }
 

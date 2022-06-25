@@ -1,5 +1,3 @@
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import styled from "styled-components";
 import { dateDiff, isLessThan } from "../functions/dates";
 import { truncate } from "../styles";
@@ -62,18 +60,6 @@ const Task = ({
     onCheck: (id: string) => void;
     setEditingTask: () => void;
 }): JSX.Element => {
-    // For @dnd-kit
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.dnd_id });
-    if (transform !== null) {
-        // I have no idea why @dnd-kit transforms the scaleY but it makes things look very bad, so I set it back to 1.
-        transform.scaleY = 1;
-    }
-    const style = {
-        // not using styled component for this because styled components will re-generate too many classes
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-    };
-
     const handleClick = () => {
         if (mode !== "edit") {
             return;
@@ -82,10 +68,10 @@ const Task = ({
     };
 
     return (
-        <Container ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={handleClick}>
+        <Container onClick={handleClick}>
             <Name>
                 {mode === "trash" && (
-                    <input className="mr-1" type="checkbox" onChange={() => onCheck(task.dnd_id)} checked={checked} />
+                    <input className="mr-1" type="checkbox" onChange={() => onCheck(task.id)} checked={checked} />
                 )}
                 {task.name}
             </Name>

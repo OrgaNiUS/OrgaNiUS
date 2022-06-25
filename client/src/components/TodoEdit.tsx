@@ -56,7 +56,7 @@ const ButtonCancel = styled(BaseButton)`
 `;
 
 interface IFields {
-    dnd_id: string;
+    id: string;
     name: string;
     assignedTo: string[];
     description: string;
@@ -111,7 +111,7 @@ const TodoEdit = ({
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
-        const task: ITask = { ...fields, tags };
+        const task: ITask = { ...fields, creationTime: new Date(), tags };
 
         data.patchTask(task);
         hideForm();

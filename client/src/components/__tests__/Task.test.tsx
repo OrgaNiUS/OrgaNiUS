@@ -5,15 +5,17 @@ import Task from "../Task";
 describe("Task", () => {
     it("standard task", () => {
         const task: ITask = {
-            dnd_id: "0",
+            id: "0",
             name: "name",
             description: "description",
             deadline: new Date(3022, 0, 1),
             isDone: false,
             tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("name")).toBeInTheDocument();
         expect(screen.queryByText("description")).toBeInTheDocument();
         expect(screen.queryByText(/#tag1/)).toBeInTheDocument();
@@ -23,43 +25,49 @@ describe("Task", () => {
 
     it("expired task", () => {
         const task: ITask = {
-            dnd_id: "0",
+            id: "0",
             name: "name",
             description: "",
             deadline: new Date(0, 0, 1),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("Expired")).toBeInTheDocument();
     });
 
     it("due in less than 1 day", () => {
         const task: ITask = {
-            dnd_id: "0",
+            id: "0",
             name: "name",
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 5),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("Due in 5 hours")).toBeInTheDocument();
     });
 
     it("due in less than 1 week", () => {
         const task: ITask = {
-            dnd_id: "0",
+            id: "0",
             name: "name",
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("Due in 5 days")).toBeInTheDocument();
     });
 });

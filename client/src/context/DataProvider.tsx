@@ -1,7 +1,6 @@
-import { arrayMove } from "@dnd-kit/sortable";
 import { createContext, useContext, useState } from "react";
 import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
-import { TaskCreate, TaskDelete } from "../api/TaskAPI";
+import { TaskCreate, TaskDelete, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
@@ -38,26 +37,29 @@ const initialEvents: IEvent[] = [
 ];
 const initialTasks: ITask[] = [
     {
-        dnd_id: "0",
+        id: "0",
         name: "Task 1",
         assignedTo: [],
         description: "This is a short description.",
         deadline: new Date(2022, 6, 12),
+        creationTime: new Date(),
         isDone: false,
         tags: ["tag1", "tag2"],
     },
     {
-        dnd_id: "1",
+        id: "1",
         name: "5 Days Later",
         assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+        creationTime: new Date(),
         isDone: false,
         tags: [],
     },
     {
-        dnd_id: "2",
+        id: "2",
         name: "13 Hours Later",
+        creationTime: new Date(),
         assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 13),
@@ -65,15 +67,17 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        dnd_id: "3",
+        id: "3",
         name: "Task with only Title",
+        creationTime: new Date(),
         assignedTo: [],
         description: "",
         isDone: false,
         tags: [],
     },
     {
-        dnd_id: "4",
+        id: "4",
+        creationTime: new Date(),
         name: "",
         assignedTo: [],
         description: "",
@@ -81,60 +85,67 @@ const initialTasks: ITask[] = [
         tags: [],
     },
     {
-        dnd_id: "5",
+        id: "5",
         name: "Task above me is empty.",
         assignedTo: [],
         description: "Might as well not exist, I guess.",
         isDone: false,
         tags: [],
+        creationTime: new Date(),
     },
     {
-        dnd_id: "6",
+        id: "6",
         name: "This task is done.",
         assignedTo: [],
         description: "",
         isDone: true,
         tags: [],
+        creationTime: new Date(),
     },
     {
-        dnd_id: "7",
+        id: "7",
         name: "This task is expired but not done.",
         assignedTo: [],
         description: "",
         isDone: false,
         deadline: new Date(Date.now() - 10),
+        creationTime: new Date(),
         tags: [],
     },
     {
-        dnd_id: "8",
+        id: "8",
         name: "This task is expired and done.",
         description: "",
         assignedTo: [],
         isDone: true,
+        creationTime: new Date(),
         deadline: new Date(Date.now() - 10),
         tags: [],
     },
     {
-        dnd_id: "9",
+        id: "9",
         name: "Really looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong name",
         description: "",
         isDone: false,
+        creationTime: new Date(),
         assignedTo: [],
         deadline: new Date(Date.now() - 10),
         tags: [],
     },
     {
-        dnd_id: "10",
+        id: "10",
         name: "Many many tags",
         description: "Just let them flow",
+        creationTime: new Date(),
         isDone: false,
         tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
         assignedTo: [],
     },
     {
-        dnd_id: "11",
+        id: "11",
         name: "Very long word in tag",
         description: "truncate it!",
+        creationTime: new Date(),
         assignedTo: [],
         isDone: false,
         tags: [
@@ -142,7 +153,8 @@ const initialTasks: ITask[] = [
         ],
     },
     {
-        dnd_id: "12",
+        id: "12",
+        creationTime: new Date(),
         assignedTo: [],
         name: "Very long word in desc",
         description:
@@ -152,29 +164,35 @@ const initialTasks: ITask[] = [
     },
     // don't support something that is too ridiculously long
     {
-        dnd_id: "13",
+        id: "13",
         name: "Really long description...",
         assignedTo: [],
         description:
             " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.",
         isDone: false,
         tags: [],
+        creationTime: new Date(),
     },
 ];
 
 const user0: IUser = {
+    id: "0",
     name: "admin",
 };
 const user1: IUser = {
+    id: "1",
     name: "saraan",
 };
 const user2: IUser = {
+    id: "2",
     name: "jin wei",
 };
 const user3: IUser = {
+    id: "3",
     name: "bob",
 };
 const user4: IUser = {
+    id: "4",
     name: "tim",
 };
 
@@ -199,7 +217,6 @@ interface IDataContext {
     addTask: (task: ITask) => void;
     patchTask: (task: ITask) => void;
     removeTasks: (ids: string[]) => void;
-    swapTasks: (startID: string, endID: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProject[];
@@ -212,7 +229,6 @@ const defaultDataContext: IDataContext = {
     addTask: (_) => {},
     patchTask: (_) => {},
     removeTasks: (_) => {},
-    swapTasks: (_, __) => {},
     events: [],
     mergedEvents: [],
     projects: [],
@@ -252,7 +268,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             (_) => {
                 // TODO: get id from response
                 setTasks((t) => {
-                    return [...t, { ...task, dnd_id: tasks.length.toString() }];
+                    return [...t, { ...task, id: tasks.length.toString() }];
                 });
             },
             (_) => {}
@@ -260,52 +276,68 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         // TODO: add to server (update id as well)
     };
 
-    const patchTask = (task: ITask) => {
-        // TODO: make this an actual patch and not put
-        const id: number = parseInt(task.dnd_id);
-
+    const patchTask = (task: Partial<ITask>) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
-            tasksCopy[id] = task;
-            return tasksCopy;
-        });
-        // TODO: patch to server
-    };
-
-    // TODO: take projectid as well
-    const removeTasks = (ids: string[]) => {
-        setTasks((t) => {
-            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.dnd_id));
-
             for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].dnd_id = i.toString();
+                const t: ITask = tasksCopy[i];
+                if (t.id !== task.id) {
+                    continue;
+                }
+                Object.entries(task).forEach(([k, v]) => {
+                    const key = k as keyof ITask;
+                    // not fully typed but Partial<ITask> ensures types will match
+                    (t[key] as any) = v;
+                });
+                tasksCopy[i] = t;
+                break;
             }
             return tasksCopy;
         });
-        TaskDelete(
+
+        const payload: TaskPatchData = {
+            taskid: task.id ?? "",
+        };
+
+        if (task.name !== undefined) {
+            payload.name = task.name;
+        }
+        if (task.assignedTo !== undefined) {
+            payload.assignedTo = task.assignedTo;
+        }
+        if (task.description !== undefined) {
+            payload.description = task.description;
+        }
+        if (task.deadline !== undefined) {
+            payload.deadline = task.deadline.toISOString();
+        }
+        if (task.isDone !== undefined) {
+            payload.isDone = task.isDone;
+        }
+
+        TaskPatch(
             auth.axiosInstance,
-            { tasks: ids },
+            payload,
             (_) => {},
             (_) => {}
         );
     };
 
-    const swapTasks = (startID: string, endID: string) => {
-        const start: number = parseInt(startID);
-        const end: number = parseInt(endID);
-
-        // TODO: send changes to server
+    const removeTasks = (ids: string[], projectid?: string) => {
         setTasks((t) => {
-            const tasksCopy: ITask[] = arrayMove(t, start, end);
+            const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
 
-            const loopStart: number = Math.min(start, end);
-            const loopEnd: number = Math.max(start, end);
-            for (let i = loopStart; i <= loopEnd; i++) {
-                // update the IDs of those affected by the drag
-                tasksCopy[i].dnd_id = i.toString();
+            for (let i = 0; i < tasksCopy.length; i++) {
+                tasksCopy[i].id = i.toString();
             }
             return tasksCopy;
         });
+        TaskDelete(
+            auth.axiosInstance,
+            { projectid, tasks: ids },
+            (_) => {},
+            (_) => {}
+        );
     };
 
     const getProject = (id: string): [MaybeProject, Promise<MaybeProject>] => {
@@ -358,7 +390,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     };
 
     const addProject = (project: IProject): Promise<[string, string]> => {
-        const ownUser: IUser = { name: auth.auth.user ?? "" };
+        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "" };
 
         return ProjectCreate(
             auth.axiosInstance,
@@ -393,7 +425,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 addTask,
                 patchTask,
                 removeTasks,
-                swapTasks,
                 events,
                 mergedEvents,
                 projects,

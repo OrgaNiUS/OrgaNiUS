@@ -8,11 +8,19 @@ type TaskCreateData = {
 };
 export const TaskCreate = CreatePostFunction<TaskCreateData>("/task_create");
 
-type TaskAddUserData = {
+/**
+ * Only fill in the fields that are to be changed.
+ * assignedTo is userid.
+ */
+export type TaskPatchData = {
     taskid: string;
-    users: string[];
+    name?: string;
+    assignedTo?: string[];
+    description?: string;
+    deadline?: string;
+    isDone?: boolean;
 };
-export const TaskAddUser = CreatePatchFunction<TaskAddUserData>("/task_add_user");
+export const TaskPatch = CreatePatchFunction<TaskPatchData>("/task_modify");
 
 type TaskDeleteData = {
     projectid?: string;
