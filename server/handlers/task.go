@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
@@ -69,7 +68,6 @@ func TaskCreate(userController controllers.UserController, projectController con
 				DisplayError(ctx, err.Error())
 				return
 			}
-			fmt.Println("Checkpoint Reached")
 			taskid := task.Id.Hex()
 			// Add Task to User.Tasks Array
 			for _, userid := range query.Users {
@@ -206,7 +204,6 @@ func TaskAddUser(userController controllers.UserController, taskController contr
 			userController.UserAddTask(ctx, &user)
 			task.AssignedTo[userid] = struct{}{}
 		}
-		fmt.Println(task.AssignedTo)
 		taskController.TaskAddUser(ctx, &task)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
