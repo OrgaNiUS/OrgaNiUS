@@ -5,50 +5,51 @@
 name: OrgaNiUS
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-  workflow_dispatch: # for manually running this workflow
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch: # for manually running this workflow
 
 jobs:
-  test-client:
-    runs-on: ubuntu-latest
+    test-client:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js 18.0.0
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.0.0"
-      - run: npm ci --prefix "client"
-      - run: npm run build --if-present --prefix "client"
-      - run: npm test --prefix "client"
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js 18.0.0
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "18.0.0"
+            # legacy peer deps flag required because react-big-calendar does not officially support react 18 in their published npm package as of writing (they did not update their package.json)
+            - run: npm ci --prefix "client" --legacy-peer-deps
+            - run: npm run build --if-present --prefix "client"
+            - run: npm test --prefix "client"
 
-  test-server:
-    runs-on: ubuntu-latest
+    test-server:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "1.18.2"
-      - uses: actions/checkout@v3
-      - run: go test -cover ./...
+        steps:
+            - uses: actions/setup-go@v3
+              with:
+                  go-version: "1.18.2"
+            - uses: actions/checkout@v3
+            - run: go test -cover ./...
 
-  deploy:
-    # only run deploy job if merging into main (opening PR will not trigger this)
-    if: github.ref == 'refs/heads/main'
-    # run deploy if test stage passes
-    needs: [test-client, test-server]
+    deploy:
+        # only run deploy job if merging into main (opening PR will not trigger this)
+        if: github.ref == 'refs/heads/main'
+        # run deploy if test stage passes
+        needs: [test-client, test-server]
 
-    runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-    steps:
-      # Deploy to Heroku
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "organius"
-          heroku_email: ${{secrets.HEROKU_EMAIL}}
-          usedocker: true
+        steps:
+            # Deploy to Heroku
+            - uses: actions/checkout@v2
+            - uses: akhileshns/heroku-deploy@v3.12.12
+              with:
+                  heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+                  heroku_app_name: "organius"
+                  heroku_email: ${{secrets.HEROKU_EMAIL}}
+                  usedocker: true

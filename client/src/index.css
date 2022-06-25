@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 @layer components {
-
     .home-icon {
         @apply relative flex items-center justify-start content-start
         h-auto w-auto mt-2 mb-2 mx-auto
@@ -18,8 +17,17 @@
         hover:underline;
     }
 
+    /*
+        sticky with top-0 so that the navbar's position is stickied onto the top of the page.
+        z-50 to force it to appear on top of everything else.
+        bg-white so that it will completely hide elements going under it.
+        w-full instead of w-screen because it was causing some horizontal overflow issues
+    */
     .navbar-wrapper {
-        @apply fixed top-0 left-0 w-screen h-20 m-0 flex flex-row bg-blend-color text-white shadow-lg;
+        @apply sticky top-0 z-50 bg-white w-full h-20 m-0 flex flex-row bg-blend-color text-white shadow-lg;
+    }
+
+    .errmsg {
+        @apply text-xs rounded-lg text-black p-1 relative border-2 border-red-300;
     }
 }
-

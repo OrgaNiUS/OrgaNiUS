@@ -29,7 +29,7 @@ Please ensure that these requirements are met on the client side before sending 
 
 Status Code: 201 or 400
 
-Username requirements
+Username requirements:
 
 1. Must be unique
 2. At least 5 characters long
@@ -91,9 +91,11 @@ Status Code: 201 or 400
 
 ### Refresh JWT
 
-GET "/refresh-jwt" request
+GET "/refresh_jwt" request
 
 Refreshes the JWT such that the token expires 10 minutes from the time this request is made. This is useful to prevent the user from being logged out due to inactivity.
+
+The client calls this every 9.5 minutes if logged in to prevent being logged out.
 
 Input: Nothing
 

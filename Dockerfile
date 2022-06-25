@@ -6,7 +6,7 @@
 FROM node:18-alpine3.14 as build-node
 WORKDIR /app
 COPY client/ .
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 FROM golang:1.18.2-alpine3.16 as build-go
