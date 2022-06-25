@@ -97,11 +97,13 @@ const ProjectCreate = (): JSX.Element => {
             tasks: [],
             creationTime: new Date(),
         };
-        const [id, code] = data.addProject(project);
-        setFields((f) => {
-            return { ...f, id };
+
+        data.addProject(project).then(([id, code]) => {
+            setFields((f) => {
+                return { ...f, id };
+            });
+            setInviteCode(code);
         });
-        setInviteCode(code);
     };
 
     return (

@@ -11,13 +11,13 @@ export interface ITask {
     id?: string; // actual task objectid from database (optional temporarily)
     dnd_id: string; // dnd_id used for dnd-kit positioning
     name: string;
-    // change assignedTo to User[] type
-    assignedTo?: string;
+    assignedTo: string[];
     description: string;
     creationTime?: Date;
     deadline?: Date;
     isDone: boolean;
     tags: string[];
+    projectID?: string; // only defined if associated with a project
 }
 
 // only storing other users data
@@ -33,6 +33,7 @@ export interface IUserSettings {
     emailNotification: boolean;
 }
 
+export type MaybeProject = IProject | undefined;
 export interface IProject {
     id: string;
     name: string;

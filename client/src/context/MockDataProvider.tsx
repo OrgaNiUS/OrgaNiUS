@@ -1,7 +1,7 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, ITask } from "../types";
+import { IEvent, IProject, ITask, MaybeProject } from "../types";
 import { DataContext } from "./DataProvider";
 
 const MockDataProvider = ({
@@ -64,18 +64,18 @@ const MockDataProvider = ({
         });
     };
 
-    const getProject = (id: string): IProject | undefined => {
+    const getProject = (id: string): [MaybeProject, Promise<MaybeProject>] => {
         const project: IProject | undefined = projects.find((project) => project.id === id);
-        return project;
+        return [project, Promise.resolve(undefined)];
     };
 
-    const addProject = (project: IProject): [string, string] => {
+    const addProject = (project: IProject): Promise<[string, string]> => {
         const id: string = projects.length.toString();
 
         setProjects((p) => {
             return [...p, { ...project, id, members: [] }];
         });
-        return [id, "A72BC1"];
+        return Promise.resolve([id, "A72BC1"]);
     };
 
     return (

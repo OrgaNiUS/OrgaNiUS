@@ -6,16 +6,28 @@ import { AxiosInstance, AxiosRequestConfig } from "axios";
  * Success callback is called on successful request.
  * Failure callback is called on failed request.
  */
-export type APICallback = ((_: any) => void) | undefined;
+export type APICallback = ((_: any) => any) | undefined;
 
 /**
- * Returns a get function.
+ * Returns a get function without params.
  * @param url URL for request.
  * @returns Get Function.
  */
 export const CreateGetFunction = (url: string) => {
     return (axiosInstance: AxiosInstance, success: APICallback, failure: APICallback) => {
-        axiosInstance.get(url).then(success).catch(failure);
+        return axiosInstance.get(url).then(success).catch(failure);
+    };
+};
+
+/**
+ * Returns a get function with params.
+ * @param url URL for request.
+ * @returns Get Function.
+ */
+export const CreateGetFunctionWithParams = <T>(url: string) => {
+    return (axiosInstance: AxiosInstance, params: T, success: APICallback, failure: APICallback) => {
+        const config = { params };
+        return axiosInstance.get(url, config).then(success).catch(failure);
     };
 };
 
@@ -32,7 +44,7 @@ export const CreatePostFunction = <T>(url: string) => {
         success: APICallback,
         failure: APICallback
     ) => {
-        axiosInstance.post(url, data, headers).then(success).catch(failure);
+        return axiosInstance.post(url, data, headers).then(success).catch(failure);
     };
 };
 
@@ -43,7 +55,7 @@ export const CreatePostFunction = <T>(url: string) => {
  */
 export const CreatePatchFunction = <T>(url: string) => {
     return (axiosInstance: AxiosInstance, payload: T, success: APICallback, failure: APICallback) => {
-        axiosInstance.patch(url, payload).then(success).catch(failure);
+        return axiosInstance.patch(url, payload).then(success).catch(failure);
     };
 };
 
@@ -54,6 +66,6 @@ export const CreatePatchFunction = <T>(url: string) => {
  */
 export const CreateDeleteFunction = (url: string) => {
     return (axiosInstance: AxiosInstance, success: APICallback, failure: APICallback) => {
-        axiosInstance.delete(url).then(success).catch(failure);
+        return axiosInstance.delete(url).then(success).catch(failure);
     };
 };

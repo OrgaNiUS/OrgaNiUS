@@ -14,8 +14,13 @@ const Project = (): JSX.Element => {
             return;
         }
 
-        const project = data.getProject(id);
+        const [project, promisedProject] = data.getProject(id);
         setProject(project);
+
+        // update with server's copy when received
+        promisedProject.then((p) => {
+            setProject(p);
+        });
     }, [data, id]);
 
     if (project === undefined) {

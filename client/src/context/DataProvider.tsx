@@ -1,7 +1,9 @@
 import { arrayMove } from "@dnd-kit/sortable";
 import { createContext, useContext, useState } from "react";
+import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
+import { TaskCreate, TaskDelete } from "../api/TaskAPI";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, ITask, IUser } from "../types";
+import { IEvent, IProject, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
 
 // TODO: This is only for testing purposes because actual events and tasks integration are to be implemented later on.
@@ -38,6 +40,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "0",
         name: "Task 1",
+        assignedTo: [],
         description: "This is a short description.",
         deadline: new Date(2022, 6, 12),
         isDone: false,
@@ -46,6 +49,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "1",
         name: "5 Days Later",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
         isDone: false,
@@ -54,6 +58,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "2",
         name: "13 Hours Later",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 13),
         isDone: false,
@@ -62,6 +67,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "3",
         name: "Task with only Title",
+        assignedTo: [],
         description: "",
         isDone: false,
         tags: [],
@@ -69,6 +75,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "4",
         name: "",
+        assignedTo: [],
         description: "",
         isDone: false,
         tags: [],
@@ -76,6 +83,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "5",
         name: "Task above me is empty.",
+        assignedTo: [],
         description: "Might as well not exist, I guess.",
         isDone: false,
         tags: [],
@@ -83,6 +91,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "6",
         name: "This task is done.",
+        assignedTo: [],
         description: "",
         isDone: true,
         tags: [],
@@ -90,6 +99,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "7",
         name: "This task is expired but not done.",
+        assignedTo: [],
         description: "",
         isDone: false,
         deadline: new Date(Date.now() - 10),
@@ -99,6 +109,7 @@ const initialTasks: ITask[] = [
         dnd_id: "8",
         name: "This task is expired and done.",
         description: "",
+        assignedTo: [],
         isDone: true,
         deadline: new Date(Date.now() - 10),
         tags: [],
@@ -108,6 +119,7 @@ const initialTasks: ITask[] = [
         name: "Really looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong name",
         description: "",
         isDone: false,
+        assignedTo: [],
         deadline: new Date(Date.now() - 10),
         tags: [],
     },
@@ -117,11 +129,13 @@ const initialTasks: ITask[] = [
         description: "Just let them flow",
         isDone: false,
         tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
+        assignedTo: [],
     },
     {
         dnd_id: "11",
         name: "Very long word in tag",
         description: "truncate it!",
+        assignedTo: [],
         isDone: false,
         tags: [
             "taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaag",
@@ -129,6 +143,7 @@ const initialTasks: ITask[] = [
     },
     {
         dnd_id: "12",
+        assignedTo: [],
         name: "Very long word in desc",
         description:
             "truncaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaate me",
@@ -139,6 +154,7 @@ const initialTasks: ITask[] = [
     {
         dnd_id: "13",
         name: "Really long description...",
+        assignedTo: [],
         description:
             " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.",
         isDone: false,
@@ -187,8 +203,8 @@ interface IDataContext {
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProject[];
-    getProject: (id: string) => IProject | undefined;
-    addProject: (project: IProject) => [string, string];
+    getProject: (id: string) => [MaybeProject, Promise<MaybeProject>];
+    addProject: (project: IProject) => Promise<[string, string]>;
 }
 
 const defaultDataContext: IDataContext = {
@@ -200,8 +216,8 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     projects: [],
-    getProject: (_) => undefined,
-    addProject: (_) => ["", ""],
+    getProject: (_) => [undefined, Promise.resolve(undefined)],
+    addProject: (_) => Promise.resolve(["", ""]),
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -221,9 +237,26 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [projects, setProjects] = useState<IProject[]>(initialProjects);
 
     const addTask = (task: ITask) => {
-        setTasks((t) => {
-            return [...t, { ...task, dnd_id: tasks.length.toString() }];
-        });
+        TaskCreate(
+            auth.axiosInstance,
+            {
+                name: task.name,
+                description: task.description,
+                users: task.assignedTo,
+                projectID: task.projectID,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (_) => {
+                // TODO: get id from response
+                setTasks((t) => {
+                    return [...t, { ...task, dnd_id: tasks.length.toString() }];
+                });
+            },
+            (_) => {}
+        );
         // TODO: add to server (update id as well)
     };
 
@@ -239,6 +272,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         // TODO: patch to server
     };
 
+    // TODO: take projectid as well
     const removeTasks = (ids: string[]) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.dnd_id));
@@ -248,7 +282,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             }
             return tasksCopy;
         });
-        // TODO: remove from server
+        TaskDelete(
+            auth.axiosInstance,
+            { tasks: ids },
+            (_) => {},
+            (_) => {}
+        );
     };
 
     const swapTasks = (startID: string, endID: string) => {
@@ -269,23 +308,82 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         });
     };
 
-    const getProject = (id: string): IProject | undefined => {
+    const getProject = (id: string): [MaybeProject, Promise<MaybeProject>] => {
         // Simple O(n) for now, potentially use objects for O(1).
-        const project: IProject | undefined = projects.find((project) => project.id === id);
-        // TODO: get from server as well, if need be, update it locally
-        return project;
+        // but n is not likely to be big.
+        const local: MaybeProject = projects.find((project) => project.id === id);
+
+        const server: Promise<MaybeProject> = ProjectGet(
+            auth.axiosInstance,
+            { projectid: id },
+            (response) => {
+                const data = response.data;
+                const project: IProject = {
+                    id: id,
+                    name: data.name,
+                    description: data.description,
+                    members: [],
+                    events: [],
+                    tasks: [],
+                    creationTime: data.creationTime,
+                };
+
+                setProjects((p) => {
+                    const projectsCopy: IProject[] = [...p];
+                    for (let i = 0; i < projectsCopy.length; i++) {
+                        if (projectsCopy[i].id === id) {
+                            // update the local copy
+                            projectsCopy[i] = project;
+                            break;
+                        }
+                    }
+                    return projectsCopy;
+                });
+
+                return project;
+            },
+            (_) => {
+                if (local !== undefined) {
+                    // remove from local copy if present
+                    setProjects((p) => {
+                        return p.filter((p) => p.id !== id);
+                    });
+                }
+                // if not found, return undefined
+                return undefined;
+            }
+        );
+
+        return [local, server];
     };
 
-    const addProject = (project: IProject): [string, string] => {
+    const addProject = (project: IProject): Promise<[string, string]> => {
         const ownUser: IUser = { name: auth.auth.user ?? "" };
-        const id: string = projects.length.toString();
 
-        setProjects((p) => {
-            return [...p, { ...project, id, members: [ownUser] }];
-        });
-        // TODO: add to server (update ID as well)
-        // and return invite code
-        return [id, "A72BC1"];
+        return ProjectCreate(
+            auth.axiosInstance,
+            {
+                name: project.name,
+                description: project.description,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (_) => {
+                // TODO: get id and invite code from here & update
+                // TODO: this id is temporary
+                const id: string = projects.length.toString();
+
+                setProjects((p) => {
+                    return [...p, { ...project, id, members: [ownUser] }];
+                });
+                return [id, "A72BC1"];
+            },
+            (_) => {
+                return ["", ""];
+            }
+        );
     };
 
     return (

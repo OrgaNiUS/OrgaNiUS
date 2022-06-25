@@ -58,7 +58,7 @@ const ButtonCancel = styled(BaseButton)`
 interface IFields {
     dnd_id: string;
     name: string;
-    assignedTo?: string;
+    assignedTo: string[];
     description: string;
     creationTime?: Date;
     deadline?: Date;
