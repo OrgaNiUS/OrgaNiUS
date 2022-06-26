@@ -13,6 +13,7 @@ describe("Task", () => {
             tags: ["tag1", "tag2"],
             assignedTo: [],
             creationTime: new Date(),
+            isPersonal: true,
         };
 
         render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
@@ -28,15 +29,16 @@ describe("Task", () => {
             id: "0",
             name: "name",
             description: "",
-            deadline: new Date(0, 0, 1),
+            deadline: new Date(2000, 0, 1),
             isDone: false,
             tags: ["tag1", "tag2"],
             assignedTo: [],
             creationTime: new Date(),
+            isPersonal: true,
         };
 
         render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
-        expect(screen.queryByText("Expired")).toBeInTheDocument();
+        expect(screen.queryByText("Expired on 01/01/2000")).toBeInTheDocument();
     });
 
     it("due in less than 1 day", () => {
@@ -49,6 +51,7 @@ describe("Task", () => {
             tags: ["tag1", "tag2"],
             assignedTo: [],
             creationTime: new Date(),
+            isPersonal: true,
         };
 
         render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
@@ -65,6 +68,7 @@ describe("Task", () => {
             tags: ["tag1", "tag2"],
             assignedTo: [],
             creationTime: new Date(),
+            isPersonal: true,
         };
 
         render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);

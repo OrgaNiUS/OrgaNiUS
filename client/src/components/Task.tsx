@@ -70,7 +70,7 @@ const Task = ({
     return (
         <Container onClick={handleClick}>
             <Name>
-                {mode === "trash" && (
+                {(mode === "trash" || mode === "normal") && (
                     <input className="mr-1" type="checkbox" onChange={() => onCheck(task.id)} checked={checked} />
                 )}
                 {task.name}

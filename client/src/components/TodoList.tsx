@@ -106,7 +106,9 @@ const TodoList = ({
                                     {...{
                                         task,
                                         mode,
-                                        checked: checkedTasks.has(task.id),
+                                        checked:
+                                            (mode === "normal" && task.isDone) ||
+                                            (mode === "trash" && checkedTasks.has(task.id)),
                                         onCheck: taskCheck,
                                         setEditingTask: () => setEditingTask(task),
                                     }}

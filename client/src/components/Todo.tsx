@@ -33,21 +33,31 @@ const Todo = (): JSX.Element => {
     };
 
     const taskCheck = (id: string) => {
-        if (mode !== "trash") {
-            // Should not happen.
-            return;
+        if (mode === "trash") {
+            // mark as trash
+            setCheckedTasks((t) => {
+                const newSet = new Set(t);
+
+                if (t.has(id)) {
+                    newSet.delete(id);
+                } else {
+                    newSet.add(id);
+                }
+
+                return newSet;
+            });
         }
-        setCheckedTasks((t) => {
-            const newSet = new Set(t);
-
-            if (t.has(id)) {
-                newSet.delete(id);
-            } else {
-                newSet.add(id);
+        if (mode === "normal") {
+            // mark as done
+            const task = data.tasks.find((t) => t.id === id);
+            if (task === undefined) {
+                return;
             }
-
-            return newSet;
-        });
+            data.patchTask({
+                id,
+                isDone: !task.isDone,
+            });
+        }
     };
 
     const trashChecked = () => {

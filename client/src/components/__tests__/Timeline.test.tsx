@@ -29,6 +29,7 @@ describe("Timeline", () => {
             creationTime: new Date(),
             isDone: false,
             tags: ["tag1", "tag2"],
+            isPersonal: true,
         },
     ];
 
