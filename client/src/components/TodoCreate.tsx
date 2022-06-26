@@ -154,10 +154,10 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
                 <Input type="text" name="tags" placeholder="Tags" onChange={handleChange} value={fields.tags} />
                 <Label>Deadline</Label>
                 <Input
-                    type="date"
+                    type="datetime-local"
                     name="deadline"
                     onChange={handleChange}
-                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD") : ""}
+                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD HH:mm") : ""}
                 />
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>

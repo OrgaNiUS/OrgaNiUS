@@ -34,16 +34,16 @@ const formatDate = (date: Date | undefined): string => {
         return "";
     }
 
+    const d: string = date.toLocaleDateString("en-SG");
+
     // Display date in hours and days left if less than a week.
     if (isLessThan(date, 0, "")) {
-        return "Expired";
+        return `Expired on ${d}`;
     } else if (isLessThan(date, 1, "day")) {
         return `Due in ${dateDiff(new Date(), date, "hour")} hours`;
     } else if (isLessThan(date, 1, "week")) {
         return `Due in ${dateDiff(new Date(), date, "day")} days`;
     }
-
-    const d: string = date.toLocaleDateString("en-SG");
     return `Due on ${d}`;
 };
 
