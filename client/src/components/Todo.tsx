@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import { css } from "styled-components";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
 import { ITask } from "../types";
@@ -111,7 +112,17 @@ const Todo = (): JSX.Element => {
             <Modal
                 {...{
                     active: showModal,
-                    body: <TodoGrid {...TodoProps} />,
+                    body: (
+                        <TodoGrid
+                            {...{
+                                ...TodoProps,
+                                containerCSS: css`
+                                    height: 85vh;
+                                    width: 90vw;
+                                `,
+                            }}
+                        />
+                    ),
                     callback: () => setShowModal(false),
                 }}
             />

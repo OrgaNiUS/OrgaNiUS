@@ -4,6 +4,7 @@ import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
 import Todo from "../components/Todo";
 import AuthContext from "../context/AuthProvider";
+import { DataContext } from "../context/DataProvider";
 import { getCookie, setCookie } from "../functions/cookies";
 
 const Message = styled.h1`
@@ -57,6 +58,7 @@ const RButton = styled.button`
 // This is the component for the homepage (user dashboard).
 const Homepage = (): JSX.Element => {
     const auth = useContext(AuthContext);
+    const data = useContext(DataContext);
 
     // pageRatio is the ratio of Left panel with regards to the entire page width
     const pageRatioCookie: string = "dashboard-ratio";
@@ -122,7 +124,7 @@ const Homepage = (): JSX.Element => {
                 </div>
                 <Panel ratio={10 - pageRatio}>
                     <Scheduler />
-                    <Timeline />
+                    <Timeline {...{ events: data.mergedEvents }} />
                 </Panel>
             </Container>
         </>

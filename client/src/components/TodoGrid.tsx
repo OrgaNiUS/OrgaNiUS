@@ -9,13 +9,12 @@ import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
 import TodoEdit from "./TodoEdit";
 
-const Container = styled.div`
+const Container = styled.div<{ custom: FlattenSimpleInterpolation }>`
+    ${(props) => props.custom}
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 85vh;
     justify-content: center;
-    width: 90vw;
 `;
 
 const Title = styled.h1`
@@ -65,6 +64,7 @@ const IconsContainer = styled.div`
 `;
 
 const TodoGrid = ({
+    containerCSS,
     mode,
     cycleModes,
     taskCheck,
@@ -78,6 +78,7 @@ const TodoGrid = ({
     handleSearch,
     hideModal,
 }: {
+    containerCSS: FlattenSimpleInterpolation;
     mode: todoModes;
     cycleModes: () => void;
     taskCheck: (id: string) => void;
@@ -89,7 +90,7 @@ const TodoGrid = ({
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
-    hideModal: () => void;
+    hideModal: (() => void) | undefined;
 }): JSX.Element => {
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -4rem; // change this when adding more icons
@@ -101,9 +102,9 @@ const TodoGrid = ({
     });
 
     return (
-        <Container>
+        <Container custom={containerCSS}>
             {createForm}
-            <ButtonClose onClick={hideModal}>&times;</ButtonClose>
+            {hideModal !== undefined && <ButtonClose onClick={hideModal}>&times;</ButtonClose>}
             <Title>To-Do Grid</Title>
             <div className="w-full flex justify-center">
                 <div className="relative w-2/4">
