@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import styled, { css } from "styled-components";
+import { DataContext } from "../context/DataProvider";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
 import { IEvent } from "../types";
@@ -127,8 +128,10 @@ const Line = styled.hr`
     border: 2px solid black;
 `;
 
-const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
-    const filteredEvents = filterEvents(events, { over: true });
+const Timeline = (): JSX.Element => {
+    const data = useContext(DataContext);
+
+    const filteredEvents = filterEvents(data.mergedEvents, { over: true });
 
     const rowRef = useRef<HTMLDivElement>(null);
 

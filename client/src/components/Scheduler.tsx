@@ -1,8 +1,9 @@
 import moment from "moment";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calendar's css file
 import styled, { css } from "styled-components";
+import { DataContext } from "../context/DataProvider";
 import { IEvent } from "../types";
 import EventCard from "./EventCard";
 
@@ -20,7 +21,9 @@ const Container = styled.div`
 
 const intervalDuration: number = 1000 * 5;
 
-const Scheduler = ({ events }: { events: IEvent[] }): JSX.Element => {
+const Scheduler = (): JSX.Element => {
+    const data = useContext(DataContext);
+
     const [currentInterval, setCurrentInterval] = useState<NodeJS.Timer | null>(null);
     const [eventCard, setEventCard] = useState<IEvent | null>(null);
 
@@ -56,7 +59,7 @@ const Scheduler = ({ events }: { events: IEvent[] }): JSX.Element => {
             )}
             <Calendar
                 localizer={localizer}
-                events={events}
+                events={data.mergedEvents}
                 titleAccessor="name"
                 defaultView="month"
                 views={["month", "week", "day"]}

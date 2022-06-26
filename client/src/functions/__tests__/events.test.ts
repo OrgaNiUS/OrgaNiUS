@@ -16,8 +16,10 @@ describe("mergeEventArrays", () => {
     const task1: ITask = {
         id: "0",
         name: "Some task",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
+        creationTime: new Date(),
         isDone: false,
         tags: [],
     };
@@ -29,8 +31,10 @@ describe("mergeEventArrays", () => {
     const task2: ITask = {
         id: "0",
         name: "Another task",
+        assignedTo: [],
         description: "",
         deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3 - 1),
+        creationTime: new Date(),
         isDone: false,
         tags: [],
     };
@@ -71,7 +75,9 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
+                creationTime: new Date(),
                 isDone: true,
                 tags: [],
             },
@@ -83,9 +89,11 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
-                isDone: false,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: false,
                 tags: [],
             },
         ];
@@ -96,9 +104,11 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "",
-                isDone: true,
                 deadline: new Date(Date.now() - 10),
+                creationTime: new Date(),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -112,9 +122,11 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "nameX X",
+                assignedTo: [],
                 description: "",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -125,9 +137,11 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "desc1",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: [],
             },
         ];
@@ -138,9 +152,11 @@ describe("filterTasks", () => {
             {
                 id: "0",
                 name: "name",
+                assignedTo: [],
                 description: "desc",
-                isDone: true,
+                creationTime: new Date(),
                 deadline: new Date(Date.now() - 10),
+                isDone: true,
                 tags: ["tag2"],
             },
         ];

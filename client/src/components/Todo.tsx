@@ -1,45 +1,74 @@
-import { DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
 import { ITask } from "../types";
 import Modal from "./Modal";
 import TodoGrid from "./TodoGrid";
 import TodoList from "./TodoList";
 
-const handleDragEnd = (tasks: ITask[], setTasks: React.Dispatch<React.SetStateAction<ITask[]>>) => {
-    return (event: DragEndEvent) => {
-        const uniqueIDToString = (x: number | string): number => {
-            // just to be extra safe even though I only use string as the UniqueIdentifier
-            return typeof x === "string" ? parseInt(x) : x;
-        };
-
-        const active = event.active;
-        const over = event.over;
-        if (over === null || active.id === over.id) {
-            return;
-        }
-
-        const startID: number = uniqueIDToString(active.id);
-        const endID: number = uniqueIDToString(over.id);
-        const tasksCopy: ITask[] = arrayMove(tasks, startID, endID);
-
-        const loopStart: number = Math.min(startID, endID);
-        const loopEnd: number = Math.max(startID, endID);
-        for (let i = loopStart; i <= loopEnd; i++) {
-            // update the IDs of those affected by the drag
-            tasksCopy[i].id = i.toString();
-            // TODO: need to send changes to server as well
-        }
-        setTasks(tasksCopy);
-    };
-};
+export type todoModes = "normal" | "trash" | "edit";
 
 /**
  * Handles data and functions related to both TodoList and TodoGrid.
  */
-const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
-    const [tasks, setTasks] = useState<ITask[]>(initialTasks);
+const Todo = (): JSX.Element => {
+    const data = useContext(DataContext);
+    const [mode, setMode] = useState<todoModes>("normal");
+    const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
+    const [editingTask, setEditingTask] = useState<ITask | undefined>(undefined);
+
+    const cycleModes = () => {
+        setCheckedTasks(new Set());
+        setEditingTask(undefined);
+        setMode((m) => {
+            switch (m) {
+                case "normal":
+                    return "trash";
+                case "trash":
+                    return "edit";
+                case "edit":
+                    return "normal";
+            }
+        });
+    };
+
+    const taskCheck = (id: string) => {
+        if (mode === "trash") {
+            // mark as trash
+            setCheckedTasks((t) => {
+                const newSet = new Set(t);
+
+                if (t.has(id)) {
+                    newSet.delete(id);
+                } else {
+                    newSet.add(id);
+                }
+
+                return newSet;
+            });
+        }
+        if (mode === "normal") {
+            // mark as done
+            const task = data.tasks.find((t) => t.id === id);
+            if (task === undefined) {
+                return;
+            }
+            data.patchTask({
+                id,
+                isDone: !task.isDone,
+            });
+        }
+    };
+
+    const trashChecked = () => {
+        if (mode !== "trash") {
+            // Should not happen.
+            return;
+        }
+        const toBeTrashed: string[] = Array.from(checkedTasks);
+        data.removeTasks(toBeTrashed);
+        setCheckedTasks(new Set());
+    };
 
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
@@ -48,7 +77,7 @@ const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
     });
     const [showModal, setShowModal] = useState<boolean>(false);
 
-    const filteredTasks: ITask[] = filterTasks(tasks, filterOptions);
+    const filteredTasks: ITask[] = filterTasks(data.tasks, filterOptions);
 
     const handleSearch: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
@@ -59,9 +88,15 @@ const Todo = ({ initialTasks }: { initialTasks: ITask[] }): JSX.Element => {
 
     // same props passed to both TodoList and TodoGrid
     const TodoProps = {
-        tasks,
+        mode,
+        cycleModes,
+        taskCheck,
+        checkedTasks,
+        trashChecked,
+        editingTask,
+        setEditingTask,
+        tasks: data.tasks,
         filteredTasks,
-        handleDragEnd: handleDragEnd(tasks, setTasks),
         filterOptions,
         setFilterOptions,
         handleSearch,

@@ -6,7 +6,7 @@ import Modal from "../components/Modal";
 import { validEmail, validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
 import { toTitleCase } from "../functions/strings";
-import { Button } from "../styles";
+import { BaseButton } from "../styles";
 
 // when updating this interface Fields, do remember to update the following sections as well
 // keys array
@@ -92,21 +92,22 @@ const Input = styled.input`
     color: grey;
 `;
 
-const ButtonChange = styled(Button)`
+const ButtonChange = styled(BaseButton)`
     background-color: rgb(0, 85, 255);
 `;
 
-const ButtonDeleteAccount = styled(Button)`
+const ButtonDeleteAccount = styled(BaseButton)`
     background-color: rgb(255, 0, 90);
 `;
 
 const ButtonConfirmDelete = styled(ButtonDeleteAccount)`
+    border: 1px solid rgb(255, 0, 90);
     float: right;
     margin-left: 0.75rem;
     margin-top: 1rem;
 `;
 
-const ButtonConfirmCancel = styled(Button)`
+const ButtonConfirmCancel = styled(BaseButton)`
     background-color: white;
     border: 1px solid black;
     color: black;
@@ -114,7 +115,7 @@ const ButtonConfirmCancel = styled(Button)`
     margin-top: 1rem;
 `;
 
-const ButtonSubmit = styled(Button)`
+const ButtonSubmit = styled(BaseButton)`
     background-color: rgb(255, 85, 0);
     float: right;
     margin: 0.6vh;
@@ -191,7 +192,9 @@ const Settings = (): JSX.Element => {
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
-        setFields({ ...fields, [event.target.name]: event.target.value });
+        setFields((f) => {
+            return { ...f, [event.target.name]: event.target.value };
+        });
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
@@ -323,6 +326,7 @@ const Settings = (): JSX.Element => {
                                             name={selection}
                                             onChange={handleChange}
                                             value={fields[selection]}
+                                            autoFocus
                                             required
                                         />
                                     </div>
@@ -335,6 +339,7 @@ const Settings = (): JSX.Element => {
                                                 name="password"
                                                 onChange={handleChange}
                                                 value={fields[selection]}
+                                                autoFocus
                                                 required
                                             />
                                         </div>

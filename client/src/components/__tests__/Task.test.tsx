@@ -11,9 +11,12 @@ describe("Task", () => {
             deadline: new Date(3022, 0, 1),
             isDone: false,
             tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
+            isPersonal: true,
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("name")).toBeInTheDocument();
         expect(screen.queryByText("description")).toBeInTheDocument();
         expect(screen.queryByText(/#tag1/)).toBeInTheDocument();
@@ -26,13 +29,16 @@ describe("Task", () => {
             id: "0",
             name: "name",
             description: "",
-            deadline: new Date(0, 0, 1),
+            deadline: new Date(2000, 0, 1),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
+            isPersonal: true,
         };
 
-        render(<Task {...{ task }} />);
-        expect(screen.queryByText("Expired")).toBeInTheDocument();
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
+        expect(screen.queryByText("Expired on 01/01/2000")).toBeInTheDocument();
     });
 
     it("due in less than 1 day", () => {
@@ -42,10 +48,13 @@ describe("Task", () => {
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 5),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
+            isPersonal: true,
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("Due in 5 hours")).toBeInTheDocument();
     });
 
@@ -56,10 +65,13 @@ describe("Task", () => {
             description: "",
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
             isDone: false,
-            tags: [],
+            tags: ["tag1", "tag2"],
+            assignedTo: [],
+            creationTime: new Date(),
+            isPersonal: true,
         };
 
-        render(<Task {...{ task }} />);
+        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
         expect(screen.queryByText("Due in 5 days")).toBeInTheDocument();
     });
 });

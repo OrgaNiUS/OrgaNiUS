@@ -1,7 +1,15 @@
 import { render, screen } from "@testing-library/react";
-import { mergeEventArrays } from "../../functions/events";
-import { IEvent, ITask } from "../../types";
+import MockDataProvider from "../../context/MockDataProvider";
+import { IEvent, IProject, ITask } from "../../types";
 import Timeline from "../Timeline";
+
+const MockTimeline = ({ events, tasks }: { events: IEvent[]; tasks: ITask[] }): JSX.Element => {
+    return (
+        <MockDataProvider {...{ initialTasks: tasks, initialEvents: events, initialProjects: [] }}>
+            <Timeline />
+        </MockDataProvider>
+    );
+};
 
 describe("Timeline", () => {
     const events: IEvent[] = [
@@ -15,17 +23,18 @@ describe("Timeline", () => {
         {
             id: "0",
             name: "Task 1",
+            assignedTo: [],
             description: "This is a short description.",
             deadline: new Date(2022, 6, 12),
+            creationTime: new Date(),
             isDone: false,
             tags: ["tag1", "tag2"],
+            isPersonal: true,
         },
     ];
 
-    const merged: IEvent[] = mergeEventArrays(events, tasks);
-
     it("renders correctly", () => {
-        render(<Timeline {...{ events: merged }} />);
+        render(<MockTimeline {...{ events, tasks }} />);
         expect(screen.queryByText("event 1")).toBeInTheDocument();
         expect(screen.queryByText("Task 1")).toBeInTheDocument();
         expect(screen.queryByText("Task 2")).not.toBeInTheDocument();

@@ -1,19 +1,13 @@
-import {
-    closestCenter,
-    DndContext,
-    DragEndEvent,
-    PointerSensor,
-    TouchSensor,
-    useSensor,
-    useSensors,
-} from "@dnd-kit/core";
-import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { filterTaskOptions } from "../functions/events";
+import { BaseButton } from "../styles";
 import { ITask } from "../types";
 import Task from "./Task";
+import { todoModes } from "./Todo";
+import TodoCreate from "./TodoCreate";
+import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
+import TodoEdit from "./TodoEdit";
 import TodoExpand from "./TodoExpand";
 
 const Wrapper = styled.div`
@@ -40,40 +34,55 @@ const SearchBox = styled.input`
     width: 100%;
 `;
 
+const ButtonTrash = styled(BaseButton)`
+    background-color: rgb(255, 0, 90);
+`;
+
+const IconsContainer = styled.div`
+    display: flex;
+    position: absolute;
+    right: 2rem;
+    top: 1.5rem;
+`;
+
 /**
  * Handles the Todo list.
  */
 const TodoList = ({
+    mode,
+    cycleModes,
+    taskCheck,
+    checkedTasks,
+    trashChecked,
+    editingTask,
+    setEditingTask,
     filteredTasks,
-    handleDragEnd,
     filterOptions,
     setFilterOptions,
     handleSearch,
     expandClick,
 }: {
+    mode: todoModes;
+    cycleModes: () => void;
+    taskCheck: (id: string) => void;
+    checkedTasks: Set<string>;
+    trashChecked: () => void;
+    editingTask: ITask | undefined;
+    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
     filteredTasks: ITask[];
-    handleDragEnd: (event: DragEndEvent) => void;
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
     expandClick: () => void;
 }): JSX.Element => {
-    // drag 10 pixels before dragging actually starts
-    const activationConstraint = { distance: 10 };
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint }),
-        useSensor(TouchSensor, { activationConstraint })
-    );
-
     const ddContentCSS: FlattenSimpleInterpolation = css`
-        right: -20%;
-        top: 3rem;
+        right: -10%;
+        top: 2rem;
     `;
 
-    const ddIconCSS: FlattenSimpleInterpolation = css`
-        right: 1rem;
-        top: 1rem;
-    `;
+    const [createButton, createForm] = TodoCreate({
+        containerWidth: 80,
+    });
 
     return (
         <Wrapper>
@@ -85,27 +94,38 @@ const TodoList = ({
                     value={filterOptions.searchTerm}
                     onChange={handleSearch}
                 />
+                {mode === "trash" && <ButtonTrash onClick={trashChecked}>Trash Selected</ButtonTrash>}
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                        // restrictToVerticalAxis restricts to vertical dragging
-                        // restrictToFirstScrollableAncestor restricts to scroll container
-                        modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
-                    >
-                        <SortableContext items={filteredTasks} strategy={verticalListSortingStrategy}>
-                            {filteredTasks.map((task) => {
-                                return <Task key={task.id} {...{ task }} />;
-                            })}
-                        </SortableContext>
-                    </DndContext>
+                    <div>
+                        {filteredTasks.map((task, i) => {
+                            return (
+                                <Task
+                                    key={i}
+                                    {...{
+                                        task,
+                                        mode,
+                                        checked:
+                                            (mode === "normal" && task.isDone) ||
+                                            (mode === "trash" && checkedTasks.has(task.id)),
+                                        onCheck: taskCheck,
+                                        setEditingTask: () => setEditingTask(task),
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
                 )}
             </Container>
-            <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS, iconCSS: ddIconCSS }} />
+            <IconsContainer>
+                {createButton}
+                <TodoCycleModes {...{ mode, cycleModes }} />
+                <TodoDropdown {...{ filterOptions, setFilterOptions, contentCSS: ddContentCSS }} />
+            </IconsContainer>
+            {createForm}
             <TodoExpand {...{ onClick: expandClick }} />
+            {editingTask !== undefined && <TodoEdit {...{ width: 80, editingTask, setEditingTask }} />}
         </Wrapper>
     );
 };

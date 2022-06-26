@@ -65,10 +65,10 @@ const Modal = ({
     }, [callback]);
 
     const handleClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
-        event.preventDefault();
         // https://stackoverflow.com/a/47155034
         // This check is done to prevent the inner div from triggering the callback function.
         if (event.target === event.currentTarget) {
+            event.preventDefault();
             callback();
         }
     };

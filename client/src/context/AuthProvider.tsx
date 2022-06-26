@@ -3,6 +3,7 @@ import React, { createContext, useState } from "react";
 import { getCookie } from "../functions/cookies";
 
 interface AuthInterface {
+    id?: string;
     user?: string;
     loggedIn: boolean;
 }
@@ -19,6 +20,7 @@ const ParseJWT = (): AuthInterface => {
     const jwt: string | undefined = getCookie("jwt");
 
     const user: AuthInterface = {
+        id: "",
         user: "",
         loggedIn: false,
     };
@@ -32,6 +34,7 @@ const ParseJWT = (): AuthInterface => {
         // atob function is deprecated but Buffer.from requires import
         const payload = JSON.parse(window.atob(jwt.split(".")[1]));
 
+        user.id = payload.id;
         user.user = payload.name;
         user.loggedIn = true;
         return user;

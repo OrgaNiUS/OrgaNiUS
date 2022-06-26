@@ -17,7 +17,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, controller controllers.Controller, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
+func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -33,22 +33,31 @@ func handleRoutes(URL string, router *gin.Engine, controller controllers.Control
 	// API Routes Group
 	// accessed via "http://{URL}/api/v1/{path}" (with correct GET/POST/PATCH/DELETE request)
 	v1 := router.Group("/api/v1")
-	v1.POST("/signup", handlers.UserSignup(controller, jwtParser, mailer))
-	v1.POST("/verify", handlers.UserVerify(controller, jwtParser))
-	v1.POST("/login", handlers.UserLogin(controller, jwtParser))
-	v1.GET("/refresh_jwt", handlers.UserRefreshJWT(controller, jwtParser))
-	v1.DELETE("/logout", handlers.UserLogout(controller, jwtParser))
 
-	v1.POST("/forgot_pw", handlers.UserForgotPW(controller, mailer))
-	v1.POST("/verify_forgot_pw", handlers.UserVerifyForgotPW(controller))
-	v1.POST("/change_forgot_pw", handlers.UserChangeForgotPW(controller))
+	v1.POST("/signup", handlers.UserSignup(userController, jwtParser, mailer))
+	v1.POST("/verify", handlers.UserVerify(userController, jwtParser))
+	v1.POST("/login", handlers.UserLogin(userController, jwtParser))
+	v1.GET("/refresh-jwt", handlers.UserRefreshJWT(userController, jwtParser))
+	v1.DELETE("/logout", handlers.UserLogout(userController, jwtParser))
 
-	v1.GET("/own_user", handlers.UserGetSelf(controller, jwtParser))
-	v1.PATCH("/user", handlers.UserPatch(controller, jwtParser))
-	v1.DELETE("/user", handlers.UserDelete(controller, jwtParser))
+	v1.POST("/forgot_pw", handlers.UserForgotPW(userController, mailer))
+	v1.POST("/verify_forgot_pw", handlers.UserVerifyForgotPW(userController))
+	v1.POST("/change_forgot_pw", handlers.UserChangeForgotPW(userController))
 
-	v1.GET("/user_exists", handlers.UserExistsGet(controller))
-	v1.GET("/user", handlers.UserGet(controller))
+	v1.GET("/own_user", handlers.UserGetSelf(userController, jwtParser))
+	v1.PATCH("/user", handlers.UserPatch(userController, jwtParser))
+	v1.DELETE("/user", handlers.UserDelete(userController, jwtParser))
+
+	v1.GET("/user_exists", handlers.UserExistsGet(userController))
+	v1.GET("/user", handlers.UserGet(userController))
+
+	v1.POST("/project_create", handlers.ProjectCreate(userController, projectController, jwtParser))
+	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, jwtParser))
+
+	v1.POST("/task_create", handlers.TaskCreate(userController, projectController, taskController, jwtParser))
+	v1.DELETE("/task_delete", handlers.TaskDelete(userController, projectController, taskController, jwtParser))
+	v1.PATCH("/task_modify", handlers.TaskModify(userController, taskController, jwtParser))
+	v1.GET("/task_get_all", handlers.TaskGetAll(userController, projectController, taskController, jwtParser))
 }
 
 func main() {
@@ -98,10 +107,12 @@ func main() {
 	client, cancel := db.Connect(dbUsername, dbPassword)
 	defer cancel()
 
-	controller := controllers.New(client, URL)
+	userController := controllers.NewU(client, URL)
+	projectController := controllers.NewP(client, URL)
+	taskController := controllers.NewT(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
-	handleRoutes(URL, router, *controller, jwtParser, mailer)
+	handleRoutes(URL, router, *userController, *projectController, *taskController, jwtParser, mailer)
 
 	log.Print("Server booted up!")
 
