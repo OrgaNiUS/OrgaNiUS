@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, ITask, MaybeProject } from "../types";
+import { IEvent, IProject, IProjectCondensed, ITask, MaybeProject } from "../types";
 import { DataContext } from "./DataProvider";
 
 const MockDataProvider = ({
@@ -17,7 +17,7 @@ const MockDataProvider = ({
     const [tasks, setTasks] = useState<ITask[]>(initialTasks);
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
-    const [projects, setProjects] = useState<IProject[]>(initialProjects);
+    const [projects, setProjects] = useState<IProjectCondensed[]>(initialProjects);
 
     const addTask = (task: ITask) => {
         setTasks((t) => {
@@ -56,9 +56,13 @@ const MockDataProvider = ({
         });
     };
 
-    const getProject = (id: string): [MaybeProject, Promise<MaybeProject>] => {
-        const project: IProject | undefined = projects.find((project) => project.id === id);
-        return [project, Promise.resolve(undefined)];
+    const getProject = (id: string): Promise<MaybeProject> => {
+        const condensedProject: IProjectCondensed | undefined = projects.find((project) => project.id === id);
+        if (condensedProject === undefined) {
+            return Promise.resolve(undefined);
+        }
+        const project: IProject = { ...condensedProject, members: [], events: [], tasks: [], creationTime: new Date() };
+        return Promise.resolve(project);
     };
 
     const addProject = (project: IProject): Promise<[string, string]> => {

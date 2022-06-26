@@ -18,15 +18,8 @@ func ProjectGet(userController controllers.UserController, projectController con
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		type Query struct {
-			ProjectId string `bson:"projectid" json:"projectid"`
-		}
-		var q Query
-		if err := ctx.BindJSON(&q); err != nil {
-			DisplayError(ctx, err.Error())
-			return
-		}
-		project, err := projectController.ProjectRetrieve(ctx, q.ProjectId)
+		projectid := ctx.DefaultQuery("projectid", "")
+		project, err := projectController.ProjectRetrieve(ctx, projectid)
 		if err == mongo.ErrNoDocuments {
 			DisplayError(ctx, "project does not exist")
 		} else if err != nil {

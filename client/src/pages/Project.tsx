@@ -14,14 +14,13 @@ const Project = (): JSX.Element => {
             return;
         }
 
-        const [project, promisedProject] = data.getProject(id);
-        setProject(project);
-
-        // update with server's copy when received
-        promisedProject.then((p) => {
+        data.getProject(id).then((p) => {
             setProject(p);
         });
-    }, [data, id]);
+
+        // including data.getProject and id will cause this to continuously fire
+        // eslint-disable-next-line
+    }, []);
 
     if (project === undefined) {
         return (

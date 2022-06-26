@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, ITask, IUser, MaybeProject } from "../types";
+import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
 
-// TODO: This is only for testing purposes because actual events and tasks integration are to be implemented later on.
+// TODO: This is only for testing purposes because actual events integration are to be implemented later on.
 const initialEvents: IEvent[] = [
     {
         name: "event 1",
@@ -36,39 +36,6 @@ const initialEvents: IEvent[] = [
     },
 ];
 
-const user0: IUser = {
-    id: "0",
-    name: "admin",
-};
-const user1: IUser = {
-    id: "1",
-    name: "saraan",
-};
-const user2: IUser = {
-    id: "2",
-    name: "jin wei",
-};
-const user3: IUser = {
-    id: "3",
-    name: "bob",
-};
-const user4: IUser = {
-    id: "4",
-    name: "tim",
-};
-
-const initialProjects: IProject[] = [
-    {
-        id: "0",
-        name: "First ever project",
-        description: "this is description",
-        members: [user0, user1, user2, user3, user4],
-        events: [],
-        tasks: [],
-        creationTime: new Date(),
-    },
-];
-
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
@@ -80,8 +47,8 @@ interface IDataContext {
     removeTasks: (ids: string[]) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
-    projects: IProject[];
-    getProject: (id: string) => [MaybeProject, Promise<MaybeProject>];
+    projects: IProjectCondensed[];
+    getProject: (id: string) => Promise<MaybeProject>;
     addProject: (project: IProject) => Promise<[string, string]>;
 }
 
@@ -93,7 +60,7 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     projects: [],
-    getProject: (_) => [undefined, Promise.resolve(undefined)],
+    getProject: (_) => Promise.resolve(undefined),
     addProject: (_) => Promise.resolve(["", ""]),
 };
 
@@ -111,7 +78,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
-    const [projects, setProjects] = useState<IProject[]>(initialProjects);
+    const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
     useEffect(() => {
         TaskGetAll(
@@ -130,6 +97,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             },
             () => {}
         );
+
+        // TODO: get all projects here
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectID: string = "") => {
@@ -220,12 +189,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const getProject = (id: string): [MaybeProject, Promise<MaybeProject>] => {
-        // Simple O(n) for now, potentially use objects for O(1).
-        // but n is not likely to be big.
-        const local: MaybeProject = projects.find((project) => project.id === id);
-
-        const server: Promise<MaybeProject> = ProjectGet(
+    const getProject = (id: string): Promise<MaybeProject> => {
+        return ProjectGet(
             auth.axiosInstance,
             { projectid: id },
             (response) => {
@@ -241,11 +206,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 };
 
                 setProjects((p) => {
-                    const projectsCopy: IProject[] = [...p];
+                    const projectsCopy: IProjectCondensed[] = [...p];
                     for (let i = 0; i < projectsCopy.length; i++) {
                         if (projectsCopy[i].id === id) {
                             // update the local copy
-                            projectsCopy[i] = project;
+                            projectsCopy[i] = { id, name: data.name, description: data.name };
                             break;
                         }
                     }
@@ -254,19 +219,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
 
                 return project;
             },
-            (_) => {
-                if (local !== undefined) {
-                    // remove from local copy if present
-                    setProjects((p) => {
-                        return p.filter((p) => p.id !== id);
-                    });
-                }
-                // if not found, return undefined
+            () => {
                 return undefined;
             }
         );
-
-        return [local, server];
     };
 
     const addProject = (project: IProject): Promise<[string, string]> => {
@@ -282,10 +238,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true,
             },
-            (_) => {
-                // TODO: get id and invite code from here & update
-                // TODO: this id is temporary
-                const id: string = projects.length.toString();
+            (response) => {
+                // TODO: get invite code from here & update
+                const data = response.data;
+                const id: string = data.projectid;
 
                 setProjects((p) => {
                     return [...p, { ...project, id, members: [ownUser] }];

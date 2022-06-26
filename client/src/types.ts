@@ -32,6 +32,12 @@ export interface IUserSettings {
     emailNotification: boolean;
 }
 
+export interface IProjectCondensed {
+    id: string;
+    name: string;
+    description: string;
+}
+
 export type MaybeProject = IProject | undefined;
 export interface IProject {
     id: string;

@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { IProject } from "../types";
+import { IProjectCondensed } from "../types";
 
 const Container = styled.div`
     border-radius: 6px;
@@ -13,7 +13,7 @@ const Container = styled.div`
     padding: 1rem;
 `;
 
-const Project = ({ project }: { project: IProject }): JSX.Element => {
+const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
     return (
         <div>
             <Link to={`/project/${project.id}`}>{project.name}</Link>
