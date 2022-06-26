@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { BaseButton, InputCSS } from "../styles";
+import { BaseButton, IconButton, InputCSS } from "../styles";
 import { IProject } from "../types";
 
 const Container = styled.div`
@@ -60,6 +60,13 @@ const ButtonSubmit = styled(BaseButton)`
     margin-top: 1rem;
 `;
 
+const ErrorMessage = styled.div`
+    background-color: red;
+    border-radius: 6px;
+    color: white;
+    padding: 0.2rem 0.5rem;
+`;
+
 interface IFields {
     id?: string;
     name: string;
@@ -71,11 +78,21 @@ const emptyFields: IFields = {
     description: "",
 };
 
+const isValidProjectName = (name: string): [string, boolean] => {
+    if (name === "") {
+        return ["Error: Provide a name!", false];
+    } else if (name.length < 5) {
+        return ["Error: Name too short", false];
+    }
+    return ["", true];
+};
+
 const ProjectCreate = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>(emptyFields);
     const [inviteCode, setInviteCode] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
         event.preventDefault();
@@ -88,6 +105,14 @@ const ProjectCreate = (): JSX.Element => {
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
 
+        const [msg, ok] = isValidProjectName(fields.name);
+        if (!ok) {
+            setErrorMessage(msg);
+            return;
+        }
+
+        setErrorMessage(undefined);
+
         const project: IProject = {
             id: "",
             name: fields.name,
@@ -97,6 +122,8 @@ const ProjectCreate = (): JSX.Element => {
             tasks: [],
             creationTime: new Date(),
         };
+
+        console.log("submitting?");
 
         data.addProject(project).then(([id, code]) => {
             setFields((f) => {
@@ -118,7 +145,7 @@ const ProjectCreate = (): JSX.Element => {
             </Row>
             <Form onSubmit={handleSubmit}>
                 <Label>Name</Label>
-                <Input type="text" name="name" onChange={handleChange} value={fields.name} required />
+                <Input type="text" name="name" onChange={handleChange} value={fields.name} autoFocus required />
                 <Label>Description</Label>
                 <TextArea name="description" onChange={handleChange} value={fields.description} />
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
@@ -131,6 +158,15 @@ const ProjectCreate = (): JSX.Element => {
                         <Link to={`/project/${fields.id}`}>Go to Project Page</Link>
                     </Button>
                 </Row>
+            )}
+
+            {errorMessage !== undefined && (
+                <ErrorMessage>
+                    {errorMessage}
+                    <IconButton className="pl-2" onClick={() => setErrorMessage(undefined)}>
+                        &times;
+                    </IconButton>
+                </ErrorMessage>
             )}
         </Container>
     );

@@ -140,6 +140,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
                     placeholder="Name"
                     onChange={handleChange}
                     value={fields.name}
+                    autoFocus
                     required
                 />
                 <Label>Description</Label>

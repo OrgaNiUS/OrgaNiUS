@@ -326,6 +326,7 @@ const Settings = (): JSX.Element => {
                                             name={selection}
                                             onChange={handleChange}
                                             value={fields[selection]}
+                                            autoFocus
                                             required
                                         />
                                     </div>
@@ -338,6 +339,7 @@ const Settings = (): JSX.Element => {
                                                 name="password"
                                                 onChange={handleChange}
                                                 value={fields[selection]}
+                                                autoFocus
                                                 required
                                             />
                                         </div>

@@ -50,6 +50,15 @@ func ProjectGet(userController controllers.UserController, projectController con
 	}
 }
 
+func isValidProjectName(name string) (string, bool) {
+	if name == "" {
+		return "please provide a name", false
+	} else if len(name) < 5 {
+		return "name too short", false
+	}
+	return "", true
+}
+
 // Input parameters "name" : "projectname" "description" : "projectDescription" return projectid
 func ProjectCreate(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -66,7 +75,7 @@ func ProjectCreate(userController controllers.UserController, projectController 
 		tests := []func() (string, bool){
 			// create valid project name allow spaces
 			func() (string, bool) {
-				return isValidName(project.Name)
+				return isValidProjectName(project.Name)
 			},
 			// add test for description here
 		}

@@ -49,7 +49,7 @@ const Projects = (): JSX.Element => {
                         <ProjectButton>Create Project</ProjectButton>
                     </Link>
                     {/* TODO: join project pops up a modal */}
-                    <ProjectButton>Join Project (in the future!)</ProjectButton>
+                    <ProjectButton disabled>Join Project (in the future!)</ProjectButton>
                     <ProjectButton disabled>Find Project (in the future!)</ProjectButton>
                 </Buttons>
             </Container>
