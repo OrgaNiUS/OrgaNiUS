@@ -88,8 +88,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const tasks: ITask[] = data.tasks.map((x: any) => {
                     const task = x.task;
+                    // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
-                        task.deadline === undefined ? undefined : new Date(task.deadline);
+                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
                     return { ...task, creationTime: new Date(task.creationTime), deadline, isPersonal: x.isPersonal };
                 });
 
