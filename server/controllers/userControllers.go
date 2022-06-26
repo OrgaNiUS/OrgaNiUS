@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type CollectionInterface interface {
+type UserCollectionInterface interface {
 	// Find one by id, name or email.
 	// All empty fields are ignored in the search.
 	// Populates the user reference passed in and returns it again. Handles nil user as well.
@@ -29,11 +29,14 @@ type CollectionInterface interface {
 	DeleteByID(ctx context.Context, id string) (int64, error)
 }
 
-type Collection struct {
-	collection *mongo.Collection
+
+type UserCollection struct {
+	userCollection *mongo.Collection
 }
 
-func (c *Collection) FindOne(ctx context.Context, user *models.User, id, name, email string) (*models.User, error) {
+
+
+func (c *UserCollection) FindOne(ctx context.Context, user *models.User, id, name, email string) (*models.User, error) {
 	if user == nil {
 		// If user is nil, create an empty user.
 		user = &models.User{}
@@ -56,12 +59,14 @@ func (c *Collection) FindOne(ctx context.Context, user *models.User, id, name, e
 		params = append(params, bson.D{{Key: "email", Value: email}})
 	}
 	filter := bson.D{{Key: "$or", Value: params}}
-	err := c.collection.FindOne(ctx, filter).Decode(&user)
+	err := c.userCollection.FindOne(ctx, filter).Decode(&user)
 	return user, err
 }
 
-func (c *Collection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
-	result, err := c.collection.InsertOne(ctx, user)
+
+
+func (c *UserCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
+	result, err := c.userCollection.InsertOne(ctx, user)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
@@ -69,29 +74,29 @@ func (c *Collection) InsertOne(ctx context.Context, user *models.User) (primitiv
 	return id, nil
 }
 
-func (c *Collection) UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
-	result, err := c.collection.UpdateByID(ctx, id, params)
+func (c *UserCollection) UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.userCollection.UpdateByID(ctx, id, params)
 	if err != nil {
 		return nil, err
 	}
 	return result, err
 }
 
-func (c *Collection) DeleteByID(ctx context.Context, id string) (int64, error) {
+func (c *UserCollection) DeleteByID(ctx context.Context, id string) (int64, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return -1, err
 	}
 	params := bson.D{{Key: "_id", Value: objectID}}
-	result, err := c.collection.DeleteOne(ctx, params)
+	result, err := c.userCollection.DeleteOne(ctx, params)
 	if err != nil {
 		return -1, err
 	}
 	return result.DeletedCount, nil
 }
 
-type Controller struct {
-	Collection func(name string, opts ...*options.CollectionOptions) CollectionInterface
+type UserController struct {
+	Collection func(name string, opts ...*options.CollectionOptions) UserCollectionInterface
 	URL        string
 }
 
@@ -99,11 +104,11 @@ const (
 	databaseName = "OrgaNiUS"
 )
 
-func New(client *mongo.Client, URL string) *Controller {
+func NewU(client *mongo.Client, URL string) *UserController {
 	database := client.Database(databaseName)
-	return &Controller{
-		func(name string, opts ...*options.CollectionOptions) CollectionInterface {
-			return &Collection{
+	return &UserController{
+		func(name string, opts ...*options.CollectionOptions) UserCollectionInterface {
+			return &UserCollection{
 				database.Collection(name, opts...),
 			}
 		},

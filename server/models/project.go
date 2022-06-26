@@ -7,14 +7,14 @@ import (
 )
 
 type Project struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string             `bson:"name" json:"name"`
-	Description  string             `bson:"description" json:"description"`
-	Members      []User             `bson:"members" json:"members"`
-	Tasks        []Task             `bson:"tasks" json:"tasks"`
-	State        string             `bson:"state" json:"state"`
-	CreationTime time.Time          `bson:"creationTime" json:"creationTime"`
-	Settings     ProjectSettings    `bson:"settings" json:"settings"`
+	Id           primitive.ObjectID  `bson:"_id,omitempty" json:"id,omitempty"`
+	Name         string              `bson:"name" json:"name"`
+	Description  string              `bson:"description" json:"description"`
+	Members      map[string]struct{} `bson:"members" json:"members"`
+	Tasks        map[string]struct{} `bson:"tasks" json:"tasks"`
+	State        string              `bson:"state" json:"state"`
+	CreationTime time.Time           `bson:"creationTime" json:"creationTime"`
+	Settings     ProjectSettings     `bson:"settings" json:"settings"`
 }
 
 type ProjectSettings struct {
@@ -31,4 +31,14 @@ type Permissions struct {
 	AddTask         bool `bson:"addTask" json:"addTask"`
 	RemoveTask      bool `bson:"removeTask" json:"removeTask"`
 	CanAssignOthers bool `bson:"canAssignOthers" json:"canAssignOthers"`
+}
+
+func DefaultSettings() ProjectSettings {
+	settings := ProjectSettings{
+		// This is the zero time. can check if time is initialised with time.isZero() method
+		DeadlineNotification: time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
+	settings.Roles = make(map[string]Permissions)
+	settings.Roles["admin"] = Permissions{true, true, true, true, true, true, true, true}
+	return settings
 }

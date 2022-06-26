@@ -268,10 +268,160 @@ Output:
 
 Status Code: 200 or 400
 
+### Create Project
+
+POST "/project_create"
+
+This will create a project with the current user as the admin.
+
+Only requires name and description of the project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+    name: string;
+    description: string;
+}
+```
+
+Output:
+
+```json
+{
+  "projectid": string
+}
+```
+
+Status Code: 201 or 400
+
+### Get Project
+
+GET "/project_get"
+
+This will get the project's name, description and creation time.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+    projectid: string;
+}
+```
+
+Output:
+
+```json
+{
+  "creationTime": string,
+  "description": string,
+  "events": {},
+  "members": [
+      {
+          "name": string,
+          "id": string
+      }
+  ],
+  "name": "Project1",
+  "tasks": []models.Task
+}
+```
+
+Status Code: 200 or 400
+
+### Create Task
+
+POST "/task_create"
+
+This will create either a personal task or project task based on if a project ID is passed in.
+No projectid passed in, the task will be created for current user.
+If specified, will create a task for the project and assign users in user array to that task.
+
+Input: A JSON body with the following parameters. name is only **required** parameter.
+
+```typescript
+{
+  name: string; // required, rest optional
+  description: string;
+  users: string[];
+  projectID: string;
+}
+```
+
+Output:
+
+```json
+{
+  "taskid": string
+}
+```
+
+### Task Modify
+
+PATCH "/task_modify"
+
+Modifies the below mentioned parameters of the task.
+
+Input: A JSON body with the following parameters. taskid is only **required** parameter.
+
+```typescript
+{
+  taskid: string;
+  name: string;
+  assignedTo: string[]; // array of userids
+  description: string;
+  deadline: string; // ISO8601 format
+  isDone: bool;
+}
+```
+
+### Task Get All
+
+PATCH "/task_get_all"
+
+Gets all the User's tasks if no projectid given.
+Otherwise returns task's associated with the projectid.
+
+Input: A JSON body with the following parameter.
+
+```typescript
+{
+    projectid: string;
+}
+```
+
+Output:
+
+```json
+{
+  "tasks": []models.TaskArr{
+    task: models.Task
+    isPersonal: boolean
+  }
+}
+```
+
+### Delete Task
+
+PATCH "/task_delete"
+
+Deletes all tasks that are given. Provide projectid if its a task belonging to a project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+  projectid: string;
+  tasks: string[];
+}
+```
+
 ## Definitions
 
 ```typescript
 // All types here are defined as per Typescript conventions.
+// Project[], User[], Task[] and Events[] are actually stored as a string[],
+// where each string is the objectid of the relevant Object
 
 interface User {
     id: number;

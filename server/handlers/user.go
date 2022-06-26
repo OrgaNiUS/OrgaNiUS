@@ -16,7 +16,7 @@ import (
 )
 
 // This handler is meant to be accessed without an account.
-func UserExistsGet(controller controllers.Controller) gin.HandlerFunc {
+func UserExistsGet(controller controllers.UserController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		name := ctx.DefaultQuery("name", "")
 		email := ctx.DefaultQuery("email", "")
@@ -31,7 +31,7 @@ func UserExistsGet(controller controllers.Controller) gin.HandlerFunc {
 
 // This handler is meant to be accessed without an account.
 // Thus, no sensitive information should be leaked from this!
-func UserGet(controller controllers.Controller) gin.HandlerFunc {
+func UserGet(controller controllers.UserController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id := ctx.DefaultQuery("id", "")
 		name := ctx.DefaultQuery("name", "")
@@ -41,7 +41,6 @@ func UserGet(controller controllers.Controller) gin.HandlerFunc {
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
-			// only return a non-sensitive subset of the information
 			returnedUser := gin.H{
 				"name":     user.Name,
 				"email":    user.Email,
@@ -52,7 +51,29 @@ func UserGet(controller controllers.Controller) gin.HandlerFunc {
 	}
 }
 
-func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+/*
+func UserGet(controller controllers.UserController, projectController controllers.ProjectController) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id := ctx.DefaultQuery("id", "")
+		name := ctx.DefaultQuery("name", "")
+		user, err := controller.UserRetrieve(ctx, id, name)
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		} else {
+			returnedUser := gin.H{
+				"name":     user.Name,
+				"email":    user.Email,
+				"projects": projectController.ProjectIdToArray(ctx, user.Projects),
+			}
+			ctx.JSON(http.StatusOK, returnedUser)
+		}
+	}
+}
+*/
+
+func UserGetSelf(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -70,7 +91,7 @@ func UserGetSelf(controller controllers.Controller, jwtParser *auth.JWTParser) g
 	}
 }
 
-func alreadySignedUp(controller controllers.Controller, ctx *gin.Context, name, email string) (string, bool) {
+func alreadySignedUp(controller controllers.UserController, ctx *gin.Context, name, email string) (string, bool) {
 	if exists, _ := controller.UserExists(ctx, name, email); exists {
 		return "username or email already exists", false
 	}
@@ -144,7 +165,7 @@ func isValidPassword(name, password string) (string, bool) {
 	return "", true
 }
 
-func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, mailer *mailer.Mailer) gin.HandlerFunc {
+func UserSignup(controller controllers.UserController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
 		if err := ctx.BindJSON(&user); err != nil {
@@ -181,6 +202,9 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, ma
 		user.Verified = false
 		hash, pin := auth.GeneratePin()
 		user.VerificationPin = hash
+		user.Projects = make(map[string]struct{})
+		user.Events = make(map[string]struct{})
+		user.Tasks = make(map[string]bool)
 		if err := controller.UserCreate(ctx, &user); err != nil {
 			DisplayError(ctx, err.Error())
 			return
@@ -193,7 +217,7 @@ func UserSignup(controller controllers.Controller, jwtParser *auth.JWTParser, ma
 	}
 }
 
-func UserVerify(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserVerify(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type query struct {
 			Name string `bson:"name" json:"name"`
@@ -221,7 +245,7 @@ func UserVerify(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 	}
 }
 
-func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserLogin(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var user models.User
 		if err := ctx.BindJSON(&user); err != nil {
@@ -248,7 +272,7 @@ func UserLogin(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 
 // Refresh JWT manually. Useful to prevent being logged out from inactivity.
 // Note that JWT is already refreshed on any request (that requires the user to be logged in).
-func UserRefreshJWT(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserRefreshJWT(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		_, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -260,7 +284,7 @@ func UserRefreshJWT(controller controllers.Controller, jwtParser *auth.JWTParser
 }
 
 // Logout user.
-func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserLogout(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		_, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -274,7 +298,7 @@ func UserLogout(controller controllers.Controller, jwtParser *auth.JWTParser) gi
 
 // Forgot password.
 // This will send a 6-digit PIN (similar to the one used for sign up) to the user's email address.
-func UserForgotPW(controller controllers.Controller, mailer *mailer.Mailer) gin.HandlerFunc {
+func UserForgotPW(controller controllers.UserController, mailer *mailer.Mailer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type query struct {
 			Name string `bson:"name" json:"name"`
@@ -296,7 +320,7 @@ func UserForgotPW(controller controllers.Controller, mailer *mailer.Mailer) gin.
 }
 
 // Verify PIN obtained from Forgot Password.
-func UserVerifyForgotPW(controller controllers.Controller) gin.HandlerFunc {
+func UserVerifyForgotPW(controller controllers.UserController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type query struct {
 			Name string `bson:"name" json:"name"`
@@ -316,7 +340,7 @@ func UserVerifyForgotPW(controller controllers.Controller) gin.HandlerFunc {
 }
 
 // Uses the PIN as validation to change the password of the user account.
-func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
+func UserChangeForgotPW(controller controllers.UserController) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type query struct {
 			Name     string `bson:"name" json:"name"`
@@ -343,7 +367,7 @@ func UserChangeForgotPW(controller controllers.Controller) gin.HandlerFunc {
 }
 
 // Only used for modifying username, password and email.
-func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func UserPatch(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, name, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -420,7 +444,8 @@ func UserPatch(controller controllers.Controller, jwtParser *auth.JWTParser) gin
 	}
 }
 
-func UserDelete(controller controllers.Controller, jwtParser *auth.JWTParser) gin.HandlerFunc {
+// Need to delete all associated Tasks, Project(Memmbers Array), Events
+func UserDelete(controller controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
