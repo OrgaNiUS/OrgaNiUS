@@ -11,15 +11,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 type TaskCollectionInterface interface {
 	// Find one task by id or name
 	FindOne(ctx context.Context, task *models.Task, id string) (*models.Task, error)
 
+	FindAll(ctx context.Context, taskidArr []primitive.ObjectID, TaskArr *[]models.Task) error
+
 	// Insert a new task into the database
 	// Returns the object ID
 	InsertOne(ctx context.Context, task *models.Task) (primitive.ObjectID, error)
-	
+
 	// Modifies a task by ID
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
 
@@ -48,6 +49,15 @@ func (c *TaskCollection) FindOne(ctx context.Context, task *models.Task, id stri
 	filter := bson.D{{Key: "$or", Value: params}}
 	err2 := c.taskCollection.FindOne(ctx, filter).Decode(&task)
 	return task, err2
+}
+
+func (c *TaskCollection) FindAll(ctx context.Context, taskidArr []primitive.ObjectID, TaskArr *[]models.Task) error {
+	cur, err := c.taskCollection.Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: taskidArr}}}})
+	if err != nil {
+		return err
+	}
+	cur.All(ctx, TaskArr)
+	return nil
 }
 
 func (c *TaskCollection) InsertOne(ctx context.Context, task *models.Task) (primitive.ObjectID, error) {
@@ -84,7 +94,6 @@ type TaskController struct {
 	Collection func(name string, opts ...*options.CollectionOptions) TaskCollectionInterface
 	URL        string
 }
-
 
 func NewT(client *mongo.Client, URL string) *TaskController {
 	database := client.Database(databaseName) // databaseName declared in userControllers

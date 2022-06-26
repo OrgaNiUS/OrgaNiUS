@@ -55,6 +55,8 @@ func TaskCreate(userController controllers.UserController, projectController con
 				DisplayError(ctx, err.Error())
 				return
 			}
+			task.AssignedTo[id] = struct{}{}
+			task.IsPersonal = true
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "user does not exist")
@@ -263,7 +265,7 @@ func TaskGetAll(userController controllers.UserController, projectController con
 			return
 		}
 		projectid := ctx.DefaultQuery("projectid", "")
-		var taskArr []models.TaskArr
+		var taskArr []models.Task
 
 		if projectid == "" {
 			user, err := userController.UserRetrieve(ctx, id, "")

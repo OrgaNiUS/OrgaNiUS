@@ -397,7 +397,6 @@ Output:
 {
   "tasks": []models.TaskArr{
     task: models.Task
-    isPersonal: boolean
   }
 }
 ```
@@ -451,6 +450,7 @@ interface Task {
     deadline: Date;
     isDone: boolean;
     tags: string[];
+    isPersonal: bool;
 }
 
 interface Project {
