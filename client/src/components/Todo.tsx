@@ -73,6 +73,8 @@ const Todo = (): JSX.Element => {
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
         expired: false,
+        personal: true,
+        project: true,
         searchTerm: "",
     });
     const [showModal, setShowModal] = useState<boolean>(false);

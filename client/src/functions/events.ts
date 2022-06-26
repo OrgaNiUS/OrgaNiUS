@@ -69,6 +69,8 @@ export const filterEvents = (events: IEvent[], options: filterEventOptions): IEv
 export interface filterTaskOptions {
     done: boolean;
     expired: boolean;
+    personal: boolean;
+    project: boolean;
     searchTerm: string;
 }
 
@@ -106,6 +108,12 @@ export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[]
                     return tag.includes(st);
                 });
             });
+        }
+        if (!options.personal && t.isPersonal) {
+            return false;
+        }
+        if (!options.project && !t.isPersonal) {
+            return false;
         }
         return true;
     });

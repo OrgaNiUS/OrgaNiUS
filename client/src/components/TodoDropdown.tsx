@@ -74,7 +74,7 @@ const TodoDropdown = ({
                         */
                         key={Math.random()}
                         type="checkbox"
-                        name={"done"}
+                        name="done"
                         checked={filterOptions.done}
                         onChange={handleChange}
                     />
@@ -84,11 +84,31 @@ const TodoDropdown = ({
                     <input
                         key={Math.random()}
                         type="checkbox"
-                        name={"expired"}
+                        name="expired"
                         checked={filterOptions.expired}
                         onChange={handleChange}
                     />
                     <label className="ml-1">Expired</label>
+                </div>
+                <div>
+                    <input
+                        key={Math.random()}
+                        type="checkbox"
+                        name="personal"
+                        checked={filterOptions.personal}
+                        onChange={handleChange}
+                    />
+                    <label className="ml-1">Personal Tasks</label>
+                </div>
+                <div>
+                    <input
+                        key={Math.random()}
+                        type="checkbox"
+                        name="project"
+                        checked={filterOptions.project}
+                        onChange={handleChange}
+                    />
+                    <label className="ml-1">Project Tasks</label>
                 </div>
             </FDropdownContent>
         </FDropdown>
