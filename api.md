@@ -343,8 +343,9 @@ Input: A JSON body with the following parameters. name is only **required** para
 {
   name: string; // required, rest optional
   description: string;
-  users: string[];
+  assignedTo: string[];
   projectID: string;
+  deadline: string; // ISO 8601 format
 }
 ```
 
@@ -377,7 +378,7 @@ Input: A JSON body with the following parameters. taskid is only **required** pa
 
 ### Task Get All
 
-PATCH "/task_get_all"
+GET "/task_get_all"
 
 Gets all the User's tasks if no projectid given.
 Otherwise returns task's associated with the projectid.
@@ -403,7 +404,7 @@ Output:
 
 ### Delete Task
 
-PATCH "/task_delete"
+DELETE "/task_delete"
 
 Deletes all tasks that are given. Provide projectid if its a task belonging to a project.
 

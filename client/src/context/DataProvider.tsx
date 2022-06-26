@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
-import { stringifyArray } from "../functions/arrays";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
@@ -131,7 +130,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             },
             () => {}
         );
-    }, []);
+    }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectID: string = "") => {
         TaskCreate(
