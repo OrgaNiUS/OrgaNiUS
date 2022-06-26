@@ -277,7 +277,8 @@ func TaskGetAll(userController controllers.UserController, projectController con
 			DisplayError(ctx, err.Error())
 			return
 		}
-		var taskArr []models.Task
+		var taskArr []models.TaskArr
+
 		if q.ProjectId == "" {
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {

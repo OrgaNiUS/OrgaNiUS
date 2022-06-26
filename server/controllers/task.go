@@ -64,22 +64,30 @@ func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.Task {
-	tasksArray := []models.Task{}
-	for taskid := range Tasks {
+func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.TaskArr {
+	tasksArray := []models.TaskArr{}
+	for taskid, isPersonal := range Tasks {
+		taskArr := models.TaskArr{
+			IsPersonal: isPersonal,
+		}
 		var task models.Task
 		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
-		tasksArray = append(tasksArray, task)
+		taskArr.Task = task
+		tasksArray = append(tasksArray, taskArr)
 	}
 	return tasksArray
 }
 
-func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.Task {
-	tasksArray := []models.Task{}
+func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.TaskArr {
+	tasksArray := []models.TaskArr{}
 	for taskid := range Tasks {
+		taskArr := models.TaskArr{
+			IsPersonal: false,
+		}
 		var task models.Task
 		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
-		tasksArray = append(tasksArray, task)
+		taskArr.Task = task
+		tasksArray = append(tasksArray, taskArr)
 	}
 	return tasksArray
 }

@@ -394,7 +394,10 @@ Output:
 
 ```json
 {
-  "tasks": []models.Task
+  "tasks": []models.TaskArr{
+    task: models.Task
+    isPersonal: boolean
+  }
 }
 ```
 
