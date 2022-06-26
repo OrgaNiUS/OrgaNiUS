@@ -122,6 +122,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
             deadline: fields.deadline,
             isDone: false,
             tags: tags,
+            isPersonal: true,
         };
 
         data.addTask(task);

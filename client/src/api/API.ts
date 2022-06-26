@@ -1,4 +1,9 @@
 import { AxiosInstance, AxiosRequestConfig } from "axios";
+import { stringify } from "qs";
+
+const arraySerializer = (params: any): string => {
+    return stringify(params, { arrayFormat: "repeat" });
+};
 
 /**
  * All API functions take in a success and failure APICallback.
@@ -67,5 +72,17 @@ export const CreatePatchFunction = <T>(url: string) => {
 export const CreateDeleteFunction = (url: string) => {
     return (axiosInstance: AxiosInstance, success: APICallback, failure: APICallback) => {
         return axiosInstance.delete(url).then(success).catch(failure);
+    };
+};
+
+/**
+ * Returns a delete function with params.
+ * @param url URL for request.
+ * @returns Delete Function.
+ */
+export const CreateDeleteFunctionWithParams = <T>(url: string) => {
+    return (axiosInstance: AxiosInstance, params: T, success: APICallback, failure: APICallback) => {
+        const config = { params, paramsSerializer: arraySerializer };
+        return axiosInstance.delete(url, config).then(success).catch(failure);
     };
 };

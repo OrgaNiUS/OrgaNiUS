@@ -1,6 +1,7 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
-import { TaskCreate, TaskDelete, TaskPatch, TaskPatchData } from "../api/TaskAPI";
+import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
+import { stringifyArray } from "../functions/arrays";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
@@ -33,145 +34,6 @@ const initialEvents: IEvent[] = [
         start: new Date(Date.now() - 1000 * 60 * 60 * 24),
         end: new Date(Date.now() + 1000 * 60 * 60 * 24),
         allDay: true,
-    },
-];
-const initialTasks: ITask[] = [
-    {
-        id: "0",
-        name: "Task 1",
-        assignedTo: [],
-        description: "This is a short description.",
-        deadline: new Date(2022, 6, 12),
-        creationTime: new Date(),
-        isDone: false,
-        tags: ["tag1", "tag2"],
-    },
-    {
-        id: "1",
-        name: "5 Days Later",
-        assignedTo: [],
-        description: "",
-        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 5),
-        creationTime: new Date(),
-        isDone: false,
-        tags: [],
-    },
-    {
-        id: "2",
-        name: "13 Hours Later",
-        creationTime: new Date(),
-        assignedTo: [],
-        description: "",
-        deadline: new Date(Date.now() + 1000 * 60 * 60 * 13),
-        isDone: false,
-        tags: [],
-    },
-    {
-        id: "3",
-        name: "Task with only Title",
-        creationTime: new Date(),
-        assignedTo: [],
-        description: "",
-        isDone: false,
-        tags: [],
-    },
-    {
-        id: "4",
-        creationTime: new Date(),
-        name: "",
-        assignedTo: [],
-        description: "",
-        isDone: false,
-        tags: [],
-    },
-    {
-        id: "5",
-        name: "Task above me is empty.",
-        assignedTo: [],
-        description: "Might as well not exist, I guess.",
-        isDone: false,
-        tags: [],
-        creationTime: new Date(),
-    },
-    {
-        id: "6",
-        name: "This task is done.",
-        assignedTo: [],
-        description: "",
-        isDone: true,
-        tags: [],
-        creationTime: new Date(),
-    },
-    {
-        id: "7",
-        name: "This task is expired but not done.",
-        assignedTo: [],
-        description: "",
-        isDone: false,
-        deadline: new Date(Date.now() - 10),
-        creationTime: new Date(),
-        tags: [],
-    },
-    {
-        id: "8",
-        name: "This task is expired and done.",
-        description: "",
-        assignedTo: [],
-        isDone: true,
-        creationTime: new Date(),
-        deadline: new Date(Date.now() - 10),
-        tags: [],
-    },
-    {
-        id: "9",
-        name: "Really looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong name",
-        description: "",
-        isDone: false,
-        creationTime: new Date(),
-        assignedTo: [],
-        deadline: new Date(Date.now() - 10),
-        tags: [],
-    },
-    {
-        id: "10",
-        name: "Many many tags",
-        description: "Just let them flow",
-        creationTime: new Date(),
-        isDone: false,
-        tags: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
-        assignedTo: [],
-    },
-    {
-        id: "11",
-        name: "Very long word in tag",
-        description: "truncate it!",
-        creationTime: new Date(),
-        assignedTo: [],
-        isDone: false,
-        tags: [
-            "taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaag",
-        ],
-    },
-    {
-        id: "12",
-        creationTime: new Date(),
-        assignedTo: [],
-        name: "Very long word in desc",
-        description:
-            "truncaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaate me",
-        isDone: false,
-        tags: [],
-    },
-    // don't support something that is too ridiculously long
-    {
-        id: "13",
-        name: "Really long description...",
-        assignedTo: [],
-        description:
-            " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas placerat, purus id molestie semper, magna justo pharetra tellus, ut egestas ante est nec lectus. Aenean pretium risus sed mattis vestibulum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.",
-        isDone: false,
-        tags: [],
-        creationTime: new Date(),
     },
 ];
 
@@ -244,36 +106,55 @@ export const DataContext = createContext<IDataContext>(defaultDataContext);
 export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
-    // TODO: get initialEvents and initialTasks from server
-    const [tasks, setTasks] = useState<ITask[]>(initialTasks);
+    // TODO: get initialEvents from server
+    const [tasks, setTasks] = useState<ITask[]>([]);
     // until events CRUD is implemented
     // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [projects, setProjects] = useState<IProject[]>(initialProjects);
 
-    const addTask = (task: ITask) => {
+    useEffect(() => {
+        TaskGetAll(
+            auth.axiosInstance,
+            { projectid: "" },
+            (response) => {
+                const data = response.data;
+                const tasks: ITask[] = data.tasks.map((x: any) => {
+                    const task = x.task;
+                    const deadline: Date | undefined =
+                        task.deadline === undefined ? undefined : new Date(task.deadline);
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, isPersonal: x.isPersonal };
+                });
+
+                setTasks(tasks);
+            },
+            () => {}
+        );
+    }, []);
+
+    const addTask = (task: ITask, projectID: string = "") => {
         TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
-                users: task.assignedTo,
-                projectID: task.projectID,
+                assignedTo: task.assignedTo,
+                projectID: projectID,
+                deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
             {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true,
             },
-            (_) => {
-                // TODO: get id from response
+            (response) => {
+                const data = response.data;
                 setTasks((t) => {
-                    return [...t, { ...task, id: tasks.length.toString() }];
+                    return [...t, { ...task, id: data.length }];
                 });
             },
-            (_) => {}
+            () => {}
         );
-        // TODO: add to server (update id as well)
     };
 
     const patchTask = (task: Partial<ITask>) => {
@@ -323,7 +204,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const removeTasks = (ids: string[], projectid?: string) => {
+    const removeTasks = (ids: string[], projectid: string = "") => {
         setTasks((t) => {
             const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
 

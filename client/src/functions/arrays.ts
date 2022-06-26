@@ -17,3 +17,7 @@ export const isEqualArrays = <T>(a: T[], b: T[]): boolean => {
     }
     return true;
 };
+
+export const stringifyArray = (key: string, array: string[]): string => {
+    return array.join(`&${key}=`);
+};

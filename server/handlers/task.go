@@ -42,7 +42,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 		task.Name = query.Name
 		task.Description = query.Description
 		if query.Deadline != "" {
-			deadline, err := time.Parse("2006-01-02T15:04:05-0700", query.Deadline)
+			deadline, err := time.Parse("2006-01-02T15:04:05.999Z", query.Deadline)
 			if err != nil {
 				DisplayError(ctx, "Please provide time in proper ISO8601 format")
 				return
@@ -110,27 +110,20 @@ func TaskDelete(userController controllers.UserController, projectController con
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		type Query struct {
-			ProjectId string   `bson:"projectid" json:"projectid"`
-			Tasks     []string `bson:"tasks" json:"tasks"`
-		}
-		var query Query
-		if err := ctx.BindJSON(&query); err != nil {
-			DisplayError(ctx, err.Error())
-			return
-		}
-		if len(query.Tasks) == 0 {
+		projectid := ctx.DefaultQuery("projectid", "")
+		tasks := ctx.QueryArray("tasks")
+		if len(tasks) == 0 {
 			DisplayError(ctx, "please provide a task to delete")
 		}
 		// if True delete Personal Task, else delete Project Task
-		if query.ProjectId == "" {
+		if projectid == "" {
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "user does not exist")
 			} else if err != nil {
 				DisplayError(ctx, err.Error())
 			}
-			for _, taskid := range query.Tasks {
+			for _, taskid := range tasks {
 				_, containsTask := user.Tasks[taskid]
 				if !containsTask {
 					continue
@@ -143,13 +136,13 @@ func TaskDelete(userController controllers.UserController, projectController con
 			userController.UserModifyTask(ctx, &user)
 			ctx.JSON(http.StatusOK, gin.H{})
 		} else {
-			project, err := projectController.ProjectRetrieve(ctx, query.ProjectId)
+			project, err := projectController.ProjectRetrieve(ctx, projectid)
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "project does not exist")
 			} else if err != nil {
 				DisplayError(ctx, err.Error())
 			}
-			for _, taskid := range query.Tasks {
+			for _, taskid := range tasks {
 				_, containsTask := project.Tasks[taskid]
 				if !containsTask {
 					continue
@@ -216,7 +209,7 @@ func TaskModify(userController controllers.UserController, taskController contro
 			newTask.AssignedTo[userid] = struct{}{}
 		}
 		if query.Deadline != "" {
-			newTask.Deadline, _ = time.Parse("2006-01-02T15:04:05-0700", query.Deadline)
+			newTask.Deadline, _ = time.Parse("2006-01-02T15:04:05.999Z", query.Deadline)
 		}
 		newTask.IsDone = query.IsDone
 
@@ -269,17 +262,10 @@ func TaskGetAll(userController controllers.UserController, projectController con
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		type Query struct {
-			ProjectId string `bson:"projectid" json:"projectid"`
-		}
-		var q Query
-		if err := ctx.BindJSON(&q); err != nil {
-			DisplayError(ctx, err.Error())
-			return
-		}
+		projectid := ctx.DefaultQuery("projectid", "")
 		var taskArr []models.TaskArr
 
-		if q.ProjectId == "" {
+		if projectid == "" {
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "user does not exist")
@@ -288,7 +274,7 @@ func TaskGetAll(userController controllers.UserController, projectController con
 			}
 			taskArr = taskController.TaskMapToArrayUser(ctx, user.Tasks)
 		} else {
-			project, err := projectController.ProjectRetrieve(ctx, q.ProjectId)
+			project, err := projectController.ProjectRetrieve(ctx, projectid)
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "project does not exist")
 			} else if err != nil {

@@ -15,7 +15,7 @@ export interface ITask {
     deadline?: Date;
     isDone: boolean;
     tags: string[];
-    projectID?: string; // only defined if associated with a project
+    isPersonal: boolean;
 }
 
 // only storing other users data

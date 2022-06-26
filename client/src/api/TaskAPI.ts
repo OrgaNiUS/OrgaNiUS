@@ -1,10 +1,25 @@
-import { CreatePatchFunction, CreatePostFunction } from "./API";
+import {
+    CreateDeleteFunctionWithParams,
+    CreateGetFunctionWithParams,
+    CreatePatchFunction,
+    CreatePostFunction,
+} from "./API";
+
+/**
+ * Gets all the User's tasks if no projectid given. Otherwise returns task's associated with the projectid.
+ * Empty string to not give projectid.
+ */
+type TaskGetAllData = {
+    projectid: string;
+};
+export const TaskGetAll = CreateGetFunctionWithParams<TaskGetAllData>("/task_get_all");
 
 type TaskCreateData = {
     name: string;
     description: string;
-    users: string[];
-    projectID?: string;
+    assignedTo: string[];
+    projectID: string;
+    deadline: string;
 };
 export const TaskCreate = CreatePostFunction<TaskCreateData>("/task_create");
 
@@ -23,7 +38,7 @@ export type TaskPatchData = {
 export const TaskPatch = CreatePatchFunction<TaskPatchData>("/task_modify");
 
 type TaskDeleteData = {
-    projectid?: string;
+    projectid: string;
     tasks: string[];
 };
-export const TaskDelete = CreatePatchFunction<TaskDeleteData>("/task_delete");
+export const TaskDelete = CreateDeleteFunctionWithParams<TaskDeleteData>("/task_delete");
