@@ -15,9 +15,5 @@ type Task struct {
 	Deadline     time.Time           `bson:"deadline" json:"deadline"`
 	IsDone       bool                `bson:"isDone" json:"isDone"`
 	Tags         []string            `bson:"tags" json:"tags"`
-}
-
-type TaskArr struct {
-	Task       Task `bson:"task" json:"task"`
-	IsPersonal bool `bson:"isPersonal" json:"isPersonal"`
+	IsPersonal   bool                `bson:"isPersonal" json:"isPersonal"`
 }
