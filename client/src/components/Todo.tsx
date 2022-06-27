@@ -76,6 +76,7 @@ const Todo = (): JSX.Element => {
         expired: false,
         personal: true,
         project: true,
+        taskids: undefined,
         searchTerm: "",
     });
     const [showModal, setShowModal] = useState<boolean>(false);
@@ -105,6 +106,10 @@ const Todo = (): JSX.Element => {
         handleSearch,
         expandClick: () => setShowModal(true),
         hideModal: () => setShowModal(false),
+        isPersonal: true,
+        projectid: "",
+        createCallback: (_: ITask | undefined) => {},
+        editCallback: (_: ITask | undefined) => {},
     };
 
     return (

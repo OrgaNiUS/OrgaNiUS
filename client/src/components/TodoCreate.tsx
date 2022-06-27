@@ -6,15 +6,21 @@ import { DataContext } from "../context/DataProvider";
 import { BaseButton, IconButton, InputCSS } from "../styles";
 import { ITask } from "../types";
 
-const Container = styled.div<{ width: number }>`
-    -webkit-transform: translate(-50%, -50%);
+const Container = styled.div<{ width: number; isPersonal: boolean }>`
+    ${(props) => {
+        const y: number = props.isPersonal ? -50 : 0;
+        // https://stackoverflow.com/a/23384995
+        return `
+        -webkit-transform: translate(-50%, ${y}%);
+        transform: translate(-50%, ${y}%);
+        `;
+    }}
     background-color: white;
     border: 1px solid rgb(59, 130, 246);
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
     top: 50%;
-    transform: translate(-50%, -50%); // https://stackoverflow.com/a/23384995
     z-index: 1;
     width: ${(props) => props.width}%;
 `;
@@ -69,7 +75,17 @@ const emptyFields: IFields = {
     tags: "",
 };
 
-const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Element, JSX.Element] => {
+const TodoCreate = ({
+    containerWidth,
+    isPersonal,
+    projectid,
+    createCallback,
+}: {
+    containerWidth: number;
+    isPersonal: boolean;
+    projectid: string;
+    createCallback: (task: ITask | undefined) => void;
+}): [JSX.Element, JSX.Element] => {
     const auth = useContext(AuthContext);
     const data = useContext(DataContext);
 
@@ -109,7 +125,7 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
             return;
         }
 
-        const assignedTo: string[] = auth.auth.user === undefined ? [] : [auth.auth.user];
+        const assignedTo: string[] = auth.auth.id === undefined ? [] : [auth.auth.id];
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
@@ -122,15 +138,15 @@ const TodoCreate = ({ containerWidth }: { containerWidth: number }): [JSX.Elemen
             deadline: fields.deadline,
             isDone: false,
             tags: tags,
-            isPersonal: true,
+            isPersonal: projectid === "",
         };
 
-        data.addTask(task);
+        data.addTask(task).then(createCallback);
         hideForm();
     };
 
     const form: JSX.Element = displayForm ? (
-        <Container width={containerWidth}>
+        <Container width={containerWidth} isPersonal={isPersonal}>
             <Form onSubmit={handleSubmit}>
                 <Title>Add Task</Title>
                 <Label>Name</Label>

@@ -1,9 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
+import { TaskGetAll } from "../api/TaskAPI";
 import Timeline from "../components/Timeline";
 import { todoModes } from "../components/Todo";
 import TodoGrid from "../components/TodoGrid";
+import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
 import { IProject, ITask } from "../types";
@@ -31,7 +33,7 @@ const Row = styled.div`
 `;
 
 const Box = styled.div`
-    height: calc(100vh - 2 * (5rem + 1rem) - 5rem);
+    height: calc(100vh - 2 * (5rem + 1rem) - 6.5rem);
 `;
 
 const LeftBox = styled(Box)`
@@ -40,16 +42,17 @@ const LeftBox = styled(Box)`
 
 const RightBox = styled(Box)`
     width: 75%;
-    background-color: red;
     text-align: center;
 `;
 
 // TODO: make this work for project tasks (currently just pasted from personal tasks)
 const Project = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const data = useContext(DataContext);
 
     const { id } = useParams();
     const [project, setProject] = useState<IProject | undefined>(undefined);
+    const [tasks, setTasks] = useState<ITask[]>([]);
     const [mode, setMode] = useState<todoModes>("normal");
     const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
     const [editingTask, setEditingTask] = useState<ITask | undefined>(undefined);
@@ -86,13 +89,27 @@ const Project = (): JSX.Element => {
         }
         if (mode === "normal") {
             // mark as done
-            const task = data.tasks.find((t) => t.id === id);
+            const task: ITask | undefined = tasks.find((t) => t.id === id);
             if (task === undefined) {
                 return;
             }
             data.patchTask({
                 id,
                 isDone: !task.isDone,
+            });
+
+            setTasks((t) => {
+                const tasksCopy: ITask[] = [...t];
+                for (let i = 0; i < tasksCopy.length; i++) {
+                    const t: ITask = tasksCopy[i];
+                    if (t.id !== task.id) {
+                        continue;
+                    }
+                    t.isDone = !t.isDone;
+                    tasksCopy[i] = t;
+                    break;
+                }
+                return tasksCopy;
             });
         }
     };
@@ -102,24 +119,70 @@ const Project = (): JSX.Element => {
             // Should not happen.
             return;
         }
+        if (id === undefined) {
+            return;
+        }
+
         const toBeTrashed: string[] = Array.from(checkedTasks);
-        data.removeTasks(toBeTrashed);
+        data.removeTasks(toBeTrashed, id);
+
+        setTasks((t) => {
+            const tasksCopy: ITask[] = t.filter((t) => !toBeTrashed.includes(t.id));
+
+            for (let i = 0; i < tasksCopy.length; i++) {
+                tasksCopy[i].id = i.toString();
+            }
+            return tasksCopy;
+        });
         setCheckedTasks(new Set());
     };
 
     const [filterOptions, setFilterOptions] = useState<filterTaskOptions>({
         done: false,
         expired: false,
-        personal: true,
+        personal: false,
         project: true,
+        taskids: project?.tasks,
         searchTerm: "",
     });
-    const filteredTasks: ITask[] = filterTasks(data.tasks, filterOptions);
+    const filteredTasks: ITask[] = filterTasks(tasks, filterOptions);
 
     const handleSearch: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
         setFilterOptions((opts) => {
             return { ...opts, searchTerm: event.target.value };
+        });
+    };
+
+    const createCallback = (task: ITask | undefined) => {
+        if (task === undefined) {
+            return;
+        }
+        setTasks((t) => {
+            return [...t, task];
+        });
+    };
+
+    const editCallback = (task: ITask | undefined) => {
+        if (task === undefined) {
+            return;
+        }
+        setTasks((t) => {
+            const tasksCopy: ITask[] = [...t];
+            for (let i = 0; i < tasksCopy.length; i++) {
+                const t: ITask = tasksCopy[i];
+                if (t.id !== task.id) {
+                    continue;
+                }
+                Object.entries(task).forEach(([k, v]) => {
+                    const key = k as keyof ITask;
+                    // not fully typed but Partial<ITask> ensures types will match
+                    (t[key] as any) = v;
+                });
+                tasksCopy[i] = t;
+                break;
+            }
+            return tasksCopy;
         });
     };
 
@@ -131,6 +194,23 @@ const Project = (): JSX.Element => {
         data.getProject(id).then((p) => {
             setProject(p);
         });
+
+        TaskGetAll(
+            auth.axiosInstance,
+            { projectid: id },
+            (response) => {
+                const data = response.data;
+                const tasks: ITask[] = data.tasks.map((task: any) => {
+                    // if 0 seconds since epoch time, treat as no deadline
+                    const deadline: Date | undefined =
+                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+                });
+
+                setTasks(tasks);
+            },
+            () => {}
+        );
 
         // including data.getProject and id will cause this to continuously fire
         // eslint-disable-next-line
@@ -175,6 +255,10 @@ const Project = (): JSX.Element => {
                             setFilterOptions,
                             handleSearch,
                             hideModal: undefined,
+                            isPersonal: false,
+                            projectid: project.id,
+                            createCallback,
+                            editCallback,
                         }}
                     />
                 </RightBox>

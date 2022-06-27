@@ -42,9 +42,9 @@ const initialEvents: IEvent[] = [
  */
 interface IDataContext {
     tasks: ITask[];
-    addTask: (task: ITask) => void;
+    addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
     patchTask: (task: Partial<ITask>) => void;
-    removeTasks: (ids: string[]) => void;
+    removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
@@ -54,7 +54,7 @@ interface IDataContext {
 
 const defaultDataContext: IDataContext = {
     tasks: [],
-    addTask: (_) => {},
+    addTask: (_) => Promise.resolve(undefined),
     patchTask: (_) => {},
     removeTasks: (_) => {},
     events: [],
@@ -86,12 +86,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: "" },
             (response) => {
                 const data = response.data;
-                const tasks: ITask[] = data.tasks.map((x: any) => {
-                    const task = x.task;
+                const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, isPersonal: x.isPersonal };
+                    return { ...task, creationTime: new Date(task.creationTime), deadline };
                 });
 
                 setTasks(tasks);
@@ -102,14 +101,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         // TODO: get all projects here
     }, [auth.axiosInstance]);
 
-    const addTask = (task: ITask, projectID: string = "") => {
-        TaskCreate(
+    const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
+        return TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
                 assignedTo: task.assignedTo,
-                projectID: projectID,
+                projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
             {
@@ -118,11 +117,17 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             },
             (response) => {
                 const data = response.data;
+                const newTask: ITask = { ...task, id: data.taskid };
+
                 setTasks((t) => {
-                    return [...t, { ...task, id: data.length }];
+                    return [...t, newTask];
                 });
+
+                return newTask;
             },
-            () => {}
+            () => {
+                return undefined;
+            }
         );
     };
 
@@ -196,11 +201,20 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: id },
             (response) => {
                 const data = response.data;
+
+                const members: IUser[] = data.members.map((id: string) => {
+                    return {
+                        id: id,
+                        // TODO: this is placeholder because no multi user get yet
+                        name: "<NAME>",
+                    };
+                });
+
                 const project: IProject = {
-                    id: id,
+                    id,
                     name: data.name,
                     description: data.description,
-                    members: [],
+                    members,
                     events: [],
                     tasks: [],
                     creationTime: data.creationTime,

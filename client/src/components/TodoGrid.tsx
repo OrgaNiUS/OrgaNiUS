@@ -77,6 +77,10 @@ const TodoGrid = ({
     setFilterOptions,
     handleSearch,
     hideModal,
+    isPersonal,
+    projectid,
+    createCallback,
+    editCallback,
 }: {
     containerCSS: FlattenSimpleInterpolation;
     mode: todoModes;
@@ -91,6 +95,10 @@ const TodoGrid = ({
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
     hideModal: (() => void) | undefined;
+    isPersonal: boolean;
+    projectid: string;
+    createCallback: (task: ITask | undefined) => void;
+    editCallback: (task: ITask | undefined) => void;
 }): JSX.Element => {
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -4rem; // change this when adding more icons
@@ -99,6 +107,9 @@ const TodoGrid = ({
 
     const [createButton, createForm] = TodoCreate({
         containerWidth: 50,
+        isPersonal,
+        projectid,
+        createCallback,
     });
 
     return (
@@ -123,7 +134,9 @@ const TodoGrid = ({
                 </div>
             </div>
             <GridWrapper>
-                {editingTask !== undefined && <TodoEdit {...{ width: 60, editingTask, setEditingTask }} />}
+                {editingTask !== undefined && (
+                    <TodoEdit {...{ width: 60, editingTask, setEditingTask, isPersonal, editCallback }} />
+                )}
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
@@ -135,7 +148,9 @@ const TodoGrid = ({
                                     {...{
                                         task,
                                         mode,
-                                        checked: checkedTasks.has(task.id),
+                                        checked:
+                                            (mode === "normal" && task.isDone) ||
+                                            (mode === "trash" && checkedTasks.has(task.id)),
                                         onCheck: taskCheck,
                                         setEditingTask: () => setEditingTask(task),
                                     }}

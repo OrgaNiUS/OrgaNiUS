@@ -55,6 +55,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 				DisplayError(ctx, err.Error())
 				return
 			}
+			task.AssignedTo = make(map[string]struct{})
 			task.AssignedTo[id] = struct{}{}
 			task.IsPersonal = true
 			user, err := userController.UserRetrieve(ctx, id, "")
