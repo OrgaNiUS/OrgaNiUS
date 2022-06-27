@@ -11,18 +11,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 type ProjectCollectionInterface interface {
 	// Find one project by id or name
 	FindOne(ctx context.Context, project *models.Project, id string) (*models.Project, error)
 
+	// Find All projects in id array
+	FindAll(ctx context.Context, projectidArr []primitive.ObjectID, ProjectArr *[]models.Project) error
+
 	// Insert a new project into the database
 	// Returns the object ID
 	InsertOne(ctx context.Context, project *models.Project) (primitive.ObjectID, error)
-	
+
 	// Modifies a project by ID
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
-	
+
 	// Deletes a project by ID
 	// TODO
 }
@@ -52,6 +54,15 @@ func (c *ProjectCollection) FindOne(ctx context.Context, project *models.Project
 	return project, err
 }
 
+func (c *ProjectCollection) FindAll(ctx context.Context, projectidArr []primitive.ObjectID, ProjectArr *[]models.Project) error {
+	cur, err := c.projectCollection.Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: projectidArr}}}})
+	if err != nil {
+		return err
+	}
+	cur.All(ctx, ProjectArr)
+	return nil
+}
+
 func (c *ProjectCollection) InsertOne(ctx context.Context, project *models.Project) (primitive.ObjectID, error) {
 	result, err := c.projectCollection.InsertOne(ctx, project)
 	if err != nil {
@@ -73,7 +84,6 @@ type ProjectController struct {
 	Collection func(name string, opts ...*options.CollectionOptions) ProjectCollectionInterface
 	URL        string
 }
-
 
 func NewP(client *mongo.Client, URL string) *ProjectController {
 	database := client.Database(databaseName) // databaseName declared in userControllers

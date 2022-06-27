@@ -7,6 +7,7 @@ import (
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -52,10 +53,11 @@ func (c *ProjectController) ProjectModifyTask(ctx context.Context, project *mode
 
 func (c *ProjectController) ProjectMapToArray(ctx context.Context, Projects map[string]struct{}) []models.Project {
 	projectsArray := []models.Project{}
+	projectidArr := []primitive.ObjectID{}
 	for projectid := range Projects {
-		var project models.Project
-		c.Collection(projectCollection).FindOne(ctx, &project, projectid)
-		projectsArray = append(projectsArray, project)
+		id, _ := primitive.ObjectIDFromHex(projectid)
+		projectidArr = append(projectidArr, id)
 	}
+	c.Collection(projectCollection).FindAll(ctx, projectidArr, &projectsArray)
 	return projectsArray
 }

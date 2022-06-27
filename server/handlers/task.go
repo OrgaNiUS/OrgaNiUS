@@ -11,14 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// name: string,
-// description: string,
-// assignedTo: string[userids],
-// deadline: time.Time
-// projectID: string
-// No projectid -> Personal Task
-// Projectid and No Users -> A project task, waiting to be assigned
-// ProjectId and Users -> A project task is assigned to users
+// name: string, description: string, assignedTo: string[userids], deadline: time.Time, projectID: string
+// No projectid -> Personal Task, projectid and No Users -> A project task, waiting to be assigned, projectId and Users -> A project task is assigned to users
 func TaskCreate(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
@@ -240,15 +234,18 @@ func TaskModify(userController controllers.UserController, taskController contro
 
 			// Add users to task
 			for _, userid := range query.AssignedTo {
-				user, err := userController.UserRetrieve(ctx, userid, "")
-				if err == mongo.ErrNoDocuments {
-					DisplayError(ctx, "user does not exist")
-				} else if err != nil {
-					DisplayError(ctx, err.Error())
+				_, found := task.AssignedTo[userid]
+				if !found {
+					user, err := userController.UserRetrieve(ctx, userid, "")
+					if err == mongo.ErrNoDocuments {
+						DisplayError(ctx, "user does not exist")
+					} else if err != nil {
+						DisplayError(ctx, err.Error())
+					}
+					user.Tasks[query.TaskId] = false
+					userController.UserModifyTask(ctx, &user)
+					task.AssignedTo[userid] = struct{}{}
 				}
-				user.Tasks[query.TaskId] = false
-				userController.UserModifyTask(ctx, &user)
-				task.AssignedTo[userid] = struct{}{}
 			}
 		}
 

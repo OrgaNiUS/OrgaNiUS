@@ -185,13 +185,13 @@ func (c *UserController) UserModifyTask(ctx context.Context, user *models.User) 
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-// converts a map of userids to an array of models.User
 func (c *UserController) UserMapToArray(ctx context.Context, Users map[string]struct{}) []models.User {
 	usersArray := []models.User{}
+	useridArr := []primitive.ObjectID{}
 	for userid := range Users {
-		var user models.User
-		c.Collection(userCollection).FindOne(ctx, &user, userid, "", "")
-		usersArray = append(usersArray, user)
+		id, _ := primitive.ObjectIDFromHex(userid)
+		useridArr = append(useridArr, id)
 	}
+	c.Collection(userCollection).FindAll(ctx, useridArr, &usersArray)
 	return usersArray
 }

@@ -12,9 +12,10 @@ import (
 )
 
 type TaskCollectionInterface interface {
-	// Find one task by id or name
+	// Find one task by id
 	FindOne(ctx context.Context, task *models.Task, id string) (*models.Task, error)
 
+	// Find all tasks matching in the id array
 	FindAll(ctx context.Context, taskidArr []primitive.ObjectID, TaskArr *[]models.Task) error
 
 	// Insert a new task into the database

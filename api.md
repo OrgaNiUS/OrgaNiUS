@@ -301,12 +301,19 @@ GET "/project_get"
 
 This will get the project's name, description and creation time.
 
-Input: A JSON body with the following **required** parameters.
+Input: Query parameters of "projectid"
 
 ```typescript
 {
     projectid: string;
 }
+```
+
+Example usage:
+
+```
+GET {url}/project_get/?projectid=48321740872149281
+
 ```
 
 Output:
@@ -380,25 +387,26 @@ Input: A JSON body with the following parameters. taskid is only **required** pa
 
 GET "/task_get_all"
 
-Gets all the User's tasks if no projectid given.
-Otherwise returns task's associated with the projectid.
+Get All User Tasks: Leave projectid blank
+Get All Project Tasks: Put Relevant projectId
 
-Input: A JSON body with the following parameter.
-
-```typescript
-{
-    projectid: string;
-}
-```
+Input: Query parameters of "projectid"
 
 Output:
 
 ```json
 {
-  "tasks": []models.TaskArr{
-    task: models.Task
-  }
+  "tasks": []models.Task
 }
+```
+
+Example usage:
+
+```
+GET {url}/task_get_all/?
+GET {url}/task_get_all/?projectid=
+GET {url}/task_get_all/?projectid=48321740872149281
+
 ```
 
 ### Delete Task
