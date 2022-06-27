@@ -8,6 +8,7 @@ import TodoGrid from "../components/TodoGrid";
 import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../functions/events";
+import { BaseButton } from "../styles";
 import { IProject, ITask } from "../types";
 
 const Title = styled.h1`
@@ -43,6 +44,12 @@ const LeftBox = styled(Box)`
 const RightBox = styled(Box)`
     width: 75%;
     text-align: center;
+`;
+
+const ButtonArray = styled.div``;
+
+const Button = styled(BaseButton)`
+    background-color: rgb(59, 130, 246);
 `;
 
 // TODO: make this work for project tasks (currently just pasted from personal tasks)
@@ -231,7 +238,11 @@ const Project = (): JSX.Element => {
         <Container>
             <Row className="my-2">
                 <Link to="/projects">⬅️ Back to Project</Link>
-                <div>Button Array</div>
+                <ButtonArray>
+                    {/* TODO: in future */}
+                    <Button disabled>Settings</Button>
+                    <Button disabled>Invite</Button>
+                </ButtonArray>
             </Row>
             <Row>
                 <LeftBox>

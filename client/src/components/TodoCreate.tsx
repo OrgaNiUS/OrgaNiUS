@@ -138,10 +138,10 @@ const TodoCreate = ({
             deadline: fields.deadline,
             isDone: false,
             tags: tags,
-            isPersonal: projectid === "",
+            isPersonal: isPersonal,
         };
 
-        data.addTask(task).then(createCallback);
+        data.addTask(task, projectid).then(createCallback);
         hideForm();
     };
 
