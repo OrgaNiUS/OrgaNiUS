@@ -6,35 +6,35 @@ import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from 
 import AuthContext from "./AuthProvider";
 
 // TODO: This is only for testing purposes because actual events integration are to be implemented later on.
-const initialEvents: IEvent[] = [
-    {
-        name: "event 1",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 4),
-    },
-    {
-        name: "event 2",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 1),
-    },
-    {
-        name: "very loooooooooooooooooooooooooooooooooooong name",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 1),
-    },
-    {
-        name: "All day event!",
-        start: new Date(2022, 5, 14),
-        end: new Date(2022, 5, 14),
-        allDay: true,
-    },
-    {
-        name: "Starts yesterday, ends tomorrow.",
-        start: new Date(Date.now() - 1000 * 60 * 60 * 24),
-        end: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        allDay: true,
-    },
-];
+// const initialEvents: IEvent[] = [
+//     {
+//         name: "event 1",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 4),
+//     },
+//     {
+//         name: "event 2",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 1),
+//     },
+//     {
+//         name: "very loooooooooooooooooooooooooooooooooooong name",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 1),
+//     },
+//     {
+//         name: "All day event!",
+//         start: new Date(2022, 5, 14),
+//         end: new Date(2022, 5, 14),
+//         allDay: true,
+//     },
+//     {
+//         name: "Starts yesterday, ends tomorrow.",
+//         start: new Date(Date.now() - 1000 * 60 * 60 * 24),
+//         end: new Date(Date.now() + 1000 * 60 * 60 * 24),
+//         allDay: true,
+//     },
+// ];
 
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
@@ -76,7 +76,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [tasks, setTasks] = useState<ITask[]>([]);
     // until events CRUD is implemented
     // eslint-disable-next-line
-    const [events, setEvents] = useState<IEvent[]>(initialEvents);
+    const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 

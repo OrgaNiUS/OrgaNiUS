@@ -15,6 +15,11 @@ const Container = styled.div`
 
 const ProjectName = styled.h1`
     font-size: larger;
+
+    &:hover {
+        text-decoration: underline;
+        color: rgb(59, 130, 246);
+    }
 `;
 
 const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
