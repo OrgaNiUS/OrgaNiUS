@@ -52,7 +52,6 @@ const Button = styled(BaseButton)`
     background-color: rgb(59, 130, 246);
 `;
 
-// TODO: make this work for project tasks (currently just pasted from personal tasks)
 const Project = (): JSX.Element => {
     const auth = useContext(AuthContext);
     const data = useContext(DataContext);
