@@ -7,6 +7,7 @@ import (
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -64,30 +65,24 @@ func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.TaskArr {
-	tasksArray := []models.TaskArr{}
-	for taskid, isPersonal := range Tasks {
-		taskArr := models.TaskArr{
-			IsPersonal: isPersonal,
-		}
-		var task models.Task
-		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
-		taskArr.Task = task
-		tasksArray = append(tasksArray, taskArr)
+func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.Task {
+	tasksArray := []models.Task{}
+	taskidArr := []primitive.ObjectID{}
+	for taskid := range Tasks {
+		id, _ := primitive.ObjectIDFromHex(taskid)
+		taskidArr = append(taskidArr, id)
 	}
+	c.Collection(taskCollection).FindAll(ctx, taskidArr, &tasksArray)
 	return tasksArray
 }
 
-func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.TaskArr {
-	tasksArray := []models.TaskArr{}
+func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.Task {
+	tasksArray := []models.Task{}
+	taskidArr := []primitive.ObjectID{}
 	for taskid := range Tasks {
-		taskArr := models.TaskArr{
-			IsPersonal: false,
-		}
-		var task models.Task
-		c.Collection(taskCollection).FindOne(ctx, &task, taskid)
-		taskArr.Task = task
-		tasksArray = append(tasksArray, taskArr)
+		id, _ := primitive.ObjectIDFromHex(taskid)
+		taskidArr = append(taskidArr, id)
 	}
+	c.Collection(taskCollection).FindAll(ctx, taskidArr, &tasksArray)
 	return tasksArray
 }

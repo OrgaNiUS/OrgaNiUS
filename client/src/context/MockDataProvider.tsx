@@ -19,10 +19,12 @@ const MockDataProvider = ({
     const mergedEvents = mergeEventArrays(events, tasks);
     const [projects, setProjects] = useState<IProjectCondensed[]>(initialProjects);
 
-    const addTask = (task: ITask) => {
+    const addTask = (task: ITask, _: string = ""): Promise<ITask | undefined> => {
+        const newTask = { ...task, id: tasks.length.toString() };
         setTasks((t) => {
-            return [...t, { ...task, id: tasks.length.toString() }];
+            return [...t, newTask];
         });
+        return Promise.resolve(newTask);
     };
 
     const patchTask = (task: Partial<ITask>) => {
@@ -78,7 +80,7 @@ const MockDataProvider = ({
         <DataContext.Provider
             value={{
                 tasks,
-                addTask,
+                addTask: addTask,
                 patchTask,
                 removeTasks,
                 events,

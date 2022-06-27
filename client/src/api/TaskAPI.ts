@@ -6,7 +6,7 @@ import {
 } from "./API";
 
 /**
- * Gets all the User's tasks if no projectid given. Otherwise returns task's associated with the projectid.
+ * Gets all the User's tasks if no projectid given. Otherwise returns tasks associated with the projectid.
  * Empty string to not give projectid.
  */
 type TaskGetAllData = {
@@ -17,8 +17,8 @@ export const TaskGetAll = CreateGetFunctionWithParams<TaskGetAllData>("/task_get
 type TaskCreateData = {
     name: string;
     description: string;
-    assignedTo: string[];
-    projectID: string;
+    assignedTo: string[]; // id of users
+    projectid: string;
     deadline: string;
 };
 export const TaskCreate = CreatePostFunction<TaskCreateData>("/task_create");

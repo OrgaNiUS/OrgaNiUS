@@ -82,6 +82,9 @@ const TodoList = ({
 
     const [createButton, createForm] = TodoCreate({
         containerWidth: 80,
+        projectid: "",
+        isPersonal: true,
+        createCallback: (_: ITask | undefined) => {},
     });
 
     return (
@@ -125,7 +128,9 @@ const TodoList = ({
             </IconsContainer>
             {createForm}
             <TodoExpand {...{ onClick: expandClick }} />
-            {editingTask !== undefined && <TodoEdit {...{ width: 80, editingTask, setEditingTask }} />}
+            {editingTask !== undefined && (
+                <TodoEdit {...{ width: 80, editingTask, setEditingTask, isPersonal: true, editCallback: (_) => {} }} />
+            )}
         </Wrapper>
     );
 };

@@ -18,6 +18,9 @@ type UserCollectionInterface interface {
 	// Populates the user reference passed in and returns it again. Handles nil user as well.
 	FindOne(ctx context.Context, user *models.User, id, name, email string) (*models.User, error)
 
+	// Find All users in id array
+	FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error
+
 	// Insert a new user into the database.
 	// Returns the object ID.
 	InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error)
@@ -29,12 +32,9 @@ type UserCollectionInterface interface {
 	DeleteByID(ctx context.Context, id string) (int64, error)
 }
 
-
 type UserCollection struct {
 	userCollection *mongo.Collection
 }
-
-
 
 func (c *UserCollection) FindOne(ctx context.Context, user *models.User, id, name, email string) (*models.User, error) {
 	if user == nil {
@@ -63,7 +63,14 @@ func (c *UserCollection) FindOne(ctx context.Context, user *models.User, id, nam
 	return user, err
 }
 
-
+func (c *UserCollection) FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error {
+	cur, err := c.userCollection.Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: useridArr}}}})
+	if err != nil {
+		return err
+	}
+	cur.All(ctx, UserArr)
+	return nil
+}
 
 func (c *UserCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
 	result, err := c.userCollection.InsertOne(ctx, user)

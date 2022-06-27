@@ -9,13 +9,12 @@ import TodoCycleModes from "./TodoCycleModes";
 import TodoDropdown from "./TodoDropdown";
 import TodoEdit from "./TodoEdit";
 
-const Container = styled.div`
+const Container = styled.div<{ custom: FlattenSimpleInterpolation }>`
+    ${(props) => props.custom}
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 85vh;
     justify-content: center;
-    width: 90vw;
 `;
 
 const Title = styled.h1`
@@ -65,6 +64,7 @@ const IconsContainer = styled.div`
 `;
 
 const TodoGrid = ({
+    containerCSS,
     mode,
     cycleModes,
     taskCheck,
@@ -77,7 +77,12 @@ const TodoGrid = ({
     setFilterOptions,
     handleSearch,
     hideModal,
+    isPersonal,
+    projectid,
+    createCallback,
+    editCallback,
 }: {
+    containerCSS: FlattenSimpleInterpolation;
     mode: todoModes;
     cycleModes: () => void;
     taskCheck: (id: string) => void;
@@ -89,7 +94,11 @@ const TodoGrid = ({
     filterOptions: filterTaskOptions;
     setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
     handleSearch: React.ChangeEventHandler<HTMLInputElement>;
-    hideModal: () => void;
+    hideModal: (() => void) | undefined;
+    isPersonal: boolean;
+    projectid: string;
+    createCallback: (task: ITask | undefined) => void;
+    editCallback: (task: ITask | undefined) => void;
 }): JSX.Element => {
     const ddContentCSS: FlattenSimpleInterpolation = css`
         right: -4rem; // change this when adding more icons
@@ -98,12 +107,15 @@ const TodoGrid = ({
 
     const [createButton, createForm] = TodoCreate({
         containerWidth: 50,
+        isPersonal,
+        projectid,
+        createCallback,
     });
 
     return (
-        <Container>
+        <Container custom={containerCSS}>
             {createForm}
-            <ButtonClose onClick={hideModal}>&times;</ButtonClose>
+            {hideModal !== undefined && <ButtonClose onClick={hideModal}>&times;</ButtonClose>}
             <Title>To-Do Grid</Title>
             <div className="w-full flex justify-center">
                 <div className="relative w-2/4">
@@ -122,7 +134,9 @@ const TodoGrid = ({
                 </div>
             </div>
             <GridWrapper>
-                {editingTask !== undefined && <TodoEdit {...{ width: 60, editingTask, setEditingTask }} />}
+                {editingTask !== undefined && (
+                    <TodoEdit {...{ width: 60, editingTask, setEditingTask, isPersonal, editCallback }} />
+                )}
                 {filteredTasks.length === 0 ? (
                     <div>Nothing here!</div>
                 ) : (
@@ -134,7 +148,9 @@ const TodoGrid = ({
                                     {...{
                                         task,
                                         mode,
-                                        checked: checkedTasks.has(task.id),
+                                        checked:
+                                            (mode === "normal" && task.isDone) ||
+                                            (mode === "trash" && checkedTasks.has(task.id)),
                                         onCheck: taskCheck,
                                         setEditingTask: () => setEditingTask(task),
                                     }}

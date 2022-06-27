@@ -69,6 +69,9 @@ export const filterEvents = (events: IEvent[], options: filterEventOptions): IEv
 export interface filterTaskOptions {
     done: boolean;
     expired: boolean;
+    personal: boolean;
+    project: boolean;
+    taskids: string[] | undefined;
     searchTerm: string;
 }
 
@@ -76,7 +79,7 @@ export interface filterTaskOptions {
  * Filter tasks by some options.
  *
  * @param tasks   Tasks to be filtered by.
- * @param options Filter by options, true to be filtered away. But for search term, the task will *not* be filtered away if the name, description or tags contain all the search terms. Search term is case-insensitive.
+ * @param options Filter by options, true to be filtered away. But for search term, the task will *not* be filtered away if the name, description or tags contain all the search terms. Search term is case-insensitive. Personal and project flags to filter for personal and project tasks respectively. Leave taskids undefined to not filter by taskids, else only return those taskids which fit.
  *
  * @returns Filtered tasks.
  */
@@ -106,6 +109,15 @@ export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[]
                     return tag.includes(st);
                 });
             });
+        }
+        if (!options.personal && t.isPersonal) {
+            return false;
+        }
+        if (!options.project && !t.isPersonal) {
+            return false;
+        }
+        if (options.taskids !== undefined && !options.taskids.includes(t.id)) {
+            return false;
         }
         return true;
     });

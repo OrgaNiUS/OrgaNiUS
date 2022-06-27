@@ -123,8 +123,6 @@ const ProjectCreate = (): JSX.Element => {
             creationTime: new Date(),
         };
 
-        console.log("submitting?");
-
         data.addProject(project).then(([id, code]) => {
             setFields((f) => {
                 return { ...f, id };

@@ -13,10 +13,21 @@ const Container = styled.div`
     padding: 1rem;
 `;
 
+const ProjectName = styled.h1`
+    font-size: larger;
+
+    &:hover {
+        text-decoration: underline;
+        color: rgb(59, 130, 246);
+    }
+`;
+
 const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
     return (
-        <div>
-            <Link to={`/project/${project.id}`}>{project.name}</Link>
+        <div className="mb-2">
+            <Link to={`/project/${project.id}`}>
+                <ProjectName>{project.name}</ProjectName>
+            </Link>
             <div>{project.description}</div>
         </div>
     );

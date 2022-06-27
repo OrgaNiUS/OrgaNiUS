@@ -1,40 +1,40 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
+import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
 
 // TODO: This is only for testing purposes because actual events integration are to be implemented later on.
-const initialEvents: IEvent[] = [
-    {
-        name: "event 1",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 4),
-    },
-    {
-        name: "event 2",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 1),
-    },
-    {
-        name: "very loooooooooooooooooooooooooooooooooooong name",
-        start: new Date(2022, 5, 1),
-        end: new Date(2022, 5, 1),
-    },
-    {
-        name: "All day event!",
-        start: new Date(2022, 5, 14),
-        end: new Date(2022, 5, 14),
-        allDay: true,
-    },
-    {
-        name: "Starts yesterday, ends tomorrow.",
-        start: new Date(Date.now() - 1000 * 60 * 60 * 24),
-        end: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        allDay: true,
-    },
-];
+// const initialEvents: IEvent[] = [
+//     {
+//         name: "event 1",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 4),
+//     },
+//     {
+//         name: "event 2",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 1),
+//     },
+//     {
+//         name: "very loooooooooooooooooooooooooooooooooooong name",
+//         start: new Date(2022, 5, 1),
+//         end: new Date(2022, 5, 1),
+//     },
+//     {
+//         name: "All day event!",
+//         start: new Date(2022, 5, 14),
+//         end: new Date(2022, 5, 14),
+//         allDay: true,
+//     },
+//     {
+//         name: "Starts yesterday, ends tomorrow.",
+//         start: new Date(Date.now() - 1000 * 60 * 60 * 24),
+//         end: new Date(Date.now() + 1000 * 60 * 60 * 24),
+//         allDay: true,
+//     },
+// ];
 
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
@@ -42,9 +42,9 @@ const initialEvents: IEvent[] = [
  */
 interface IDataContext {
     tasks: ITask[];
-    addTask: (task: ITask) => void;
+    addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
     patchTask: (task: Partial<ITask>) => void;
-    removeTasks: (ids: string[]) => void;
+    removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
@@ -54,7 +54,7 @@ interface IDataContext {
 
 const defaultDataContext: IDataContext = {
     tasks: [],
-    addTask: (_) => {},
+    addTask: (_) => Promise.resolve(undefined),
     patchTask: (_) => {},
     removeTasks: (_) => {},
     events: [],
@@ -76,7 +76,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [tasks, setTasks] = useState<ITask[]>([]);
     // until events CRUD is implemented
     // eslint-disable-next-line
-    const [events, setEvents] = useState<IEvent[]>(initialEvents);
+    const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
@@ -86,11 +86,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: "" },
             (response) => {
                 const data = response.data;
-                const tasks: ITask[] = data.tasks.map((x: any) => {
-                    const task = x.task;
+                const tasks: ITask[] = data.tasks.map((task: any) => {
+                    // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
-                        task.deadline === undefined ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, isPersonal: x.isPersonal };
+                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                    return { ...task, creationTime: new Date(task.creationTime), deadline };
                 });
 
                 setTasks(tasks);
@@ -98,17 +98,25 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             () => {}
         );
 
-        // TODO: get all projects here
+        ProjectGetAll(
+            auth.axiosInstance,
+            (response) => {
+                const data = response.data;
+                console.log(data);
+                setProjects(data.projects);
+            },
+            () => {}
+        );
     }, [auth.axiosInstance]);
 
-    const addTask = (task: ITask, projectID: string = "") => {
-        TaskCreate(
+    const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
+        return TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
                 assignedTo: task.assignedTo,
-                projectID: projectID,
+                projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
             {
@@ -117,11 +125,17 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             },
             (response) => {
                 const data = response.data;
+                const newTask: ITask = { ...task, id: data.taskid };
+
                 setTasks((t) => {
-                    return [...t, { ...task, id: data.length }];
+                    return [...t, newTask];
                 });
+
+                return newTask;
             },
-            () => {}
+            () => {
+                return undefined;
+            }
         );
     };
 
@@ -195,11 +209,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: id },
             (response) => {
                 const data = response.data;
+
                 const project: IProject = {
-                    id: id,
+                    id,
                     name: data.name,
                     description: data.description,
-                    members: [],
+                    members: data.members,
                     events: [],
                     tasks: [],
                     creationTime: data.creationTime,

@@ -301,12 +301,12 @@ GET "/project_get"
 
 This will get the project's name, description and creation time.
 
-Input: A JSON body with the following **required** parameters.
+Input: Query parameters of "projectid"
 
-```typescript
-{
-    projectid: string;
-}
+Example usage:
+
+```
+GET {url}/project_get/?projectid=48321740872149281
 ```
 
 Output:
@@ -324,6 +324,32 @@ Output:
   ],
   "name": "Project1",
   "tasks": []models.Task
+}
+```
+
+Status Code: 200 or 400
+
+### Get All Project
+
+GET "/project_get_all"
+
+This will get all project's of current logged in user's
+id, name, description and creationTime. For more detailed information of each project, use project_get
+
+Example usage:
+
+```
+GET {url}/project_get_all
+```
+
+Output:
+
+```json
+{
+    "id": string,
+    "name": string,
+    "description": string,
+    "creationTime": string;
 }
 ```
 
@@ -380,26 +406,26 @@ Input: A JSON body with the following parameters. taskid is only **required** pa
 
 GET "/task_get_all"
 
-Gets all the User's tasks if no projectid given.
-Otherwise returns task's associated with the projectid.
+Get All User Tasks: Leave projectid blank
+Get All Project Tasks: Put Relevant projectId
 
-Input: A JSON body with the following parameter.
-
-```typescript
-{
-    projectid: string;
-}
-```
+Input: Query parameters of "projectid"
 
 Output:
 
 ```json
 {
-  "tasks": []models.TaskArr{
-    task: models.Task
-    isPersonal: boolean
-  }
+  "tasks": []models.Task
 }
+```
+
+Example usage:
+
+```
+GET {url}/task_get_all/?
+GET {url}/task_get_all/?projectid=
+GET {url}/task_get_all/?projectid=48321740872149281
+
 ```
 
 ### Delete Task
@@ -451,6 +477,7 @@ interface Task {
     deadline: Date;
     isDone: boolean;
     tags: string[];
+    isPersonal: bool;
 }
 
 interface Project {

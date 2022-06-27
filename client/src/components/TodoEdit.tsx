@@ -6,15 +6,21 @@ import { isEqualArrays } from "../functions/arrays";
 import { BaseButton, InputCSS } from "../styles";
 import { ITask } from "../types";
 
-const Container = styled.div<{ width: number }>`
-    -webkit-transform: translate(-50%, -50%);
+const Container = styled.div<{ width: number; isPersonal: boolean }>`
+    ${(props) => {
+        const y: number = props.isPersonal ? -50 : 0;
+        // https://stackoverflow.com/a/23384995
+        return `
+        -webkit-transform: translate(-50%, ${y}%);
+        transform: translate(-50%, ${y}%);
+        `;
+    }}
     background-color: white;
     border: 1px solid rgb(59, 130, 246);
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
     top: 50%;
-    transform: translate(-50%, -50%); // https://stackoverflow.com/a/23384995
     z-index: 1;
     width: ${(props) => props.width}%;
 `;
@@ -72,10 +78,14 @@ const TodoEdit = ({
     width,
     editingTask,
     setEditingTask,
+    isPersonal,
+    editCallback,
 }: {
     width: number;
     editingTask: ITask;
     setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
+    isPersonal: boolean;
+    editCallback: (task: ITask | undefined) => void;
 }): JSX.Element => {
     const data = useContext(DataContext);
 
@@ -140,11 +150,12 @@ const TodoEdit = ({
         }
 
         data.patchTask(task);
+        editCallback({ ...editingTask, ...task });
         hideForm();
     };
 
     return (
-        <Container width={width}>
+        <Container width={width} isPersonal={isPersonal}>
             <Form onSubmit={handleSubmit}>
                 <Title>Editing Task</Title>
                 <Label>Name</Label>
