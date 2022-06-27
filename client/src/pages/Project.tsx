@@ -227,7 +227,7 @@ const Project = (): JSX.Element => {
         return (
             <Container>
                 <Row className="my-2">
-                    <Link to="/projects">⬅️ Back to Project</Link>
+                    <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
                 <div>Loading... (or you have no permissions?)</div>
             </Container>
@@ -237,7 +237,7 @@ const Project = (): JSX.Element => {
     return (
         <Container>
             <Row className="my-2">
-                <Link to="/projects">⬅️ Back to Project</Link>
+                <Link to="/projects">⬅️ Back to Projects</Link>
                 <ButtonArray>
                     {/* TODO: in future */}
                     <Button disabled>Settings</Button>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ProjectCreate, ProjectGet } from "../api/ProjectAPI";
+import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
@@ -98,7 +98,15 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             () => {}
         );
 
-        // TODO: get all projects here
+        ProjectGetAll(
+            auth.axiosInstance,
+            (response) => {
+                const data = response.data;
+                console.log(data);
+                setProjects(data.projects);
+            },
+            () => {}
+        );
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
@@ -202,19 +210,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             (response) => {
                 const data = response.data;
 
-                const members: IUser[] = data.members.map((id: string) => {
-                    return {
-                        id: id,
-                        // TODO: this is placeholder because no multi user get yet
-                        name: "<NAME>",
-                    };
-                });
-
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
-                    members,
+                    members: data.members,
                     events: [],
                     tasks: [],
                     creationTime: data.creationTime,
