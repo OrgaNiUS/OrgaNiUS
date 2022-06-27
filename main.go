@@ -53,6 +53,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 
 	v1.POST("/project_create", handlers.ProjectCreate(userController, projectController, jwtParser))
 	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, jwtParser))
+	v1.GET("/project_get_all", handlers.ProjectGetAll(userController, projectController, jwtParser))
 
 	v1.POST("/task_create", handlers.TaskCreate(userController, projectController, taskController, jwtParser))
 	v1.DELETE("/task_delete", handlers.TaskDelete(userController, projectController, taskController, jwtParser))

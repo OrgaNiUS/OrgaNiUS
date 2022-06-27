@@ -303,17 +303,10 @@ This will get the project's name, description and creation time.
 
 Input: Query parameters of "projectid"
 
-```typescript
-{
-    projectid: string;
-}
-```
-
 Example usage:
 
 ```
 GET {url}/project_get/?projectid=48321740872149281
-
 ```
 
 Output:
@@ -331,6 +324,32 @@ Output:
   ],
   "name": "Project1",
   "tasks": []models.Task
+}
+```
+
+Status Code: 200 or 400
+
+### Get All Project
+
+GET "/project_get_all"
+
+This will get all project's of current logged in user's
+id, name, description and creationTime. For more detailed information of each project, use project_get
+
+Example usage:
+
+```
+GET {url}/project_get_all
+```
+
+Output:
+
+```json
+{
+    "id": string,
+    "name": string,
+    "description": string,
+    "creationTime": string;
 }
 ```
 

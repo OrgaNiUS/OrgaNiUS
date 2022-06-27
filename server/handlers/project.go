@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
@@ -47,6 +48,39 @@ func ProjectGet(userController controllers.UserController, projectController con
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
 		}
+	}
+}
+
+func ProjectGetAll(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		user, err := userController.UserRetrieve(ctx, id, "")
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		}
+		projArr := projectController.ProjectMapToArray(ctx, user.Projects)
+		type Result struct {
+			Id           string    `bson:"_id,omitempty" json:"id,omitempty"`
+			Name         string    `bson:"name" json:"name"`
+			Description  string    `bson:"description" json:"description"`
+			CreationTime time.Time `bson:"creationTime" json:"creationTime"`
+		}
+		resultArr := []Result{}
+		for _, project := range projArr {
+			resultArr = append(resultArr, Result{
+				Id:           project.Id.Hex(),
+				Name:         project.Name,
+				Description:  project.Description,
+				CreationTime: project.CreationTime,
+			})
+		}
+		ctx.JSON(http.StatusOK, gin.H{"projects": resultArr})
 	}
 }
 
