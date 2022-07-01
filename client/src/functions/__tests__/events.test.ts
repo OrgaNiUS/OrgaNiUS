@@ -86,7 +86,14 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: true, expired: false, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: true,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual([]);
     });
     it("filter expired", () => {
@@ -104,7 +111,14 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: false, expired: true, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: false,
+                expired: true,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual([]);
     });
     it("filter both expired and done", () => {
@@ -122,16 +136,44 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: false, expired: false, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: false,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual(tasks);
         expect(
-            filterTasks(tasks, { done: false, expired: true, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: false,
+                expired: true,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual([]);
         expect(
-            filterTasks(tasks, { done: true, expired: false, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: true,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual([]);
         expect(
-            filterTasks(tasks, { done: true, expired: true, personal: true, project: true, searchTerm: "" })
+            filterTasks(tasks, {
+                done: true,
+                expired: true,
+                personal: true,
+                project: true,
+                searchTerm: "",
+                taskids: undefined,
+            })
         ).toStrictEqual([]);
     });
     it("searchTerm name", () => {
@@ -149,7 +191,14 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: false, expired: false, personal: true, project: true, searchTerm: "name" })
+            filterTasks(tasks, {
+                done: false,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "name",
+                taskids: undefined,
+            })
         ).toStrictEqual(tasks);
     });
     it("searchTerm description", () => {
@@ -167,7 +216,14 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: false, expired: false, personal: true, project: true, searchTerm: "desc" })
+            filterTasks(tasks, {
+                done: false,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "desc",
+                taskids: undefined,
+            })
         ).toStrictEqual(tasks);
     });
     it("searchTerm tag", () => {
@@ -185,7 +241,14 @@ describe("filterTasks", () => {
             },
         ];
         expect(
-            filterTasks(tasks, { done: false, expired: false, personal: true, project: true, searchTerm: "tag" })
+            filterTasks(tasks, {
+                done: false,
+                expired: false,
+                personal: true,
+                project: true,
+                searchTerm: "tag",
+                taskids: undefined,
+            })
         ).toStrictEqual(tasks);
     });
 });
