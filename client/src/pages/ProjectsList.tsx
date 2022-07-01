@@ -17,6 +17,7 @@ const ProjectCard = styled.div`
     border-radius: 6px;
     border: 1px solid rgb(59, 130, 246);
     margin-bottom: 0.5rem;
+    padding: 1rem;
 `;
 
 const ProjectName = styled.h1`
