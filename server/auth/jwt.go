@@ -11,7 +11,6 @@ import (
 )
 
 type JWTParser struct {
-	token  *jwt.Token
 	secret []byte
 }
 
@@ -19,24 +18,26 @@ const (
 	expTime = 10 * time.Minute
 )
 
+var (
+	signingMethod = jwt.SigningMethodHS256
+)
+
 func New(jwtSecret string) *JWTParser {
 	jwtSecretBytes := []byte(jwtSecret)
-	token := jwt.New(jwt.SigningMethodHS256)
 	return &JWTParser{
-		token,
 		jwtSecretBytes,
 	}
 }
 
 func (p *JWTParser) Generate(id, name string) (string, error) {
-	claims := p.token.Claims.(jwt.MapClaims)
-
 	/*
 		JWT Content
 			id => user id
 			iat => JWT issue  time (in Unix time)
 			exp => JWT expiry time (in Unix time)
 	*/
+
+	claims := make(jwt.MapClaims)
 
 	now := time.Now()
 
@@ -45,7 +46,9 @@ func (p *JWTParser) Generate(id, name string) (string, error) {
 	claims["iat"] = now.Unix()
 	claims["exp"] = now.Add(expTime).Unix()
 
-	tokenString, err := p.token.SignedString(p.secret)
+	token := jwt.NewWithClaims(signingMethod, claims)
+
+	tokenString, err := token.SignedString(p.secret)
 
 	if err != nil {
 		log.Printf("failed to generate jwt: %v", err)
