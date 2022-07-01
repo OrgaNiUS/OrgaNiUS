@@ -13,6 +13,12 @@ const Container = styled.div`
     padding: 1rem;
 `;
 
+const ProjectCard = styled.div`
+    border-radius: 6px;
+    border: 1px solid rgb(59, 130, 246);
+    margin-bottom: 0.5rem;
+`;
+
 const ProjectName = styled.h1`
     font-size: larger;
 
@@ -24,12 +30,12 @@ const ProjectName = styled.h1`
 
 const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
     return (
-        <div className="mb-2">
+        <ProjectCard>
             <Link to={`/project/${project.id}`}>
                 <ProjectName>{project.name}</ProjectName>
             </Link>
             <div>{project.description}</div>
-        </div>
+        </ProjectCard>
     );
 };
 
