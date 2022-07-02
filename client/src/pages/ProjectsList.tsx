@@ -15,7 +15,7 @@ const Container = styled.div`
 
 const ProjectCard = styled.div`
     border-radius: 6px;
-    border: 1px solid rgb(59, 130, 246);
+    border: 1px solid rgb(249, 115, 22);
     margin-bottom: 0.5rem;
     padding: 1rem;
 `;
