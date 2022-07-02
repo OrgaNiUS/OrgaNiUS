@@ -1,6 +1,5 @@
 import { useContext } from "react";
-import styled, { css, FlattenSimpleInterpolation } from "styled-components";
-import { BaseButton } from "../../styles";
+import styled from "styled-components";
 import Task from "./Task";
 import TodoCreate from "./TodoCreate";
 import TodoDropdown from "./TodoDropdown";
@@ -30,10 +29,6 @@ const Title = styled.h1`
 const SearchBox = styled.input`
     padding: 0.2rem 0.5rem;
     width: 100%;
-`;
-
-const ButtonTrash = styled(BaseButton)`
-    background-color: rgb(255, 0, 90);
 `;
 
 const IconsContainer = styled.div`

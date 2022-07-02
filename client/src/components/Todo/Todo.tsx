@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-import { css } from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { filterTaskOptions } from "../../functions/events";
 import Modal from "../Modal";
