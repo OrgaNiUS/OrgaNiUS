@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { ITask } from "../../types";
 import Task from "../Todo/Task";
 
+const MockTask = ({ task }: { task: ITask }) => {
+    return <Task {...{ task, performDone: jest.fn(), performTrash: jest.fn(), performEdit: jest.fn() }} />;
+};
+
 describe("Task", () => {
     it("standard task", () => {
         const task: ITask = {
@@ -16,7 +20,7 @@ describe("Task", () => {
             isPersonal: true,
         };
 
-        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
+        render(<MockTask {...{ task }} />);
         expect(screen.queryByText("name")).toBeInTheDocument();
         expect(screen.queryByText("description")).toBeInTheDocument();
         expect(screen.queryByText(/#tag1/)).toBeInTheDocument();
@@ -37,7 +41,7 @@ describe("Task", () => {
             isPersonal: true,
         };
 
-        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
+        render(<MockTask {...{ task }} />);
         expect(screen.queryByText("Expired on 01/01/2000")).toBeInTheDocument();
     });
 
@@ -54,7 +58,7 @@ describe("Task", () => {
             isPersonal: true,
         };
 
-        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
+        render(<MockTask {...{ task }} />);
         expect(screen.queryByText("Due in 5 hours")).toBeInTheDocument();
     });
 
@@ -71,7 +75,7 @@ describe("Task", () => {
             isPersonal: true,
         };
 
-        render(<Task {...{ task, mode: "normal", checked: false, onCheck: jest.fn(), setEditingTask: jest.fn() }} />);
+        render(<MockTask {...{ task }} />);
         expect(screen.queryByText("Due in 5 days")).toBeInTheDocument();
     });
 });
