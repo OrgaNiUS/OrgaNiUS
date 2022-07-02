@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
-import Todo from "../components/Todo";
+import Todo from "../components/Todo/Todo";
 import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { getCookie, setCookie } from "../functions/cookies";

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { ITask } from "../../types";
-import Task from "../Task";
+import Task from "../Todo/Task";
 
 describe("Task", () => {
     it("standard task", () => {

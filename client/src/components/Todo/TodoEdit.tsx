@@ -1,10 +1,12 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import { DataContext } from "../context/DataProvider";
-import { isEqualArrays } from "../functions/arrays";
-import { BaseButton, InputCSS } from "../styles";
-import { ITask } from "../types";
+import { DataContext } from "../../context/DataProvider";
+import { isEqualArrays } from "../../functions/arrays";
+import { BaseButton, InputCSS } from "../../styles";
+import { ITask } from "../../types";
+import { TodoView } from "./Todo";
+import { TodoContext } from "./TodoProvider";
 
 const Container = styled.div<{ width: number; isPersonal: boolean }>`
     ${(props) => {
@@ -74,25 +76,18 @@ interface IFields {
     tags: string;
 }
 
-const TodoEdit = ({
-    width,
-    editingTask,
-    setEditingTask,
-    isPersonal,
-    editCallback,
-}: {
-    width: number;
-    editingTask: ITask;
-    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
-    isPersonal: boolean;
-    editCallback: (task: ITask | undefined) => void;
-}): JSX.Element => {
+const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
     const data = useContext(DataContext);
+    const props = useContext(TodoContext);
+
+    // can assert this because TodoEdit is only ever called when editingTask is not undefined
+    // just let React crash if the developer passes in undefined (not supposed to happen anyways)
+    const editingTask: ITask = props.editingTask as ITask;
 
     const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
 
     const hideForm = () => {
-        setEditingTask(undefined);
+        props.setEditingTask(undefined);
     };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
@@ -150,12 +145,18 @@ const TodoEdit = ({
         }
 
         data.patchTask(task);
-        editCallback({ ...editingTask, ...task });
+        props.editCallback({ ...editingTask, ...task });
         hideForm();
     };
 
+    const containerWidth = {
+        list: 80,
+        grid: 60,
+        project: 60,
+    };
+
     return (
-        <Container width={width} isPersonal={isPersonal}>
+        <Container width={containerWidth[view]} isPersonal={props.isPersonal}>
             <Form onSubmit={handleSubmit}>
                 <Title>Editing Task</Title>
                 <Label>Name</Label>
