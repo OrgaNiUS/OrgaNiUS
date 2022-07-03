@@ -3,6 +3,7 @@ import styled, { keyframes, Keyframes } from "styled-components";
 const Container = styled.div`
     align-items: center;
     display: flex;
+    flex-direction: column;
     height: 100%;
     justify-content: center;
     left: 0;
@@ -15,10 +16,11 @@ const animationDuration: number = 3;
 const loaderHeight: number = 3;
 const loaderWidth: number = 9;
 
-const Text = styled.span`
+const BigText = styled.span`
     font-size: 2rem;
-    margin-right: 3rem;
 `;
+
+const Text = styled.p``;
 
 const Loader = styled.div`
     height: ${loaderHeight}rem;
@@ -137,16 +139,25 @@ const Bar = styled.div<{ index: number }>`
  * Code is much less hard coded than the example there.
  * https://steelkiwi.com/blog/30-most-captivating-preloaders-for-website/
  */
-const PreLoader = (): JSX.Element => {
+const PreLoader = ({ loading }: { loading: boolean }): JSX.Element => {
+    if (!loading) {
+        return (
+            <Container>
+                <BigText>This page failed to load.</BigText>
+                <Text>Check if you have permissions or try again in a while.</Text>
+            </Container>
+        );
+    }
+
     return (
         <Container>
-            <Text>Loading...</Text>
             <Loader>
                 <Ball />
                 {[0, 1, 2, 3, 4].map((i) => {
                     return <Bar key={i} index={i} />;
                 })}
             </Loader>
+            <BigText>Loading...</BigText>
         </Container>
     );
 };

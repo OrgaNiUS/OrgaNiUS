@@ -58,6 +58,7 @@ const Project = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const { id } = useParams();
+    const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
     const [mode, setMode] = useState<todoModes>("normal");
@@ -198,8 +199,14 @@ const Project = (): JSX.Element => {
             return;
         }
 
+        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
+            setLoading(false);
+        }, 1000 * 5);
+
         data.getProject(id).then((p) => {
             setProject(p);
+            setLoading(false);
+            clearTimeout(loadingTimeout);
         });
 
         TaskGetAll(
@@ -229,8 +236,7 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
-                {/* <div>Loading... (or you have no permissions?)</div> */}
-                <PreLoader />
+                <PreLoader {...{ loading }} />
             </Container>
         );
     }
