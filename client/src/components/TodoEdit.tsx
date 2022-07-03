@@ -68,11 +68,13 @@ interface IFields {
     assignedTo: string[];
     description: string;
     creationTime: Date;
-    deadline?: Date;
+    deadline?: string;
     isDone: boolean;
     // essentially only tags is different
     tags: string;
 }
+
+const momentFormat: string = "YYYY-MM-DD HH:mm";
 
 const TodoEdit = ({
     width,
@@ -89,7 +91,11 @@ const TodoEdit = ({
 }): JSX.Element => {
     const data = useContext(DataContext);
 
-    const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
+    const [fields, setFields] = useState<IFields>({
+        ...editingTask,
+        deadline: editingTask.deadline === undefined ? undefined : moment(editingTask.deadline).format(momentFormat),
+        tags: editingTask.tags.join(", "),
+    });
 
     const hideForm = () => {
         setEditingTask(undefined);
@@ -99,7 +105,8 @@ const TodoEdit = ({
         event.preventDefault();
 
         if (event.target.name === "deadline") {
-            const date = event.target.value === "" ? undefined : moment(event.target.value).toDate();
+            const date: string | undefined =
+                event.target.value === "" ? undefined : moment(event.target.value).format(momentFormat);
 
             setFields((f) => {
                 return { ...f, deadline: date };
@@ -139,8 +146,9 @@ const TodoEdit = ({
         if (fields.creationTime !== editingTask.creationTime) {
             task.creationTime = fields.creationTime;
         }
-        if (fields.deadline !== editingTask.deadline) {
-            task.deadline = fields.deadline;
+        const deadline: Date | undefined = fields.deadline === undefined ? undefined : moment(fields.deadline).toDate();
+        if (deadline !== editingTask.deadline) {
+            task.deadline = deadline;
         }
         if (fields.isDone !== editingTask.isDone) {
             task.isDone = fields.isDone;
@@ -177,12 +185,7 @@ const TodoEdit = ({
                 <Label>Tags (separate with commas)</Label>
                 <Input type="text" name="tags" placeholder="Tags" onChange={handleChange} value={fields.tags} />
                 <Label>Deadline</Label>
-                <Input
-                    type="datetime-local"
-                    name="deadline"
-                    onChange={handleChange}
-                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD HH:mm") : ""}
-                />
+                <Input type="datetime-local" name="deadline" onChange={handleChange} value={fields.deadline} />
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>
