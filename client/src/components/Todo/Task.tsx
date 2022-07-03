@@ -103,8 +103,8 @@ const Task = ({ task }: { task: ITask }): JSX.Element => {
             <TitleRow>
                 <input className="mr-1" type="checkbox" onChange={performDone} checked={task.isDone} />
                 <Name>{task.name}</Name>
-                <ThreeDots shouldFloat={props.isPersonal} onClick={toggleMenu}>
-                    ...
+                <ThreeDots shouldFloat={props.isPersonal}>
+                    <div onClick={toggleMenu}>...</div>
                     {shouldShowMenu && (
                         <ActionArray>
                             <Action onClick={performEdit}>Edit</Action>
