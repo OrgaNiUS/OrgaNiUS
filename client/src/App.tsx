@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { UserRefreshJWT } from "./api/UserAPI";
 import "./App.css";
 import Navbar from "./components/Navbar";
+import PreLoader from "./components/PreLoader";
 import AuthContext from "./context/AuthProvider";
 import { DataProvider } from "./context/DataProvider";
 import PageDoesNotExist from "./pages/ErrorPages/PageDoesNotExist";

@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import { IEvent } from "../../types";
 import Scheduler from "../Scheduler";
 
 describe("Scheduler", () => {

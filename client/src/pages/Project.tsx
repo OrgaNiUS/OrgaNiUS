@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { TaskGetAll } from "../api/TaskAPI";
+import PreLoader from "../components/PreLoader";
 import Timeline from "../components/Timeline";
 import { todoModes } from "../components/Todo";
 import TodoGrid from "../components/TodoGrid";
@@ -228,7 +229,8 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
-                <div>Loading... (or you have no permissions?)</div>
+                {/* <div>Loading... (or you have no permissions?)</div> */}
+                <PreLoader />
             </Container>
         );
     }
