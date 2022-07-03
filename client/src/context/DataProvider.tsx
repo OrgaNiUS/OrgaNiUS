@@ -229,7 +229,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     for (let i = 0; i < projectsCopy.length; i++) {
                         if (projectsCopy[i].id === id) {
                             // update the local copy
-                            projectsCopy[i] = { id, name: data.name, description: data.name };
+                            projectsCopy[i] = { id, name: data.name, description: data.description };
                             break;
                         }
                     }
