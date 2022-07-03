@@ -66,7 +66,7 @@ const Project = (): JSX.Element => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
-                const t: ITask = tasksCopy[i];
+                const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }
@@ -118,7 +118,7 @@ const Project = (): JSX.Element => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
-                const t: ITask = tasksCopy[i];
+                const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }

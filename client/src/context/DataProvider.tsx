@@ -142,7 +142,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
-                const t: ITask = tasksCopy[i];
+                const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }
@@ -189,9 +189,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
 
-            for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].id = i.toString();
-            }
             return tasksCopy;
         });
         TaskDelete(
