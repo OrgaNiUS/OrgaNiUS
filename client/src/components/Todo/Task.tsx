@@ -24,6 +24,7 @@ const ThreeDots = styled(BaseButton)<{ shouldFloat: boolean }>`
     ${(props) => (props.shouldFloat ? "float: right;" : "")}
     color: black;
     line-height: 1rem;
+    position: relative;
 `;
 
 const ActionArray = styled.div`
@@ -72,17 +73,7 @@ const formatDate = (date: Date | undefined): string => {
     return `Due on ${d}`;
 };
 
-const Task = ({
-    task,
-    performDone,
-    performTrash,
-    performEdit,
-}: {
-    task: ITask;
-    performDone: () => void;
-    performTrash: () => void;
-    performEdit: () => void;
-}): JSX.Element => {
+const Task = ({ task }: { task: ITask }): JSX.Element => {
     const props = useContext(TodoContext);
 
     const shouldShowMenu = task.id === props.selected;
@@ -95,6 +86,18 @@ const Task = ({
         });
     };
 
+    const performDone: React.ChangeEventHandler<HTMLInputElement> = () => {
+        props.taskDone(task);
+    };
+
+    const performEdit: React.MouseEventHandler<HTMLDivElement> = () => {
+        props.taskEdit(task);
+    };
+
+    const performTrash: React.MouseEventHandler<HTMLDivElement> = () => {
+        props.taskTrash(task);
+    };
+
     return (
         <Container>
             <TitleRow>
@@ -102,13 +105,13 @@ const Task = ({
                 <Name>{task.name}</Name>
                 <ThreeDots shouldFloat={props.isPersonal} onClick={toggleMenu}>
                     ...
+                    {shouldShowMenu && (
+                        <ActionArray>
+                            <Action onClick={performEdit}>Edit</Action>
+                            <Action onClick={performTrash}>Trash</Action>
+                        </ActionArray>
+                    )}
                 </ThreeDots>
-                {shouldShowMenu && (
-                    <ActionArray>
-                        <Action onClick={performEdit}>Edit</Action>
-                        <Action onClick={performTrash}>Trash</Action>
-                    </ActionArray>
-                )}
             </TitleRow>
             <Description>{task.description}</Description>
             <Tags>{task.tags.map((v) => "#" + v).join(" ")}</Tags>

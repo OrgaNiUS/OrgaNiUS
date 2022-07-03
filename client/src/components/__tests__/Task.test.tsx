@@ -3,7 +3,7 @@ import { ITask } from "../../types";
 import Task from "../Todo/Task";
 
 const MockTask = ({ task }: { task: ITask }) => {
-    return <Task {...{ task, performDone: jest.fn(), performTrash: jest.fn(), performEdit: jest.fn() }} />;
+    return <Task {...{ task }} />;
 };
 
 describe("Task", () => {

@@ -22,7 +22,7 @@ const Container = styled.div<{ width: number; isPersonal: boolean }>`
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
-    top: 50%;
+    ${(props) => (props.isPersonal ? "top: 50%;" : "")}
     z-index: 1;
     width: ${(props) => props.width}%;
 `;

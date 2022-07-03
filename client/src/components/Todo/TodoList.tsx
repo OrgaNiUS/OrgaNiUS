@@ -66,9 +66,6 @@ const TodoList = (): JSX.Element => {
                                     key={i}
                                     {...{
                                         task,
-                                        performDone: () => props.taskDone(task),
-                                        performTrash: () => props.taskTrash(task),
-                                        performEdit: () => props.taskEdit(task),
                                     }}
                                 />
                             );

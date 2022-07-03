@@ -69,7 +69,6 @@ const TodoGrid = ({ view }: { view: TodoView }): JSX.Element => {
             height: 85vh;
             width: 90vw;
         `,
-        // TODO: enforce height otherwise weird scrolling?
         project: css`
             height: 100%;
         `,
@@ -106,9 +105,6 @@ const TodoGrid = ({ view }: { view: TodoView }): JSX.Element => {
                                     key={i}
                                     {...{
                                         task,
-                                        performDone: () => props.taskDone(task),
-                                        performTrash: () => props.taskTrash(task),
-                                        performEdit: () => props.taskEdit(task),
                                     }}
                                 />
                             );
