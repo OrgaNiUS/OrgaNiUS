@@ -3,8 +3,8 @@ import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { isEqualArrays } from "../../functions/arrays";
-import { BaseButton, InputCSS } from "../../styles";
-import { ITask } from "../../types";
+import { BaseButton, IconButton, InputCSS } from "../../styles";
+import { ITask, IUser } from "../../types";
 import { TodoView } from "./Todo";
 import { TodoContext } from "./TodoProvider";
 
@@ -35,8 +35,9 @@ const Title = styled.h1`
 `;
 
 const Label = styled.label`
-    margin-top: 0.3rem;
     float: left;
+    margin-top: 0.3rem;
+    width: 100%;
 `;
 
 const Input = styled.input`
@@ -46,6 +47,11 @@ const Input = styled.input`
 
 const TextArea = styled.textarea`
     ${InputCSS}
+    width: 100%;
+`;
+
+const Users = styled.div`
+    cursor: pointer;
     width: 100%;
 `;
 
@@ -64,10 +70,15 @@ const ButtonCancel = styled(BaseButton)`
     margin-top: 1rem;
 `;
 
+const ButtonAssign = styled(IconButton)`
+    vertical-align: middle;
+`;
+
 interface IFields {
     id: string;
     name: string;
-    assignedTo: string[];
+    assignedTo: IUser[] /* contains entire User object instead of ID, will be parsed to ID before submitting */;
+    currentAssign: string;
     description: string;
     creationTime: Date;
     deadline?: Date;
@@ -84,7 +95,23 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
     // just let React crash if the developer passes in undefined (not supposed to happen anyways)
     const editingTask: ITask = props.editingTask as ITask;
 
-    const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
+    // change ID to user using props.members as a "dictionary"
+    // assert at the end because TypeScript doesn't realise that filtering out undefined essentially changes the type as well
+    const assignedTo: IUser[] = props.isPersonal
+        ? []
+        : (editingTask.assignedTo
+              .map((user) => props.members.find((member) => user.id === member.id))
+              .filter((x) => x !== undefined) as IUser[]);
+
+    // editingTask loses the assignedTo?
+    console.log(props.members, editingTask.assignedTo, assignedTo);
+
+    const [fields, setFields] = useState<IFields>({
+        ...editingTask,
+        tags: editingTask.tags.join(", "),
+        assignedTo,
+        currentAssign: "",
+    });
 
     const hideForm = () => {
         props.setEditingTask(undefined);
@@ -106,6 +133,32 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         }
     };
 
+    const handleAddAssigned = (user: IUser) => {
+        const name: string = user.name;
+
+        setFields((f) => {
+            const user: IUser | undefined = props.members.find((u) => u.name === name);
+            // these checks are relatively pointless because they should never happen (user can only select from some set of valid names)
+            // but just in case
+            if (user === undefined) {
+                return f;
+            }
+            if (f.assignedTo.some((u) => u.name === name)) {
+                // don't include same user more than once
+                return f;
+            }
+            const assignedTo: IUser[] = [...f.assignedTo, user];
+            return { ...f, assignedTo, currentAssign: "" };
+        });
+    };
+
+    const handleRemoveAssigned = (user: IUser) => {
+        setFields((f) => {
+            const assignedTo: IUser[] = f.assignedTo.filter((x) => x.id !== user.id);
+            return { ...f, assignedTo };
+        });
+    };
+
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
 
@@ -125,7 +178,13 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         if (fields.name !== editingTask.name) {
             task.name = fields.name;
         }
-        if (!isEqualArrays(fields.assignedTo, editingTask.assignedTo)) {
+        // check that the user ids are equal (comparing objects will be incorrect)
+        if (
+            !isEqualArrays(
+                fields.assignedTo.map((u) => u.id),
+                editingTask.assignedTo.map((u) => u.id)
+            )
+        ) {
             task.assignedTo = fields.assignedTo;
         }
         if (fields.description !== editingTask.description) {
@@ -177,6 +236,75 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
                 />
                 <Label>Tags (separate with commas)</Label>
                 <Input type="text" name="tags" placeholder="Tags" onChange={handleChange} value={fields.tags} />
+                {!props.isPersonal && (
+                    <>
+                        <Label>Assigned To</Label>
+                        {fields.assignedTo.map((user, i) => (
+                            <Users key={i} onClick={() => handleRemoveAssigned(user)}>
+                                {user.name + " "}
+                                {/* have to change type to button to not trigger form submission! */}
+                                <ButtonAssign type="button">
+                                    {/* minus-circle from https://heroicons.com/ */}
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-6 w-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                    </svg>
+                                </ButtonAssign>
+                            </Users>
+                        ))}
+                        <Input
+                            type="text"
+                            name="currentAssign"
+                            placeholder="Add user..."
+                            onChange={handleChange}
+                            value={fields.currentAssign}
+                        />
+                        {fields.currentAssign !== "" &&
+                            props.members
+                                .filter(
+                                    (u) =>
+                                        /*
+                                            really ugly compressed code but basically
+                                            1. if not already assigned
+                                            2. if (lower case) matches the currentAssign field
+                                            then render in the suggestions
+                                        */
+                                        !fields.assignedTo.some((v) => v.id === u.id) &&
+                                        u.name.toLowerCase().includes(fields.currentAssign.toLowerCase())
+                                )
+                                .map((user, i) => (
+                                    <Users key={i} onClick={() => handleAddAssigned(user)}>
+                                        {user.name + " "}
+                                        <ButtonAssign type="button">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-6 w-6"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth={2}
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
+                                        </ButtonAssign>
+                                    </Users>
+                                ))}
+                    </>
+                )}
                 <Label>Deadline</Label>
                 <Input
                     type="datetime-local"

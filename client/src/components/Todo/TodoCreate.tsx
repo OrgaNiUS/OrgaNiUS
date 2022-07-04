@@ -118,14 +118,13 @@ const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] =>
             return;
         }
 
-        const assignedTo: string[] = auth.auth.id === undefined ? [] : [auth.auth.id];
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
         const task: ITask = {
             id: "",
             name: fields.name,
-            assignedTo,
+            assignedTo: [],
             description: fields.description,
             creationTime: new Date(),
             deadline: fields.deadline,

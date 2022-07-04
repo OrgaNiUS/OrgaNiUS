@@ -173,6 +173,7 @@ const Project = (): JSX.Element => {
                 trashTrigger,
                 createCallback,
                 editCallback,
+                members: project.members,
             }}
         >
             <Container>

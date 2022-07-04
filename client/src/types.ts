@@ -9,7 +9,7 @@ export interface IEvent {
 export interface ITask {
     id: string;
     name: string;
-    assignedTo: string[];
+    assignedTo: IUser[];
     description: string;
     creationTime: Date;
     deadline?: Date;

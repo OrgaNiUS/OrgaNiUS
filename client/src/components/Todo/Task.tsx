@@ -51,6 +51,10 @@ const Tags = styled.p`
     opacity: 0.6;
 `;
 
+const AssignedTo = styled.p`
+    ${truncate}
+`;
+
 const Deadline = styled.p`
     font-size: small;
 `;
@@ -115,6 +119,9 @@ const Task = ({ task }: { task: ITask }): JSX.Element => {
             </TitleRow>
             <Description>{task.description}</Description>
             <Tags>{task.tags.map((v) => "#" + v).join(" ")}</Tags>
+            {!props.isPersonal && (
+                <AssignedTo>{"Assigned to: " + task.assignedTo.map((u) => u.name).join(", ")}</AssignedTo>
+            )}
             <Deadline>{formatDate(task.deadline)}</Deadline>
         </Container>
     );

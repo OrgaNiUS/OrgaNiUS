@@ -90,7 +90,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+                    // assignedTo doesn't matter for personal tasks
+                    const assignedTo: IUser[] = [];
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
                 setTasks(tasks);
@@ -114,7 +116,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             {
                 name: task.name,
                 description: task.description,
-                assignedTo: task.assignedTo,
+                assignedTo: task.assignedTo.map((u) => u.id),
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
@@ -165,7 +167,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             payload.name = task.name;
         }
         if (task.assignedTo !== undefined) {
-            payload.assignedTo = task.assignedTo;
+            payload.assignedTo = task.assignedTo.map((u) => u.id);
         }
         if (task.description !== undefined) {
             payload.description = task.description;
@@ -205,20 +207,25 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: id },
             (response) => {
                 const data = response.data;
+                const members = data.members;
 
                 // convert server tasks to client tasks
                 const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+
+                    const assignedTo: IUser[] = Object.keys(task.assignedTo).map((id) =>
+                        members.find((u: IUser) => u.id === id)
+                    );
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
-                    members: data.members,
+                    members,
                     events: [],
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
