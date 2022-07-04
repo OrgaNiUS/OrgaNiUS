@@ -5,9 +5,9 @@ import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
 import { DataContext } from "../context/DataProvider";
-import { filterTaskOptions } from "../functions/events";
+import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton } from "../styles";
-import { IProject, ITask } from "../types";
+import { IEvent, IProject, ITask } from "../types";
 
 const Title = styled.h1`
     font-size: 2rem;
@@ -32,7 +32,7 @@ const Row = styled.div`
 `;
 
 const Box = styled.div`
-    height: calc(100vh - 2 * (5rem + 1rem) - 6.5rem - 1rem);
+    height: calc(100vh - 15.5rem); /* magic number that works well */
 `;
 
 const LeftBox = styled(Box)`
@@ -134,6 +134,9 @@ const Project = (): JSX.Element => {
         });
     };
 
+    // TODO: get events from event ids
+    const mergedEvents: IEvent[] = mergeEventArrays([], tasks);
+
     useEffect(() => {
         if (projectid === undefined) {
             return;
@@ -191,9 +194,8 @@ const Project = (): JSX.Element => {
                         <TodoGrid {...{ view: "project" }} />
                     </RightBox>
                 </Row>
-                <div>
-                    {/* TODO: get events from event ids */}
-                    <Timeline {...{ events: [] }} />
+                <div className="h-4">
+                    <Timeline {...{ events: mergedEvents }} />
                 </div>
             </Container>
         </TodoProvider>
