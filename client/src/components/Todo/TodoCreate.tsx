@@ -1,7 +1,6 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import AuthContext from "../../context/AuthProvider";
 import { DataContext } from "../../context/DataProvider";
 import { BaseButton, IconButton, InputCSS } from "../../styles";
 import { ITask } from "../../types";
@@ -78,7 +77,6 @@ const emptyFields: IFields = {
 };
 
 const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] => {
-    const auth = useContext(AuthContext);
     const data = useContext(DataContext);
     const props = useContext(TodoContext);
 
