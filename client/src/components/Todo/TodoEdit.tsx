@@ -1,10 +1,12 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import { DataContext } from "../context/DataProvider";
-import { isEqualArrays } from "../functions/arrays";
-import { BaseButton, InputCSS } from "../styles";
-import { ITask } from "../types";
+import { DataContext } from "../../context/DataProvider";
+import { isEqualArrays } from "../../functions/arrays";
+import { BaseButton, InputCSS } from "../../styles";
+import { ITask } from "../../types";
+import { TodoView } from "./Todo";
+import { TodoContext } from "./TodoProvider";
 
 const Container = styled.div<{ width: number; isPersonal: boolean }>`
     ${(props) => {
@@ -20,7 +22,7 @@ const Container = styled.div<{ width: number; isPersonal: boolean }>`
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
-    top: 50%;
+    ${(props) => (props.isPersonal ? "top: 50%;" : "")}
     z-index: 1;
     width: ${(props) => props.width}%;
 `;
@@ -68,38 +70,38 @@ interface IFields {
     assignedTo: string[];
     description: string;
     creationTime: Date;
-    deadline?: Date;
+    deadline?: string;
     isDone: boolean;
     // essentially only tags is different
     tags: string;
 }
 
-const TodoEdit = ({
-    width,
-    editingTask,
-    setEditingTask,
-    isPersonal,
-    editCallback,
-}: {
-    width: number;
-    editingTask: ITask;
-    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
-    isPersonal: boolean;
-    editCallback: (task: ITask | undefined) => void;
-}): JSX.Element => {
-    const data = useContext(DataContext);
+const momentFormat: string = "YYYY-MM-DD HH:mm";
 
-    const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
+const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
+    const data = useContext(DataContext);
+    const props = useContext(TodoContext);
+
+    // can assert this because TodoEdit is only ever called when editingTask is not undefined
+    // just let React crash if the developer passes in undefined (not supposed to happen anyways)
+    const editingTask: ITask = props.editingTask as ITask;
+
+    const [fields, setFields] = useState<IFields>({
+        ...editingTask,
+        deadline: editingTask.deadline === undefined ? undefined : moment(editingTask.deadline).format(momentFormat),
+        tags: editingTask.tags.join(", "),
+    });
 
     const hideForm = () => {
-        setEditingTask(undefined);
+        props.setEditingTask(undefined);
     };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
         event.preventDefault();
 
         if (event.target.name === "deadline") {
-            const date = event.target.value === "" ? undefined : moment(event.target.value).toDate();
+            const date: string | undefined =
+                event.target.value === "" ? undefined : moment(event.target.value).format(momentFormat);
 
             setFields((f) => {
                 return { ...f, deadline: date };
@@ -139,8 +141,9 @@ const TodoEdit = ({
         if (fields.creationTime !== editingTask.creationTime) {
             task.creationTime = fields.creationTime;
         }
-        if (fields.deadline !== editingTask.deadline) {
-            task.deadline = fields.deadline;
+        const deadline: Date | undefined = fields.deadline === undefined ? undefined : moment(fields.deadline).toDate();
+        if (deadline !== editingTask.deadline) {
+            task.deadline = deadline;
         }
         if (fields.isDone !== editingTask.isDone) {
             task.isDone = fields.isDone;
@@ -150,12 +153,18 @@ const TodoEdit = ({
         }
 
         data.patchTask(task);
-        editCallback({ ...editingTask, ...task });
+        props.editCallback({ ...editingTask, ...task });
         hideForm();
     };
 
+    const containerWidth = {
+        list: 80,
+        grid: 60,
+        project: 60,
+    };
+
     return (
-        <Container width={width} isPersonal={isPersonal}>
+        <Container width={containerWidth[view]} isPersonal={props.isPersonal}>
             <Form onSubmit={handleSubmit}>
                 <Title>Editing Task</Title>
                 <Label>Name</Label>
@@ -177,12 +186,7 @@ const TodoEdit = ({
                 <Label>Tags (separate with commas)</Label>
                 <Input type="text" name="tags" placeholder="Tags" onChange={handleChange} value={fields.tags} />
                 <Label>Deadline</Label>
-                <Input
-                    type="datetime-local"
-                    name="deadline"
-                    onChange={handleChange}
-                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD HH:mm") : ""}
-                />
+                <Input type="datetime-local" name="deadline" onChange={handleChange} value={fields.deadline} />
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>

@@ -1,10 +1,12 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import AuthContext from "../context/AuthProvider";
-import { DataContext } from "../context/DataProvider";
-import { BaseButton, IconButton, InputCSS } from "../styles";
-import { ITask } from "../types";
+import AuthContext from "../../context/AuthProvider";
+import { DataContext } from "../../context/DataProvider";
+import { BaseButton, IconButton, InputCSS } from "../../styles";
+import { ITask } from "../../types";
+import { TodoView } from "./Todo";
+import { TodoContext } from "./TodoProvider";
 
 const Container = styled.div<{ width: number; isPersonal: boolean }>`
     ${(props) => {
@@ -20,7 +22,7 @@ const Container = styled.div<{ width: number; isPersonal: boolean }>`
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
-    top: 50%;
+    ${(props) => (props.isPersonal ? "top: 50%;" : "")}
     z-index: 1;
     width: ${(props) => props.width}%;
 `;
@@ -75,19 +77,10 @@ const emptyFields: IFields = {
     tags: "",
 };
 
-const TodoCreate = ({
-    containerWidth,
-    isPersonal,
-    projectid,
-    createCallback,
-}: {
-    containerWidth: number;
-    isPersonal: boolean;
-    projectid: string;
-    createCallback: (task: ITask | undefined) => void;
-}): [JSX.Element, JSX.Element] => {
+const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] => {
     const auth = useContext(AuthContext);
     const data = useContext(DataContext);
+    const props = useContext(TodoContext);
 
     const [fields, setFields] = useState<IFields>(emptyFields);
     const [displayForm, setDisplayForm] = useState<boolean>(false);
@@ -138,15 +131,21 @@ const TodoCreate = ({
             deadline: fields.deadline,
             isDone: false,
             tags: tags,
-            isPersonal: isPersonal,
+            isPersonal: props.isPersonal,
         };
 
-        data.addTask(task, projectid).then(createCallback);
+        data.addTask(task, props.projectid).then(props.createCallback);
         hideForm();
     };
 
+    const containerWidth = {
+        list: 80,
+        grid: 50,
+        project: 50,
+    };
+
     const form: JSX.Element = displayForm ? (
-        <Container width={containerWidth} isPersonal={isPersonal}>
+        <Container width={containerWidth[view]} isPersonal={props.isPersonal}>
             <Form onSubmit={handleSubmit}>
                 <Title>Add Task</Title>
                 <Label>Name</Label>

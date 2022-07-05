@@ -1,6 +1,8 @@
-import styled, { FlattenSimpleInterpolation } from "styled-components";
-import { filterTaskOptions } from "../functions/events";
-import { IconButton } from "../styles";
+import { useContext } from "react";
+import styled, { css, FlattenSimpleInterpolation } from "styled-components";
+import { IconButton } from "../../styles";
+import { TodoView } from "./Todo";
+import { TodoContext } from "./TodoProvider";
 
 const FDropdownContent = styled.div<{ custom: FlattenSimpleInterpolation }>`
     ${(props) => props.custom}
@@ -24,23 +26,32 @@ const FDropdown = styled.div`
 
 const ButtonFilter = styled(IconButton)``;
 
-const TodoDropdown = ({
-    filterOptions,
-    setFilterOptions,
-    contentCSS,
-}: {
-    filterOptions: filterTaskOptions;
-    setFilterOptions: React.Dispatch<React.SetStateAction<filterTaskOptions>>;
-    contentCSS: FlattenSimpleInterpolation;
-}): JSX.Element => {
+const TodoDropdown = ({ view }: { view: TodoView }): JSX.Element => {
+    const props = useContext(TodoContext);
+
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
 
         const key: "done" | "expired" = event.target.name as "done" | "expired";
 
-        setFilterOptions((opts) => {
+        props.setFilterOptions((opts) => {
             return { ...opts, [key]: !opts[key] };
         });
+    };
+
+    const contentCSS = {
+        list: css`
+            right: -10%;
+            top: 2rem;
+        `,
+        grid: css`
+            right: -4rem; // change this when adding more icons
+            top: 2rem;
+        `,
+        project: css`
+            right: -4rem; // change this when adding more icons
+            top: 2rem;
+        `,
     };
 
     return (
@@ -62,7 +73,7 @@ const TodoDropdown = ({
                     />
                 </svg>
             </ButtonFilter>
-            <FDropdownContent custom={contentCSS}>
+            <FDropdownContent custom={contentCSS[view]}>
                 <b>Filter Options</b>
                 <div>
                     <input
@@ -75,7 +86,7 @@ const TodoDropdown = ({
                         key={Math.random()}
                         type="checkbox"
                         name="done"
-                        checked={filterOptions.done}
+                        checked={props.filterOptions.done}
                         onChange={handleChange}
                     />
                     <label className="ml-1">Done</label>
@@ -85,31 +96,37 @@ const TodoDropdown = ({
                         key={Math.random()}
                         type="checkbox"
                         name="expired"
-                        checked={filterOptions.expired}
+                        checked={props.filterOptions.expired}
                         onChange={handleChange}
                     />
                     <label className="ml-1">Expired</label>
                 </div>
-                <div>
-                    <input
-                        key={Math.random()}
-                        type="checkbox"
-                        name="personal"
-                        checked={filterOptions.personal}
-                        onChange={handleChange}
-                    />
-                    <label className="ml-1">Personal Tasks</label>
-                </div>
-                <div>
-                    <input
-                        key={Math.random()}
-                        type="checkbox"
-                        name="project"
-                        checked={filterOptions.project}
-                        onChange={handleChange}
-                    />
-                    <label className="ml-1">Project Tasks</label>
-                </div>
+
+                {props.isPersonal && (
+                    // ability to filter by personal project iff isPersonal
+                    <>
+                        <div>
+                            <input
+                                key={Math.random()}
+                                type="checkbox"
+                                name="personal"
+                                checked={props.filterOptions.personal}
+                                onChange={handleChange}
+                            />
+                            <label className="ml-1">Personal Tasks</label>
+                        </div>
+                        <div>
+                            <input
+                                key={Math.random()}
+                                type="checkbox"
+                                name="project"
+                                checked={props.filterOptions.project}
+                                onChange={handleChange}
+                            />
+                            <label className="ml-1">Project Tasks</label>
+                        </div>
+                    </>
+                )}
             </FDropdownContent>
         </FDropdown>
     );
