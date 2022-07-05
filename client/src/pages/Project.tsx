@@ -148,7 +148,7 @@ const Project = (): JSX.Element => {
             setLoading(false);
         }, 1000 * 5);
 
-        data.getProject(projectid).then((p) => {
+        data.getProject(projectid).then(([project, tasks]) => {
             setProject(project);
             setTasks(tasks);
             setLoading(false);
