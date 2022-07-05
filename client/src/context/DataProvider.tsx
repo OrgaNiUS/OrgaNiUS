@@ -48,7 +48,7 @@ interface IDataContext {
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
-    getProject: (id: string) => Promise<MaybeProject>;
+    getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
     addProject: (project: IProject) => Promise<[string, string]>;
 }
 
@@ -60,7 +60,7 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     projects: [],
-    getProject: (_) => Promise.resolve(undefined),
+    getProject: (_) => Promise.resolve([undefined, []]),
     addProject: (_) => Promise.resolve(["", ""]),
 };
 
@@ -102,7 +102,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             auth.axiosInstance,
             (response) => {
                 const data = response.data;
-                console.log(data);
                 setProjects(data.projects);
             },
             () => {}
@@ -143,7 +142,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
-                const t: ITask = tasksCopy[i];
+                const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }
@@ -190,9 +189,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = t.filter((t) => !ids.includes(t.id));
 
-            for (let i = 0; i < tasksCopy.length; i++) {
-                tasksCopy[i].id = i.toString();
-            }
             return tasksCopy;
         });
         TaskDelete(
@@ -203,12 +199,20 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const getProject = (id: string): Promise<MaybeProject> => {
+    const getProject = (id: string): Promise<[MaybeProject, ITask[]]> => {
         return ProjectGet(
             auth.axiosInstance,
             { projectid: id },
             (response) => {
                 const data = response.data;
+
+                // convert server tasks to client tasks
+                const tasks: ITask[] = data.tasks.map((task: any) => {
+                    // if 0 seconds since epoch time, treat as no deadline
+                    const deadline: Date | undefined =
+                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+                });
 
                 const project: IProject = {
                     id,
@@ -216,7 +220,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     description: data.description,
                     members: data.members,
                     events: [],
-                    tasks: [],
+                    tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
                 };
 
@@ -225,17 +229,17 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     for (let i = 0; i < projectsCopy.length; i++) {
                         if (projectsCopy[i].id === id) {
                             // update the local copy
-                            projectsCopy[i] = { id, name: data.name, description: data.name };
+                            projectsCopy[i] = { id, name: data.name, description: data.description };
                             break;
                         }
                     }
                     return projectsCopy;
                 });
 
-                return project;
+                return [project, tasks];
             },
             () => {
-                return undefined;
+                return [undefined, []];
             }
         );
     };
