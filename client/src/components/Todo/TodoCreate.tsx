@@ -1,10 +1,12 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import { DataContext } from "../context/DataProvider";
-import { isEqualArrays } from "../functions/arrays";
-import { BaseButton, InputCSS } from "../styles";
-import { ITask } from "../types";
+import AuthContext from "../../context/AuthProvider";
+import { DataContext } from "../../context/DataProvider";
+import { BaseButton, IconButton, InputCSS } from "../../styles";
+import { ITask } from "../../types";
+import { TodoView } from "./Todo";
+import { TodoContext } from "./TodoProvider";
 
 const Container = styled.div<{ width: number; isPersonal: boolean }>`
     ${(props) => {
@@ -20,7 +22,7 @@ const Container = styled.div<{ width: number; isPersonal: boolean }>`
     left: 50%;
     padding: 1rem 1.5rem;
     position: absolute;
-    top: 50%;
+    ${(props) => (props.isPersonal ? "top: 50%;" : "")}
     z-index: 1;
     width: ${(props) => props.width}%;
 `;
@@ -63,36 +65,34 @@ const ButtonCancel = styled(BaseButton)`
 `;
 
 interface IFields {
-    id: string;
     name: string;
-    assignedTo: string[];
     description: string;
-    creationTime: Date;
-    deadline?: Date;
-    isDone: boolean;
-    // essentially only tags is different
     tags: string;
+    deadline?: Date;
 }
 
-const TodoEdit = ({
-    width,
-    editingTask,
-    setEditingTask,
-    isPersonal,
-    editCallback,
-}: {
-    width: number;
-    editingTask: ITask;
-    setEditingTask: React.Dispatch<React.SetStateAction<ITask | undefined>>;
-    isPersonal: boolean;
-    editCallback: (task: ITask | undefined) => void;
-}): JSX.Element => {
-    const data = useContext(DataContext);
+const emptyFields: IFields = {
+    name: "",
+    description: "",
+    tags: "",
+};
 
-    const [fields, setFields] = useState<IFields>({ ...editingTask, tags: editingTask.tags.join(", ") });
+const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] => {
+    const auth = useContext(AuthContext);
+    const data = useContext(DataContext);
+    const props = useContext(TodoContext);
+
+    const [fields, setFields] = useState<IFields>(emptyFields);
+    const [displayForm, setDisplayForm] = useState<boolean>(false);
+
+    const showForm = () => {
+        setDisplayForm(true);
+        setFields(emptyFields);
+    };
 
     const hideForm = () => {
-        setEditingTask(undefined);
+        setDisplayForm(false);
+        setFields(emptyFields);
     };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
@@ -113,51 +113,41 @@ const TodoEdit = ({
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
         event.preventDefault();
-
         if (fields.name === "") {
             // Double check that name is not empty.
             return;
         }
 
+        const assignedTo: string[] = auth.auth.id === undefined ? [] : [auth.auth.id];
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
-        const task: Partial<ITask> = {
-            id: editingTask.id,
+        const task: ITask = {
+            id: "",
+            name: fields.name,
+            assignedTo,
+            description: fields.description,
+            creationTime: new Date(),
+            deadline: fields.deadline,
+            isDone: false,
+            tags: tags,
+            isPersonal: props.isPersonal,
         };
 
-        // Add to partial task if not the same.
-        if (fields.name !== editingTask.name) {
-            task.name = fields.name;
-        }
-        if (!isEqualArrays(fields.assignedTo, editingTask.assignedTo)) {
-            task.assignedTo = fields.assignedTo;
-        }
-        if (fields.description !== editingTask.description) {
-            task.description = fields.description;
-        }
-        if (fields.creationTime !== editingTask.creationTime) {
-            task.creationTime = fields.creationTime;
-        }
-        if (fields.deadline !== editingTask.deadline) {
-            task.deadline = fields.deadline;
-        }
-        if (fields.isDone !== editingTask.isDone) {
-            task.isDone = fields.isDone;
-        }
-        if (!isEqualArrays(tags, editingTask.tags)) {
-            task.tags = tags;
-        }
-
-        data.patchTask(task);
-        editCallback({ ...editingTask, ...task });
+        data.addTask(task, props.projectid).then(props.createCallback);
         hideForm();
     };
 
-    return (
-        <Container width={width} isPersonal={isPersonal}>
+    const containerWidth = {
+        list: 80,
+        grid: 50,
+        project: 50,
+    };
+
+    const form: JSX.Element = displayForm ? (
+        <Container width={containerWidth[view]} isPersonal={props.isPersonal}>
             <Form onSubmit={handleSubmit}>
-                <Title>Editing Task</Title>
+                <Title>Add Task</Title>
                 <Label>Name</Label>
                 <Input
                     type="text"
@@ -165,6 +155,7 @@ const TodoEdit = ({
                     placeholder="Name"
                     onChange={handleChange}
                     value={fields.name}
+                    autoFocus
                     required
                 />
                 <Label>Description</Label>
@@ -187,7 +178,29 @@ const TodoEdit = ({
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>
         </Container>
+    ) : (
+        <></>
     );
+
+    const button = (
+        <IconButton>
+            {/* plus from https://heroicons.com/ */}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                onClick={showForm}
+            >
+                <title>Add Task</title>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+        </IconButton>
+    );
+
+    return [button, form];
 };
 
-export default TodoEdit;
+export default TodoCreate;
