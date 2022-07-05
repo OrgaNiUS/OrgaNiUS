@@ -103,9 +103,6 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
               .map((user) => props.members.find((member) => user.id === member.id))
               .filter((x) => x !== undefined) as IUser[]);
 
-    // editingTask loses the assignedTo?
-    console.log(props.members, editingTask.assignedTo, assignedTo);
-
     const [fields, setFields] = useState<IFields>({
         ...editingTask,
         tags: editingTask.tags.join(", "),
@@ -203,7 +200,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
             task.tags = tags;
         }
 
-        data.patchTask(task);
+        data.patchTask(task, { ...fields, tags, isPersonal: editingTask.isPersonal });
         props.editCallback({ ...editingTask, ...task });
         hideForm();
     };

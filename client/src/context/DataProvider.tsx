@@ -43,7 +43,7 @@ import AuthContext from "./AuthProvider";
 interface IDataContext {
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
-    patchTask: (task: Partial<ITask>) => void;
+    patchTask: (task: Partial<ITask>, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
@@ -130,8 +130,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const newTask: ITask = { ...task, id: data.taskid };
 
                 // only add to user if personal task OR user is included in assignedTo
-                const ownUserIsAssigned: boolean =
-                    auth.auth.id === undefined ? false : assignedTo.includes(auth.auth.id);
+                const ownUserIsAssigned: boolean = auth.auth.id !== undefined && assignedTo.includes(auth.auth.id);
                 if (projectid === "" || ownUserIsAssigned) {
                     setTasks((t) => {
                         return [...t, newTask];
@@ -146,8 +145,20 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const patchTask = (task: Partial<ITask>) => {
+    const patchTask = (task: Partial<ITask>, fullTask: ITask) => {
+        const assignedToID: string[] | undefined = task.assignedTo?.map((u) => u.id);
+        const ownUserIsAssigned: boolean =
+            assignedToID !== undefined && auth.auth.id !== undefined && assignedToID.includes(auth.auth.id);
+
         setTasks((t) => {
+            if (!ownUserIsAssigned) {
+                // remove current task if in local copy
+                const tasksCopy: ITask[] = t.filter((t) => t.id !== task.id);
+                return tasksCopy;
+            }
+
+            let found: boolean = false;
+
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
                 const t: ITask = { ...tasksCopy[i] };
@@ -160,7 +171,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     (t[key] as any) = v;
                 });
                 tasksCopy[i] = t;
+                found = true;
                 break;
+            }
+
+            if (!found && ownUserIsAssigned) {
+                // if this task was not in the local copy but now it is, we add it in!
+                // this is the reason we have to take in the `fullTask` parameter.
+                return [...tasksCopy, fullTask];
             }
             return tasksCopy;
         });

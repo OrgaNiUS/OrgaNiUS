@@ -98,10 +98,13 @@ export const TodoProvider = ({
             // use provided done trigger instead
             doneTrigger(task);
         } else {
-            data.patchTask({
-                id: task.id,
-                isDone: !task.isDone,
-            });
+            data.patchTask(
+                {
+                    id: task.id,
+                    isDone: !task.isDone,
+                },
+                task
+            );
         }
         setSelected("");
     };
