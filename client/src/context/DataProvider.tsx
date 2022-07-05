@@ -111,12 +111,13 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
+        const assignedTo: string[] = task.assignedTo.map((u) => u.id); /* convert to id */
         return TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
-                assignedTo: task.assignedTo.map((u) => u.id),
+                assignedTo,
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
@@ -128,9 +129,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const newTask: ITask = { ...task, id: data.taskid };
 
-                setTasks((t) => {
-                    return [...t, newTask];
-                });
+                // only add to user if personal task OR user is included in assignedTo
+                const ownUserIsAssigned: boolean =
+                    auth.auth.id === undefined ? false : assignedTo.includes(auth.auth.id);
+                if (projectid === "" || ownUserIsAssigned) {
+                    setTasks((t) => {
+                        return [...t, newTask];
+                    });
+                }
 
                 return newTask;
             },
