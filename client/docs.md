@@ -86,6 +86,14 @@ The user can see an individual project's dashboard here.
 
 They can work with the tasks, similarly to the user dashboard, and other features (to be implemented).
 
+### Task Assignment
+
+However, a small difference between Project tasks and Personal tasks is that Project tasks can be assigned to users.
+
+To add assignment to users, the user can edit the task and then start typing the username to be added, at that point, suggestions will pop up below the text field and the user can click on the "+" icon or the name of the user to add that user.
+
+To remove assignment from users, the user can edit the task and then press on the "-" icon or the name of the user to remove that user.
+
 ## User
 
 The user can see their user page here. (to be implemented)
