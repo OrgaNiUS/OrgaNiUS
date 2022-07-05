@@ -119,7 +119,7 @@ const Task = ({ task }: { task: ITask }): JSX.Element => {
             </TitleRow>
             <Description>{task.description}</Description>
             <Tags>{task.tags.map((v) => "#" + v).join(" ")}</Tags>
-            {!props.isPersonal && (
+            {!props.isPersonal && task.assignedTo.length > 0 && (
                 <AssignedTo>{"Assigned to: " + task.assignedTo.map((u) => u.name).join(", ")}</AssignedTo>
             )}
             <Deadline>{formatDate(task.deadline)}</Deadline>
