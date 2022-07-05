@@ -71,7 +71,6 @@ export interface filterTaskOptions {
     expired: boolean;
     personal: boolean;
     project: boolean;
-    taskids: string[] | undefined;
     searchTerm: string;
 }
 
@@ -114,9 +113,6 @@ export const filterTasks = (tasks: ITask[], options: filterTaskOptions): ITask[]
             return false;
         }
         if (!options.project && !t.isPersonal) {
-            return false;
-        }
-        if (options.taskids !== undefined && !options.taskids.includes(t.id)) {
             return false;
         }
         return true;

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { IconButton } from "../styles";
+import { IconButton } from "../../styles";
 
 const ButtonExpand = styled(IconButton)`
     bottom: 1rem;

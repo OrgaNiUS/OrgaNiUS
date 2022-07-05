@@ -58,13 +58,13 @@ const MockDataProvider = ({
         });
     };
 
-    const getProject = (id: string): Promise<MaybeProject> => {
+    const getProject = (id: string): Promise<[MaybeProject, ITask[]]> => {
         const condensedProject: IProjectCondensed | undefined = projects.find((project) => project.id === id);
         if (condensedProject === undefined) {
-            return Promise.resolve(undefined);
+            return Promise.resolve([undefined, []]);
         }
         const project: IProject = { ...condensedProject, members: [], events: [], tasks: [], creationTime: new Date() };
-        return Promise.resolve(project);
+        return Promise.resolve([project, []]);
     };
 
     const addProject = (project: IProject): Promise<[string, string]> => {

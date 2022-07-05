@@ -56,13 +56,7 @@ Example "ta do" will match "Task Done".
 
 The user can click on the "+" icon to create a new personal Task.
 
-The user can click on the book/trash bin/pen icons to cycle through the different modes.
-
-Book is the normal and default mode. The tasks can also be dragged and dropped into different positions.
-
-Trash bin is the trash mode, where the user can select the tasks to be trashed with the checkbox beside each task. After which, the user can click on the "Trash Selected" button to remove the selected tasks.
-
-Pen is the edit mode. (to be implemented)
+The user can click on the "3 dots" beside the task name to open up a menu to edit or trash the task.
 
 With the expand button on the bottom right, the user can expand the To-Do List into a grid view that takes up the entire page. It offers similar functionality just with a different view.
 
@@ -82,7 +76,15 @@ The user can click on these tasks and events to toggle a popup card that reveals
 
 ## Projects
 
-The user can see their projects here. (to be implemented)
+The user can see their projects here.
+
+From there they can click on the project name to navigate to the project page.
+
+## Project Page
+
+The user can see an individual project's dashboard here.
+
+They can work with the tasks, similarly to the user dashboard, and other features (to be implemented).
 
 ## User
 

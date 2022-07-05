@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import MockDataProvider from "../../context/MockDataProvider";
 import { IEvent, ITask } from "../../types";
-import Todo from "../Todo";
+import Todo from "../Todo/Todo";
 
 const MockTodo = ({ tasks }: { tasks: ITask[] }): JSX.Element => {
     const initialEvents: IEvent[] = [];
