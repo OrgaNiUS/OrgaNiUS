@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
+import PreLoader from "../components/PreLoader";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
@@ -54,6 +55,7 @@ const Project = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const { id: projectid } = useParams();
+    const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
 
@@ -145,9 +147,15 @@ const Project = (): JSX.Element => {
             return;
         }
 
+        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
+            setLoading(false);
+        }, 1000 * 5);
+
         data.getProject(projectid).then(([project, tasks]) => {
             setProject(project);
             setTasks(tasks);
+            setLoading(false);
+            clearTimeout(loadingTimeout);
         });
 
         // including data.getProject and id will cause this to continuously fire
@@ -160,7 +168,7 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
-                <div>Loading... (or you have no permissions?)</div>
+                <PreLoader {...{ loading }} />
             </Container>
         );
     }

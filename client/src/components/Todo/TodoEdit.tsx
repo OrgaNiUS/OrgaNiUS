@@ -81,11 +81,13 @@ interface IFields {
     currentAssign: string;
     description: string;
     creationTime: Date;
-    deadline?: Date;
+    deadline?: string;
     isDone: boolean;
     // essentially only tags is different
     tags: string;
 }
+
+const momentFormat: string = "YYYY-MM-DD HH:mm";
 
 const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
     const data = useContext(DataContext);
@@ -105,6 +107,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
 
     const [fields, setFields] = useState<IFields>({
         ...editingTask,
+        deadline: editingTask.deadline === undefined ? undefined : moment(editingTask.deadline).format(momentFormat),
         tags: editingTask.tags.join(", "),
         assignedTo,
         currentAssign: "",
@@ -118,7 +121,8 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         event.preventDefault();
 
         if (event.target.name === "deadline") {
-            const date = event.target.value === "" ? undefined : moment(event.target.value).toDate();
+            const date: string | undefined =
+                event.target.value === "" ? undefined : moment(event.target.value).format(momentFormat);
 
             setFields((f) => {
                 return { ...f, deadline: date };
@@ -190,8 +194,9 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         if (fields.creationTime !== editingTask.creationTime) {
             task.creationTime = fields.creationTime;
         }
-        if (fields.deadline !== editingTask.deadline) {
-            task.deadline = fields.deadline;
+        const deadline: Date | undefined = fields.deadline === undefined ? undefined : moment(fields.deadline).toDate();
+        if (deadline !== editingTask.deadline) {
+            task.deadline = deadline;
         }
         if (fields.isDone !== editingTask.isDone) {
             task.isDone = fields.isDone;
@@ -200,7 +205,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
             task.tags = tags;
         }
 
-        data.patchTask(task, { ...fields, tags, isPersonal: editingTask.isPersonal });
+        data.patchTask(task, { ...fields, deadline, tags, isPersonal: editingTask.isPersonal });
         props.editCallback({ ...editingTask, ...task });
         hideForm();
     };
@@ -303,12 +308,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
                     </>
                 )}
                 <Label>Deadline</Label>
-                <Input
-                    type="datetime-local"
-                    name="deadline"
-                    onChange={handleChange}
-                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD HH:mm") : ""}
-                />
+                <Input type="datetime-local" name="deadline" onChange={handleChange} value={fields.deadline} />
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>
