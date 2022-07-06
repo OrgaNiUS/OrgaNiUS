@@ -95,9 +95,8 @@ The user can see their user page here. (to be implemented)
 The user can perform the following actions:
 
 1. Change username
-2. Change email
-3. Change password
-4. Delete account
+2. Change password
+3. Delete account
 
 ## Logout
 
