@@ -391,11 +391,14 @@ Modifies the below mentioned parameters of the task.
 
 Input: A JSON body with the following parameters. taskid is only **required** parameter.
 
+For assignedTo array, do parse the changes on the client side and pass in the deltas add and remove separately.
+
 ```typescript
 {
   taskid: string;
   name: string;
-  assignedTo: string[]; // array of userids
+  addAssignedTo: string[],    // string[] is userids
+  removeAssignedTo: string[], // string[] is userids
   description: string;
   deadline: string; // ISO8601 format
   isDone: bool;

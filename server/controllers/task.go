@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
@@ -38,23 +39,45 @@ func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) erro
 	return nil
 }
 
-func (c *TaskController) TaskModify(ctx context.Context, task *models.Task) {
-	params := bson.D{}
-	if task.Name != "" {
-		params = append(params, bson.E{Key: "name", Value: task.Name})
+func (c *TaskController) TaskModify(ctx context.Context, taskid string, name, description, deadline *string, isdone *bool, addAssignedTo, removeAssignedTo *[]string) error {
+	setParams := bson.D{}
+	if name != nil {
+		setParams = append(setParams, bson.E{Key: "name", Value: *name})
 	}
-	if task.Description != "" {
-		params = append(params, bson.E{Key: "description", Value: task.Description})
+	if description != nil {
+		setParams = append(setParams, bson.E{Key: "description", Value: *description})
 	}
-	if !task.Deadline.IsZero() {
-		params = append(params, bson.E{Key: "deadline", Value: task.Deadline})
+	if deadline != nil {
+		parsedDeadline, _ := time.Parse("2006-01-02T15:04:05.999Z", *deadline)
+		setParams = append(setParams, bson.E{Key: "deadline", Value: parsedDeadline})
 	}
-	if len(task.AssignedTo) != 0 {
-		params = append(params, bson.E{Key: "assignedTo", Value: task.AssignedTo})
+	if isdone != nil {
+		setParams = append(setParams, bson.E{Key: "isDone", Value: *isdone})
 	}
-	params = append(params, bson.E{Key: "isDone", Value: task.IsDone})
-	update := bson.D{{Key: "$set", Value: params}}
-	c.Collection(taskCollection).UpdateByID(ctx, task.Id, update)
+
+	addParams := bson.D{}
+	if addAssignedTo != nil {
+		addParams = append(addParams, bson.E{Key: "assignedTo", Value: *addAssignedTo})
+	}
+	removeParams := bson.D{}
+	if removeAssignedTo != nil {
+		removeParams = append(removeParams, bson.E{Key: "assignedTo", Value: *removeAssignedTo})
+	}
+
+	update := bson.D{
+		{Key: "$set", Value: setParams},
+		{Key: "$addToSet", Value: addParams},
+		{Key: "$pull", Value: removeParams},
+	}
+	// TODO: remove prints (i love print debugging)
+	fmt.Println(update)
+
+	objectid, err := primitive.ObjectIDFromHex(taskid)
+	if err != nil {
+		return err
+	}
+	c.Collection(taskCollection).UpdateByID(ctx, objectid, update)
+	return nil
 }
 
 func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
