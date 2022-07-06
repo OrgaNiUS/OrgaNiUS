@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserLogout } from "../api/UserAPI";
 import AuthContext from "../context/AuthProvider";
+import { deleteCookie } from "../functions/cookies";
 
 const Navbar = (): JSX.Element => {
     const auth = useContext(AuthContext);
@@ -13,6 +14,8 @@ const Navbar = (): JSX.Element => {
         UserLogout(
             auth.axiosInstance,
             (_) => {
+                // also delete from client side (sometimes doesn't get deleted properly otherwise, maybe racing on the server?)
+                deleteCookie("jwt");
                 auth.setAuth({ user: undefined, loggedIn: false });
                 navigate("/");
             },

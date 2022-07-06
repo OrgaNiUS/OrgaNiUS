@@ -1,4 +1,4 @@
-import { getCookie, setCookie } from "../cookies";
+import { deleteCookie, getCookie, setCookie } from "../cookies";
 
 const writeCookie = (key: string, value: string): void => {
     // https://stackoverflow.com/a/51978914
@@ -31,6 +31,17 @@ describe("setCookie", () => {
         let value: string = "cookie-value!";
 
         setCookie(key, value);
-        expect(window.document.cookie).toBe(`${key}=${value}; SameSite=Lax`);
+        expect(window.document.cookie).toBe(`${key}=${value}; SameSite=Lax;`);
+    });
+});
+
+describe("deleteCookie", () => {
+    it("single cookie", () => {
+        let key: string = "test-cookie";
+        let value: string = "not undefined!";
+
+        writeCookie(key, value);
+        deleteCookie("jwt");
+        expect(getCookie(key)).toBe(undefined);
     });
 });
