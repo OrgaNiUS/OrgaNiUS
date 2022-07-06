@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { DataContext } from "../../context/DataProvider";
 import { filterTaskOptions, filterTasks } from "../../functions/events";
-import { ITask } from "../../types";
+import { ITask, IUser } from "../../types";
 
 interface ITodoContext {
     selected: string; // selected task id
@@ -22,6 +22,7 @@ interface ITodoContext {
     projectid: string;
     createCallback: (_: ITask | undefined) => void;
     editCallback: (_: ITask | undefined) => void;
+    members: IUser[];
 }
 
 const defaultFunc = () => {};
@@ -51,6 +52,7 @@ const defaultTodoContext: ITodoContext = {
     projectid: "",
     createCallback: defaultFunc,
     editCallback: defaultFunc,
+    members: [],
 };
 
 export const TodoContext = createContext<ITodoContext>(defaultTodoContext);
@@ -65,6 +67,8 @@ export const TodoProvider = ({
     trashTrigger,
     createCallback,
     editCallback,
+    members,
+    initEditTask,
 }: {
     children: JSX.Element;
     projectid: string;
@@ -75,6 +79,8 @@ export const TodoProvider = ({
     trashTrigger?: (task: ITask) => void;
     createCallback?: (task: ITask | undefined) => void;
     editCallback?: (task: ITask | undefined) => void;
+    members?: IUser[];
+    initEditTask?: ITask;
 }) => {
     const data = useContext(DataContext);
     /**
@@ -82,7 +88,7 @@ export const TodoProvider = ({
      * Selected task => 3-dot menu open.
      */
     const [selected, setSelected] = useState<string>("");
-    const [editingTask, setEditingTask] = useState<ITask | undefined>(undefined);
+    const [editingTask, setEditingTask] = useState<ITask | undefined>(initEditTask);
 
     const taskDone = (task: ITask) => {
         if (task === undefined) {
@@ -92,10 +98,13 @@ export const TodoProvider = ({
             // use provided done trigger instead
             doneTrigger(task);
         } else {
-            data.patchTask({
-                id: task.id,
-                isDone: !task.isDone,
-            });
+            data.patchTask(
+                {
+                    id: task.id,
+                    isDone: !task.isDone,
+                },
+                task
+            );
         }
         setSelected("");
     };
@@ -164,6 +173,7 @@ export const TodoProvider = ({
                 projectid,
                 createCallback: createCallback ?? defaultCb,
                 editCallback: editCallback ?? defaultCb,
+                members: members ?? [],
             }}
         >
             {children}

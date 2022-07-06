@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, MaybeProject } from "../types";
-import { DataContext } from "./DataProvider";
+import { DataContext, patchTaskData } from "./DataProvider";
 
 const MockDataProvider = ({
     initialTasks,
@@ -27,7 +27,7 @@ const MockDataProvider = ({
         return Promise.resolve(newTask);
     };
 
-    const patchTask = (task: Partial<ITask>) => {
+    const patchTask = (task: patchTaskData) => {
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {

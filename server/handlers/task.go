@@ -8,6 +8,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -45,13 +46,12 @@ func TaskCreate(userController controllers.UserController, projectController con
 		}
 
 		if query.ProjectId == "" {
+			task.AssignedTo = []string{id}
+			task.IsPersonal = true
 			if err := taskController.TaskCreate(ctx, &task); err != nil {
 				DisplayError(ctx, err.Error())
 				return
 			}
-			task.AssignedTo = make(map[string]struct{})
-			task.AssignedTo[id] = struct{}{}
-			task.IsPersonal = true
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
 				DisplayError(ctx, "user does not exist")
@@ -68,10 +68,8 @@ func TaskCreate(userController controllers.UserController, projectController con
 				DisplayError(ctx, err.Error())
 			}
 			// Add Users to newly Created Task
-			task.AssignedTo = make(map[string]struct{})
-			for _, userid := range query.Users {
-				task.AssignedTo[userid] = struct{}{}
-			}
+			task.AssignedTo = []string{}
+			copy(task.AssignedTo, query.Users)
 			if err := taskController.TaskCreate(ctx, &task); err != nil {
 				DisplayError(ctx, err.Error())
 				return
@@ -151,7 +149,7 @@ func TaskDelete(userController controllers.UserController, projectController con
 					DisplayError(ctx, err.Error())
 				}
 
-				for userid := range task.AssignedTo {
+				for _, userid := range task.AssignedTo {
 					user, err := userController.UserRetrieve(ctx, userid, "")
 					if err == mongo.ErrNoDocuments {
 						DisplayError(ctx, "user does not exist")
@@ -182,12 +180,13 @@ func TaskModify(userController controllers.UserController, taskController contro
 			return
 		}
 		type Query struct {
-			TaskId      string   `bson:"taskid" json:"taskid"`
-			Name        string   `bson:"name" json:"name"`
-			AssignedTo  []string `bson:"assignedTo" json:"assignedTo"`
-			Description string   `bson:"description" json:"description"`
-			Deadline    string   `bson:"deadline" json:"deadline"`
-			IsDone      bool     `bson:"isDone" json:"isDone"`
+			TaskId           string    `bson:"taskid" json:"taskid"`
+			Name             *string   `bson:"name" json:"name"`
+			AddAssignedTo    *[]string `bson:"addAssignedTo" json:"addAssignedTo"`
+			RemoveAssignedTo *[]string `bson:"removeAssignedTo" json:"removeAssignedTo"`
+			Description      *string   `bson:"description" json:"description"`
+			Deadline         *string   `bson:"deadline" json:"deadline"`
+			IsDone           *bool     `bson:"isDone" json:"isDone"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
@@ -198,58 +197,41 @@ func TaskModify(userController controllers.UserController, taskController contro
 			DisplayError(ctx, "Please provide taskid of task to modify")
 			return
 		}
-		var newTask models.Task
-		newTask.Name = query.Name
-		newTask.Description = query.Description
-		newTask.AssignedTo = make(map[string]struct{})
-		for _, userid := range query.AssignedTo {
-			newTask.AssignedTo[userid] = struct{}{}
-		}
-		if query.Deadline != "" {
-			newTask.Deadline, _ = time.Parse("2006-01-02T15:04:05.999Z", query.Deadline)
-		}
-		newTask.IsDone = query.IsDone
 
-		task, err := taskController.TaskRetrieve(ctx, query.TaskId)
-		if err == mongo.ErrNoDocuments {
-			DisplayError(ctx, "task does not exist")
-		} else if err != nil {
-			DisplayError(ctx, err.Error())
+		taskid, err := primitive.ObjectIDFromHex(query.TaskId)
+		if err != nil {
+			DisplayError(ctx, "invalid taskid")
 		}
-		newTask.Id = task.Id
+
 		// Delete users from task
-		for userid := range task.AssignedTo {
-			_, found := newTask.AssignedTo[userid]
-			if !found {
+		if query.RemoveAssignedTo != nil {
+			for _, userid := range *query.RemoveAssignedTo {
 				user, err := userController.UserRetrieve(ctx, userid, "")
 				if err == mongo.ErrNoDocuments {
 					DisplayError(ctx, "user does not exist")
 				} else if err != nil {
 					DisplayError(ctx, err.Error())
 				}
-				delete(user.Tasks, task.Id.Hex())
+				delete(user.Tasks, query.TaskId)
 				userController.UserModifyTask(ctx, &user)
 			}
 		}
-		if len(query.AssignedTo) != 0 {
-			// Add users to task
-			for _, userid := range query.AssignedTo {
-				_, found := task.AssignedTo[userid]
-				if !found {
-					user, err := userController.UserRetrieve(ctx, userid, "")
-					if err == mongo.ErrNoDocuments {
-						DisplayError(ctx, "user does not exist")
-					} else if err != nil {
-						DisplayError(ctx, err.Error())
-					}
-					user.Tasks[query.TaskId] = false
-					userController.UserModifyTask(ctx, &user)
-					task.AssignedTo[userid] = struct{}{}
+
+		// Add users to task
+		if query.AddAssignedTo != nil {
+			for _, userid := range *query.AddAssignedTo {
+				user, err := userController.UserRetrieve(ctx, userid, "")
+				if err == mongo.ErrNoDocuments {
+					DisplayError(ctx, "user does not exist")
+				} else if err != nil {
+					DisplayError(ctx, err.Error())
 				}
+				user.Tasks[query.TaskId] = false
+				userController.UserModifyTask(ctx, &user)
 			}
 		}
 
-		taskController.TaskModify(ctx, &newTask)
+		taskController.TaskModify(ctx, taskid, query.Name, query.Description, query.Deadline, query.IsDone, query.AddAssignedTo, query.RemoveAssignedTo)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }

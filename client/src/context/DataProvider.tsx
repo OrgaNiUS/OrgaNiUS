@@ -36,6 +36,13 @@ import AuthContext from "./AuthProvider";
 //     },
 // ];
 
+export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
+    id: string;
+    addAssignedTo?: string[];
+    removeAssignedTo?: string[];
+    assignedTo?: IUser[];
+}
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
@@ -43,7 +50,7 @@ import AuthContext from "./AuthProvider";
 interface IDataContext {
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
-    patchTask: (task: Partial<ITask>) => void;
+    patchTask: (task: patchTaskData, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
@@ -90,7 +97,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+                    // assignedTo doesn't matter for personal tasks
+                    const assignedTo: IUser[] = [];
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
                 setTasks(tasks);
@@ -109,12 +118,13 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
+        const assignedTo: string[] = task.assignedTo.map((u) => u.id); /* convert to id */
         return TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
-                assignedTo: task.assignedTo,
+                assignedTo,
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
             },
@@ -126,9 +136,13 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const newTask: ITask = { ...task, id: data.taskid };
 
-                setTasks((t) => {
-                    return [...t, newTask];
-                });
+                // only add to user if personal task OR user is included in assignedTo
+                const ownUserIsAssigned: boolean = auth.auth.id !== undefined && assignedTo.includes(auth.auth.id);
+                if (projectid === "" || ownUserIsAssigned) {
+                    setTasks((t) => {
+                        return [...t, newTask];
+                    });
+                }
 
                 return newTask;
             },
@@ -138,21 +152,49 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const patchTask = (task: Partial<ITask>) => {
+    /**
+     * Do not use `assignedTo` field
+     */
+    const patchTask = (task: patchTaskData, fullTask: ITask) => {
+        // undefined checks + check if included in add/remove array
+        const shouldRemoveFromOwnUser: boolean =
+            task.removeAssignedTo !== undefined &&
+            auth.auth.id !== undefined &&
+            task.removeAssignedTo.includes(auth.auth.id);
+        const shouldAddToOwnUser: boolean =
+            task.addAssignedTo !== undefined && auth.auth.id !== undefined && task.addAssignedTo.includes(auth.auth.id);
+
         setTasks((t) => {
+            if (shouldRemoveFromOwnUser) {
+                // remove current task if in local copy
+                const tasksCopy: ITask[] = t.filter((t) => t.id !== task.id);
+                return tasksCopy;
+            }
+
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
                 const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }
-                Object.entries(task).forEach(([k, v]) => {
-                    const key = k as keyof ITask;
-                    // not fully typed but Partial<ITask> ensures types will match
-                    (t[key] as any) = v;
-                });
-                tasksCopy[i] = t;
+                tasksCopy[i] = {
+                    id: t.id,
+                    name: task.name ?? t.name,
+                    assignedTo: task.assignedTo ?? t.assignedTo,
+                    description: task.name ?? t.name,
+                    creationTime: task.creationTime ?? t.creationTime,
+                    deadline: task.deadline ?? t.deadline,
+                    isDone: task.isDone ?? t.isDone,
+                    tags: task.tags ?? t.tags,
+                    isPersonal: task.isPersonal ?? t.isPersonal,
+                };
                 break;
+            }
+
+            if (shouldAddToOwnUser) {
+                // if this task was not in the local copy but now it is, we add it in!
+                // this is the reason we have to take in the `fullTask` parameter.
+                return [...tasksCopy, fullTask];
             }
             return tasksCopy;
         });
@@ -164,8 +206,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         if (task.name !== undefined) {
             payload.name = task.name;
         }
-        if (task.assignedTo !== undefined) {
-            payload.assignedTo = task.assignedTo;
+        if (task.addAssignedTo !== undefined) {
+            payload.addAssignedTo = task.addAssignedTo;
+        }
+        if (task.removeAssignedTo !== undefined) {
+            payload.removeAssignedTo = task.removeAssignedTo;
         }
         if (task.description !== undefined) {
             payload.description = task.description;
@@ -205,20 +250,25 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: id },
             (response) => {
                 const data = response.data;
+                const members = data.members;
 
                 // convert server tasks to client tasks
                 const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+
+                    const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
+                        members.find((u: IUser) => u.id === id)
+                    );
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
-                    members: data.members,
+                    members,
                     events: [],
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
