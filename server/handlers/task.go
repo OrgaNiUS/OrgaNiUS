@@ -204,8 +204,8 @@ func TaskModify(userController controllers.UserController, taskController contro
 		}
 
 		// Delete users from task
-		if query.AddAssignedTo != nil {
-			for _, userid := range *query.AddAssignedTo {
+		if query.RemoveAssignedTo != nil {
+			for _, userid := range *query.RemoveAssignedTo {
 				user, err := userController.UserRetrieve(ctx, userid, "")
 				if err == mongo.ErrNoDocuments {
 					DisplayError(ctx, "user does not exist")
@@ -218,8 +218,8 @@ func TaskModify(userController controllers.UserController, taskController contro
 		}
 
 		// Add users to task
-		if query.RemoveAssignedTo != nil {
-			for _, userid := range *query.RemoveAssignedTo {
+		if query.AddAssignedTo != nil {
+			for _, userid := range *query.AddAssignedTo {
 				user, err := userController.UserRetrieve(ctx, userid, "")
 				if err == mongo.ErrNoDocuments {
 					DisplayError(ctx, "user does not exist")

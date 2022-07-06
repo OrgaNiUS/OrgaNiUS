@@ -66,10 +66,17 @@ func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.Object
 	update := bson.D{
 		{Key: "$set", Value: setParams},
 		{Key: "$addToSet", Value: addParams},
+	}
+
+	// note that have to perform addToSet and pull separately because MongoDB treats it as concurrent updating
+	// running 2 queries is the easiest solution
+	// other solution would be to run a bulkupdate (which probably wouldn't be that necessary as this is only 2 queries)
+	pullUpdate := bson.D{
 		{Key: "$pull", Value: removeParams},
 	}
 
 	c.Collection(taskCollection).UpdateByID(ctx, taskid, update)
+	c.Collection(taskCollection).UpdateByID(ctx, taskid, pullUpdate)
 }
 
 func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
