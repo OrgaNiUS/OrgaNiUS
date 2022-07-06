@@ -1,8 +1,8 @@
 import moment from "moment";
 import { useContext, useState } from "react";
 import styled from "styled-components";
-import { DataContext } from "../../context/DataProvider";
-import { isEqualArrays } from "../../functions/arrays";
+import { DataContext, patchTaskData } from "../../context/DataProvider";
+import { getDeltaOfArrays, isEqualArrays } from "../../functions/arrays";
 import { BaseButton, IconButton, InputCSS } from "../../styles";
 import { ITask, IUser } from "../../types";
 import { TodoView } from "./Todo";
@@ -171,7 +171,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         // Tags are delimited by commas and trimmed of whitespace.
         const tags: string[] = fields.tags === "" ? [] : fields.tags.split(",").map((s) => s.trim());
 
-        const task: Partial<ITask> = {
+        const task: patchTaskData = {
             id: editingTask.id,
         };
 
@@ -186,7 +186,18 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
                 editingTask.assignedTo.map((u) => u.id)
             )
         ) {
-            task.assignedTo = fields.assignedTo;
+            const [added, removed] = getDeltaOfArrays(
+                editingTask.assignedTo.map((u) => u.id),
+                fields.assignedTo.map((u) => u.id)
+            );
+            if (added !== []) {
+                task.addAssignedTo = added;
+                task.assignedTo = fields.assignedTo;
+            }
+            if (removed !== []) {
+                task.removeAssignedTo = removed;
+                task.assignedTo = fields.assignedTo;
+            }
         }
         if (fields.description !== editingTask.description) {
             task.description = fields.description;

@@ -36,6 +36,13 @@ import AuthContext from "./AuthProvider";
 //     },
 // ];
 
+export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
+    id: string;
+    addAssignedTo?: string[];
+    removeAssignedTo?: string[];
+    assignedTo?: IUser[];
+}
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
@@ -43,7 +50,7 @@ import AuthContext from "./AuthProvider";
 interface IDataContext {
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
-    patchTask: (task: Partial<ITask>, fullTask: ITask) => void;
+    patchTask: (task: patchTaskData, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
@@ -145,19 +152,24 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const patchTask = (task: Partial<ITask>, fullTask: ITask) => {
-        const assignedToID: string[] | undefined = task.assignedTo?.map((u) => u.id);
-        const ownUserIsAssigned: boolean =
-            assignedToID !== undefined && auth.auth.id !== undefined && assignedToID.includes(auth.auth.id);
+    /**
+     * Do not use `assignedTo` field
+     */
+    const patchTask = (task: patchTaskData, fullTask: ITask) => {
+        // undefined checks + check if included in add/remove array
+        const shouldRemoveFromOwnUser: boolean =
+            task.removeAssignedTo !== undefined &&
+            auth.auth.id !== undefined &&
+            task.removeAssignedTo.includes(auth.auth.id);
+        const shouldAddToOwnUser: boolean =
+            task.addAssignedTo !== undefined && auth.auth.id !== undefined && task.addAssignedTo.includes(auth.auth.id);
 
         setTasks((t) => {
-            if (!ownUserIsAssigned) {
+            if (shouldRemoveFromOwnUser) {
                 // remove current task if in local copy
                 const tasksCopy: ITask[] = t.filter((t) => t.id !== task.id);
                 return tasksCopy;
             }
-
-            let found: boolean = false;
 
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
@@ -165,17 +177,21 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 if (t.id !== task.id) {
                     continue;
                 }
-                Object.entries(task).forEach(([k, v]) => {
-                    const key = k as keyof ITask;
-                    // not fully typed but Partial<ITask> ensures types will match
-                    (t[key] as any) = v;
-                });
-                tasksCopy[i] = t;
-                found = true;
+                tasksCopy[i] = {
+                    id: t.id,
+                    name: task.name ?? t.name,
+                    assignedTo: task.assignedTo ?? t.assignedTo,
+                    description: task.name ?? t.name,
+                    creationTime: task.creationTime ?? t.creationTime,
+                    deadline: task.deadline ?? t.deadline,
+                    isDone: task.isDone ?? t.isDone,
+                    tags: task.tags ?? t.tags,
+                    isPersonal: task.isPersonal ?? t.isPersonal,
+                };
                 break;
             }
 
-            if (!found && ownUserIsAssigned) {
+            if (shouldAddToOwnUser) {
                 // if this task was not in the local copy but now it is, we add it in!
                 // this is the reason we have to take in the `fullTask` parameter.
                 return [...tasksCopy, fullTask];
@@ -190,8 +206,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         if (task.name !== undefined) {
             payload.name = task.name;
         }
-        if (task.assignedTo !== undefined) {
-            payload.assignedTo = task.assignedTo.map((u) => u.id);
+        if (task.addAssignedTo !== undefined) {
+            payload.addAssignedTo = task.addAssignedTo;
+        }
+        if (task.removeAssignedTo !== undefined) {
+            payload.removeAssignedTo = task.removeAssignedTo;
         }
         if (task.description !== undefined) {
             payload.description = task.description;
@@ -239,7 +258,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
 
-                    const assignedTo: IUser[] = Object.keys(task.assignedTo).map((id) =>
+                    const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
                         members.find((u: IUser) => u.id === id)
                     );
                     return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
