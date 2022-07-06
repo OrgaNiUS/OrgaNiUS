@@ -67,13 +67,13 @@ const MockDataProvider = ({
         return Promise.resolve([project, []]);
     };
 
-    const addProject = (project: IProject): Promise<[string, string]> => {
+    const addProject = (project: IProject): Promise<string> => {
         const id: string = projects.length.toString();
 
         setProjects((p) => {
             return [...p, { ...project, id, members: [] }];
         });
-        return Promise.resolve([id, "A72BC1"]);
+        return Promise.resolve(id);
     };
 
     return (

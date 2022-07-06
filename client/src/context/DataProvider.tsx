@@ -49,7 +49,7 @@ interface IDataContext {
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
-    addProject: (project: IProject) => Promise<[string, string]>;
+    addProject: (project: IProject) => Promise<string>;
 }
 
 const defaultDataContext: IDataContext = {
@@ -61,7 +61,7 @@ const defaultDataContext: IDataContext = {
     mergedEvents: [],
     projects: [],
     getProject: (_) => Promise.resolve([undefined, []]),
-    addProject: (_) => Promise.resolve(["", ""]),
+    addProject: (_) => Promise.resolve(""),
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -244,7 +244,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const addProject = (project: IProject): Promise<[string, string]> => {
+    const addProject = (project: IProject): Promise<string> => {
         const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "" };
 
         return ProjectCreate(
@@ -258,17 +258,16 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 withCredentials: true,
             },
             (response) => {
-                // TODO: get invite code from here & update
                 const data = response.data;
                 const id: string = data.projectid;
 
                 setProjects((p) => {
                     return [...p, { ...project, id, members: [ownUser] }];
                 });
-                return [id, "A72BC1"];
+                return id;
             },
             (_) => {
-                return ["", ""];
+                return "";
             }
         );
     };
