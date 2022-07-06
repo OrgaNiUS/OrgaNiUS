@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { DataContext } from "../context/DataProvider";
-import { IProjectCondensed } from "../types";
+import { DataContext } from "../../context/DataProvider";
+import { IProjectCondensed } from "../../types";
 
 const Container = styled.div`
     border-radius: 6px;

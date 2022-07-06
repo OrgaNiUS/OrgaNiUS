@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { BaseButton } from "../styles";
-import ProjectsList from "./ProjectsList";
+import ProjectsList from "../components/Projects/ProjectsList";
 
 const Message = styled.h1`
     font-size: 2rem;
@@ -48,9 +48,8 @@ const Projects = (): JSX.Element => {
                     <Link to="/project_create">
                         <ProjectButton>Create Project</ProjectButton>
                     </Link>
-                    {/* TODO: join project pops up a modal */}
-                    <ProjectButton disabled>Join Project (in the future!)</ProjectButton>
-                    <ProjectButton disabled>Find Project (in the future!)</ProjectButton>
+                    <ProjectButton disabled>Project Finder (in the future!)</ProjectButton>
+                    <ProjectButton disabled>Project Invites</ProjectButton>
                 </Buttons>
             </Container>
         </>
