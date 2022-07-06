@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -17,107 +18,133 @@ const Title = styled.h1`
 `;
 
 // TODO: InviteShape and fakeInvites are very temporary for just testing out the UI
+type state = "no" | "accepted" | "rejected";
 interface InviteShape {
     id: string;
     name: string;
+    state: state;
 }
 
 const fakeInvites: InviteShape[] = [
     {
         id: "best project",
         name: "OrgaNiUS 😎",
+        state: "no",
     },
     {
         id: "ofc its legit",
         name: "Non-shady project",
+        state: "no",
     },
     {
         id: "really long name ahead",
         name: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
     {
         id: "clone",
         name: "i'm a clone",
+        state: "no",
     },
 ];
 
@@ -138,31 +165,77 @@ const InviteAction = styled.button`
     }
 `;
 
-const handleAccept = (projectid: string) => {
-    // TODO: make this accept
-    console.log(`Accepted ${projectid}!`);
-};
+const Invite = ({
+    project,
+    handleAccept,
+    handleReject,
+    handleUndo,
+}: {
+    project: InviteShape;
+    handleAccept: (project: InviteShape) => void;
+    handleReject: (project: InviteShape) => void;
+    handleUndo: (project: InviteShape) => void;
+}): JSX.Element => {
+    const actions = {
+        no: (
+            <>
+                <InviteAction onClick={() => handleAccept(project)}>Accept</InviteAction>
+                <span className="select-none">{" · "}</span>
+                <InviteAction onClick={() => handleReject(project)}>Reject</InviteAction>
+            </>
+        ),
+        accepted: (
+            <InviteAction>
+                <Link to={`/project/${project.id}`}>Go to Project</Link>
+            </InviteAction>
+        ),
+        rejected: <InviteAction onClick={() => handleUndo(project)}>Undo...</InviteAction>,
+    };
 
-const handleReject = (projectid: string) => {
-    // TODO: make this reject
-    console.log(`Rejected ${projectid}!`);
-};
-
-const Invite = ({ project }: { project: InviteShape }): JSX.Element => {
     return (
         <InviteContainer>
             <InviteName>{project.name}</InviteName>
-            <InviteActions>
-                <InviteAction onClick={() => handleAccept(project.id)}>Accept</InviteAction>
-                <span className="select-none">{" · "}</span>
-                <InviteAction onClick={() => handleReject(project.id)}>Reject</InviteAction>
-            </InviteActions>
+            <InviteActions>{actions[project.state]}</InviteActions>
         </InviteContainer>
     );
 };
 
 const ProjectInvites = (): JSX.Element => {
     const [invites, setInvites] = useState<InviteShape[]>([]);
+
+    // abstracted out because similar code
+    const updateProjectState = (project: InviteShape, state: state) => {
+        setInvites((invites) => {
+            const invitesCopy: InviteShape[] = [...invites];
+            for (let i = 0; i < invites.length; i++) {
+                if (invitesCopy[i].id !== project.id) {
+                    continue;
+                }
+                invitesCopy[i] = {
+                    ...invitesCopy[i],
+                    state,
+                };
+                break;
+            }
+            return invitesCopy;
+        });
+    };
+
+    const handleAccept = (project: InviteShape) => {
+        updateProjectState(project, "accepted");
+
+        // TODO: send to server
+    };
+
+    const handleReject = (project: InviteShape) => {
+        updateProjectState(project, "rejected");
+
+        // TODO: send to server
+    };
+
+    const handleUndo = (project: InviteShape) => {
+        updateProjectState(project, "no");
+    };
 
     useEffect(() => {
         // TODO: seed the invites from the server
@@ -173,7 +246,7 @@ const ProjectInvites = (): JSX.Element => {
         <Container>
             <Title>Project Invites</Title>
             {invites.map((project, key) => {
-                return <Invite key={key} {...{ project }} />;
+                return <Invite key={key} {...{ project, handleAccept, handleReject, handleUndo }} />;
             })}
         </Container>
     );
