@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
@@ -39,7 +38,7 @@ func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) erro
 	return nil
 }
 
-func (c *TaskController) TaskModify(ctx context.Context, taskid string, name, description, deadline *string, isdone *bool, addAssignedTo, removeAssignedTo *[]string) error {
+func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.ObjectID, name, description, deadline *string, isdone *bool, addAssignedTo, removeAssignedTo *[]string) {
 	setParams := bson.D{}
 	if name != nil {
 		setParams = append(setParams, bson.E{Key: "name", Value: *name})
@@ -57,11 +56,11 @@ func (c *TaskController) TaskModify(ctx context.Context, taskid string, name, de
 
 	addParams := bson.D{}
 	if addAssignedTo != nil {
-		addParams = append(addParams, bson.E{Key: "assignedTo", Value: *addAssignedTo})
+		addParams = append(addParams, bson.E{Key: "assignedTo", Value: bson.D{{Key: "$each", Value: *addAssignedTo}}})
 	}
 	removeParams := bson.D{}
 	if removeAssignedTo != nil {
-		removeParams = append(removeParams, bson.E{Key: "assignedTo", Value: *removeAssignedTo})
+		removeParams = append(removeParams, bson.E{Key: "assignedTo", Value: bson.D{{Key: "$in", Value: *removeAssignedTo}}})
 	}
 
 	update := bson.D{
@@ -69,15 +68,8 @@ func (c *TaskController) TaskModify(ctx context.Context, taskid string, name, de
 		{Key: "$addToSet", Value: addParams},
 		{Key: "$pull", Value: removeParams},
 	}
-	// TODO: remove prints (i love print debugging)
-	fmt.Println(update)
 
-	objectid, err := primitive.ObjectIDFromHex(taskid)
-	if err != nil {
-		return err
-	}
-	c.Collection(taskCollection).UpdateByID(ctx, objectid, update)
-	return nil
+	c.Collection(taskCollection).UpdateByID(ctx, taskid, update)
 }
 
 func (c *TaskController) TaskDelete(ctx context.Context, id string) error {

@@ -369,7 +369,7 @@ Input: A JSON body with the following parameters. name is only **required** para
 {
   name: string; // required, rest optional
   description: string;
-  assignedTo: string[];
+  assignedTo: string[]; // string[] of userid
   projectID: string;
   deadline: string; // ISO 8601 format
 }
@@ -397,8 +397,8 @@ For assignedTo array, do parse the changes on the client side and pass in the de
 {
   taskid: string;
   name: string;
-  addAssignedTo: string[],    // string[] is userids
-  removeAssignedTo: string[], // string[] is userids
+  addAssignedTo: string[],    // string[] of userids
+  removeAssignedTo: string[], // string[] of userids
   description: string;
   deadline: string; // ISO8601 format
   isDone: bool;
