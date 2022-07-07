@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import PreLoader from "../components/PreLoader";
+import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
@@ -58,6 +59,7 @@ const Project = (): JSX.Element => {
     const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
 
     const doneTrigger = (task: ITask) => {
         data.patchTask({
@@ -184,12 +186,13 @@ const Project = (): JSX.Element => {
             }}
         >
             <Container>
+                {showInviteWindow && <ProjectsInvite {...{ setShowInviteWindow }} />}
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                     <ButtonArray>
                         {/* TODO: in future */}
                         <Button disabled>Settings</Button>
-                        <Button disabled>Invite</Button>
+                        <Button onClick={() => setShowInviteWindow(true)}>Invite</Button>
                     </ButtonArray>
                 </Row>
                 <Row>

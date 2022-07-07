@@ -200,6 +200,9 @@ const Invite = ({
     );
 };
 
+/**
+ * For clarity, this is the invites panel for a user to accept/decline invites.
+ */
 const ProjectInvites = (): JSX.Element => {
     const [invites, setInvites] = useState<InviteShape[]>([]);
 
