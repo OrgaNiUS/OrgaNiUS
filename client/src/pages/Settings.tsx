@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { UserDelete, UserGetSelf, UserPatch } from "../api/UserAPI";
 import Modal from "../components/Modal";
-import { validEmail, validPassword, validUsername } from "../components/regex";
+import { validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
 import { deleteCookie } from "../functions/cookies";
 import { toTitleCase } from "../functions/strings";
@@ -14,14 +14,12 @@ import { BaseButton } from "../styles";
 // validityChecks object in Settings
 interface Fields {
     name: string;
-    email: string;
     password: string;
     confirm_password: string;
 }
 
 const defaultFields: Fields = {
     name: "",
-    email: "",
     password: "",
     confirm_password: "",
 };
@@ -29,7 +27,7 @@ const defaultFields: Fields = {
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
 // https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings
-const keys: (keyof Fields)[] = ["name", "email", "password"];
+const keys: (keyof Fields)[] = ["name", "password"];
 
 const centered = css`
     text-align: center;
@@ -153,10 +151,6 @@ const Settings = (): JSX.Element => {
             const name: string = fields["name"];
             return validUsername.test(name);
         },
-        email: () => {
-            const email: string = fields["email"];
-            return validEmail.test(email);
-        },
         password: () => {
             const name: string = auth.auth.user || "";
             const password: string = fields["password"];
@@ -171,13 +165,13 @@ const Settings = (): JSX.Element => {
     };
 
     useEffect(() => {
-        // get user name and email and populate fields on page load
+        // get user name and populate fields on page load
         UserGetSelf(
             auth.axiosInstance,
             (response) => {
                 const data = response.data;
                 setFields((f) => {
-                    return { ...f, name: data["name"], email: data["email"] };
+                    return { ...f, name: data["name"] };
                 });
             },
             (err) => {
