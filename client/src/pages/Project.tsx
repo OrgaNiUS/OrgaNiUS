@@ -192,6 +192,9 @@ const Project = (): JSX.Element => {
                     <ButtonArray>
                         {/* TODO: in future */}
                         <Button disabled>Settings</Button>
+                        <Button>
+                            <Link to={`/project_applications/${projectid}`}>Applications</Link>
+                        </Button>
                         <Button onClick={() => setShowInviteWindow(true)}>Invite</Button>
                     </ButtonArray>
                 </Row>
