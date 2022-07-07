@@ -13,7 +13,9 @@ import (
 )
 
 // name: string, description: string, assignedTo: string[userids], deadline: time.Time, projectID: string
-// No projectid -> Personal Task, projectid and No Users -> A project task, waiting to be assigned, projectId and Users -> A project task is assigned to users
+// No projectid -> Personal Task;
+// projectid and No Users -> A project task, waiting to be assigned;
+// projectId and Users -> A project task is assigned to users
 func TaskCreate(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
@@ -69,7 +71,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 			}
 			// Add Users to newly Created Task
 			task.AssignedTo = []string{}
-			copy(task.AssignedTo, query.Users)
+			task.AssignedTo = append(task.AssignedTo, query.Users...)
 			if err := taskController.TaskCreate(ctx, &task); err != nil {
 				DisplayError(ctx, err.Error())
 				return
@@ -87,7 +89,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 				userController.UserModifyTask(ctx, &user)
 			}
 			// Add Task to Project.Tasks Array
-			project.Tasks[taskid] = struct{}{}
+			project.Tasks = append(project.Tasks, taskid)
 			projectController.ProjectModifyTask(ctx, &project)
 		}
 
@@ -110,7 +112,8 @@ func TaskDelete(userController controllers.UserController, projectController con
 		if len(tasks) == 0 {
 			DisplayError(ctx, "please provide a task to delete")
 		}
-		// if True delete Personal Task, else delete Project Task
+		// if True delete Personal Task,
+		// else delete Project Task
 		if projectid == "" {
 			user, err := userController.UserRetrieve(ctx, id, "")
 			if err == mongo.ErrNoDocuments {
@@ -131,24 +134,17 @@ func TaskDelete(userController controllers.UserController, projectController con
 			userController.UserModifyTask(ctx, &user)
 			ctx.JSON(http.StatusOK, gin.H{})
 		} else {
-			project, err := projectController.ProjectRetrieve(ctx, projectid)
-			if err == mongo.ErrNoDocuments {
-				DisplayError(ctx, "project does not exist")
-			} else if err != nil {
-				DisplayError(ctx, err.Error())
-			}
+			// delete the tasks from project
+			projectController.ProjectDeleteTasks(ctx, projectid, tasks)
+
+			// delete each taskid from each user
 			for _, taskid := range tasks {
-				_, containsTask := project.Tasks[taskid]
-				if !containsTask {
-					continue
-				}
 				task, err := taskController.TaskRetrieve(ctx, taskid)
 				if err == mongo.ErrNoDocuments {
 					DisplayError(ctx, "task does not exist")
 				} else if err != nil {
 					DisplayError(ctx, err.Error())
 				}
-
 				for _, userid := range task.AssignedTo {
 					user, err := userController.UserRetrieve(ctx, userid, "")
 					if err == mongo.ErrNoDocuments {
@@ -159,13 +155,10 @@ func TaskDelete(userController controllers.UserController, projectController con
 					delete(user.Tasks, taskid)
 					userController.UserModifyTask(ctx, &user)
 				}
-
-				delete(project.Tasks, taskid)
-				if err := taskController.TaskDelete(ctx, taskid); err != nil {
-					DisplayError(ctx, err.Error())
-				}
 			}
-			projectController.ProjectModifyTask(ctx, &project)
+
+			// delete all tasks from taskCollection
+			taskController.TaskDeleteMany(ctx, tasks)
 			ctx.JSON(http.StatusOK, gin.H{})
 		}
 	}

@@ -27,6 +27,9 @@ type TaskCollectionInterface interface {
 
 	// Deletes a task by ID
 	DeleteByID(ctx context.Context, id string) (int64, error)
+
+	// Delete many tasks from Task Collection
+	DeleteMany(ctx context.Context, params bson.D) (int64, error)
 }
 
 type TaskCollection struct {
@@ -85,6 +88,14 @@ func (c *TaskCollection) DeleteByID(ctx context.Context, id string) (int64, erro
 	}
 	params := bson.D{{Key: "_id", Value: objectID}}
 	result, err := c.taskCollection.DeleteOne(ctx, params)
+	if err != nil {
+		return -1, err
+	}
+	return result.DeletedCount, nil
+}
+
+func (c *TaskCollection) DeleteMany(ctx context.Context, params bson.D) (int64, error) {
+	result, err := c.taskCollection.DeleteMany(ctx, params)
 	if err != nil {
 		return -1, err
 	}
