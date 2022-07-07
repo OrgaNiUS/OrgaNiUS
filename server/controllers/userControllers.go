@@ -28,6 +28,12 @@ type UserCollectionInterface interface {
 	// Modifies/patches a user by ID.
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
 
+	// Modifies all userids
+	UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
+
+	// Modifies all users
+	UpdateAll(ctx context.Context, params bson.D) (*mongo.UpdateResult, error)
+
 	// Deletes a user by ID.
 	DeleteByID(ctx context.Context, id string) (int64, error)
 }
@@ -83,6 +89,22 @@ func (c *UserCollection) InsertOne(ctx context.Context, user *models.User) (prim
 
 func (c *UserCollection) UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
 	result, err := c.userCollection.UpdateByID(ctx, id, params)
+	if err != nil {
+		return nil, err
+	}
+	return result, err
+}
+
+func (c *UserCollection) UpdateAll(ctx context.Context, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.userCollection.UpdateMany(ctx, bson.D{}, params)
+	if err != nil {
+		return nil, err
+	}
+	return result, err
+}
+
+func (c *UserCollection) UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.userCollection.UpdateMany(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: useridArr}}}}, params)
 	if err != nil {
 		return nil, err
 	}
