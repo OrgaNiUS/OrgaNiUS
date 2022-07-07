@@ -5,6 +5,7 @@ import { UserDelete, UserGetSelf, UserPatch } from "../api/UserAPI";
 import Modal from "../components/Modal";
 import { validEmail, validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
+import { deleteCookie } from "../functions/cookies";
 import { toTitleCase } from "../functions/strings";
 import { BaseButton } from "../styles";
 
@@ -248,10 +249,9 @@ const Settings = (): JSX.Element => {
         UserDelete(
             auth.axiosInstance,
             (_) => {
-                auth.setAuth({
-                    user: undefined,
-                    loggedIn: false,
-                });
+                // also delete from client side (sometimes doesn't get deleted properly otherwise, maybe racing on the server?)
+                deleteCookie("jwt");
+                auth.setAuth({ user: undefined, loggedIn: false });
                 navigate("/");
             },
             (err) => {
