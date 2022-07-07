@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { toTitleCase } from "../../functions/strings";
 import { BaseButton, IconButton } from "../../styles";
 import { IUser } from "../../types";
 
@@ -159,6 +160,7 @@ const Application = ({
                 <ApplicationName>{application.name}</ApplicationName>
             </div>
             <div>{application.description}</div>
+            {application.state !== "no" && <div>State: {toTitleCase(application.state)}</div>}
         </ApplicationCard>
     );
 };
