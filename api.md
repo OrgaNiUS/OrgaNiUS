@@ -295,6 +295,57 @@ Output:
 
 Status Code: 201 or 400
 
+### User Apply to Project
+
+PATCH "/user_apply"
+
+Allows user to apply to join a project.
+
+Input: Query parameters of "projectid"
+
+Example usage:
+
+```
+PATCH {url}/user_apply?projectid=48321740872149281
+
+```
+
+Status Code: 200 or 400
+
+### User Accept Invite to Project
+
+PATCH "/user_accept"
+
+User accepts invite to a project and joins the project.
+
+Input: Query parameters of "projectid"
+
+Example usage:
+
+```
+PATCH {url}/user_accept?projectid=48321740872149281
+
+```
+
+Status Code: 200 or 400
+
+### User Reject Invite to Project
+
+PATCH "/user_reject"
+
+User rejects invite to a project.
+
+Input: Query parameters of "projectid"
+
+Example usage:
+
+```
+PATCH {url}/user_reject?projectid=48321740872149281
+
+```
+
+Status Code: 200 or 400
+
 ### Get Project
 
 GET "/project_get"
@@ -319,7 +370,8 @@ Output:
   "members": [
       {
           "name": string,
-          "id": string
+          "id": string,
+          "role": string
       }
   ],
   "name": "Project1",
@@ -351,6 +403,91 @@ Output:
     "description": string,
     "creationTime": string;
 }
+```
+
+Status Code: 200 or 400
+
+### Project Modify
+
+PATCH "/project_modify"
+
+Allows admin to modify Name, Description and Public status of project.
+
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+{
+    name: string; // required, rest optional
+    projectid: string;
+    description: string; // string[] of userid
+    isPublic: boolean;
+}
+```
+
+Status Code: 200 or 400
+
+### Project Invite User
+
+PATCH "/project_invite"
+
+Allows admin to invite users to project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+{
+  userids: string[]; // will include a parameter to take in usernames instead soon
+  projectid: string;
+}
+```
+
+Status Code: 200 or 400
+
+### Project Choose Users
+
+PATCH "/project_choose"
+
+Allows admin to choose which applied users to add to project.
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+{
+  projectid: string; // required, rest optional
+  acceptedUsers: string[]; // string[] of userid, if want to use name, change function in controller from UpdateManyById to UpdateManyByName
+  rejectedUsers: string[]; // string[] of userid, if want to use name, change function in controller from UpdateManyById to UpdateManyByName
+}
+```
+
+Status Code: 200 or 400
+
+### Project Remove User
+
+PATCH "/project_remove_user"
+
+Allows admin to remove users.
+
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+{
+  projectid: string;
+  userids: string[]; // string[] of userid
+}
+```
+
+Status Code: 200 or 400
+
+### Project Delete
+
+DELETE "/project_delete"
+
+Allows admin to delete project.
+
+Example usage:
+
+```
+DELETE {url}/project_delete?projectid=48321740872149281
+
 ```
 
 Status Code: 200 or 400
