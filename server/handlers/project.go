@@ -34,7 +34,11 @@ func ProjectGet(userController controllers.UserController, projectController con
 				Role string `bson:"role" json:"role"`
 			}
 			userArr := []NameIdRole{}
-			for _, user := range userController.UserMapToArray(ctx, project.Members) {
+			useridStrArr := []string{}
+			for userid := range project.Members {
+				useridStrArr = append(useridStrArr, userid)
+			}
+			for _, user := range userController.UserMapToArray(ctx, useridStrArr) {
 				var nameid NameIdRole
 				nameid.Name = user.Name
 				nameid.Id = user.Id.Hex()
@@ -160,6 +164,59 @@ func ProjectInviteUser(userController controllers.UserController, jwtParser *aut
 		}
 		userController.UsersInviteFromProject(ctx, query.UserIds, query.Id)
 		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+func ProjectGetApplicants(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+
+		project, err := projectController.ProjectRetrieve(ctx, projectid)
+		if err != nil {
+			DisplayError(ctx, "project not found")
+		}
+
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+
+		size := len(project.Applications)
+		userids := make([]string, size)
+
+		i := 0
+		for k := range project.Applications {
+			userids[i] = k
+			i++
+		}
+
+		users := userController.UserMapToArray(ctx, userids)
+
+		type resultType struct {
+			Id          string `bson:"id" json:"id"`
+			Name        string `bson:"name" json:"name"`
+			Description string `bson:"description" json:"description"`
+		}
+
+		result := make([]resultType, size)
+
+		for i, user := range users {
+			id := user.Id.Hex()
+			result[i] = resultType{
+				Id:          id,
+				Name:        user.Name,
+				Description: project.Applications[id].Description,
+			}
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"applicants": result,
+		})
 	}
 }
 

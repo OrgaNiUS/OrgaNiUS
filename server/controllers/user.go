@@ -219,10 +219,10 @@ func (c *UserController) UserModifyTask(ctx context.Context, user *models.User) 
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-func (c *UserController) UserMapToArray(ctx context.Context, Users map[string]string) []models.User {
+func (c *UserController) UserMapToArray(ctx context.Context, useridStrArr []string) []models.User {
 	usersArray := []models.User{}
 	useridArr := []primitive.ObjectID{}
-	for userid := range Users {
+	for _, userid := range useridStrArr {
 		id, _ := primitive.ObjectIDFromHex(userid)
 		useridArr = append(useridArr, id)
 	}

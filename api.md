@@ -328,6 +328,7 @@ Outut:
     description: string;
     members: { [key: string]: string } /* username -> role */
   }
+  [];
 }
 ```
 
@@ -463,6 +464,43 @@ Input: A JSON body with the following **required** parameters.
 ```
 
 Status Code: 200 or 400
+
+### Project Get Applications
+
+GET "/project_get_applications"
+
+User must be admin of the project. Otherwise, status code of 400.
+
+Input: Query parameter of "projectid" (required).
+
+Output:
+
+```typescript
+{
+    applicants: {
+        id: string; /* userid of applicant, needed for project_choose */
+        name: string; /* name of applicant, for UI display */
+        description: string; /* if the applicant did not write a description, this is blank! */
+    }
+    [];
+}
+```
+
+Example output:
+
+```typescript
+{
+    "applicants": [
+        {
+            "id": "62c7a851de1f35440890e8da",
+            "name": "User5",
+            "description": "user5 wanna apply"
+        }
+    ]
+}
+```
+
+Status Code: 200 or 400 or 401
 
 ### Project Choose Users
 
