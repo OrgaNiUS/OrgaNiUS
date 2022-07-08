@@ -476,6 +476,49 @@ func UserApplyProject(projectController controllers.ProjectController, jwtParser
 	}
 }
 
+// does not take in any parameters
+// returns a list of sanitied project invites
+func UserGetProjectInvites(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		userModel, err := userController.UserRetrieve(ctx, id, "")
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		}
+
+		projectids := userModel.Projects
+		projects := projectController.ProjectArrayToModel(ctx, projectids)
+
+		type invite struct {
+			Id          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+			Name        string             `bson:"name" json:"name"`
+			Description string             `bson:"description" json:"description"`
+			Members     map[string]string  `bson:"members" json:"members"` // Key: UserID, Value: Role
+		}
+
+		invites := []invite{}
+
+		for _, project := range projects {
+			invites = append(invites, invite{
+				Id:          project.Id,
+				Name:        project.Name,
+				Description: project.Description,
+				Members:     project.Members,
+			})
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"projects": invites,
+		})
+	}
+}
+
 // Input parameters projectid: string Query
 // Approach 2: Whenever the user accepts a project, call backend to update
 func UserAcceptProject(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {

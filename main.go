@@ -51,6 +51,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/user_exists", handlers.UserExistsGet(userController))
 	v1.GET("/user", handlers.UserGet(userController))
 
+	v1.GET("/user_get_project_invites", handlers.UserGetProjectInvites(userController, projectController, jwtParser))
 	v1.PATCH("/user_apply", handlers.UserApplyProject(projectController, jwtParser))
 	v1.PATCH("/user_accept", handlers.UserAcceptProject(userController, projectController, jwtParser))
 	v1.PATCH("/user_reject", handlers.UserRejectProject(userController, projectController, jwtParser))

@@ -312,6 +312,27 @@ PATCH {url}/user_apply?projectid=48321740872149281
 
 Status Code: 200 or 400
 
+### User Get Project Invites
+
+GET "/user_get_project_invites"
+
+Input: None
+
+Outut:
+
+```typescript
+{
+  projects: {
+    id: string; /* project id */
+    name: string;
+    description: string;
+    members: { [key: string]: string } /* username -> role */
+  }
+}
+```
+
+Status Code: 200 or 400
+
 ### User Accept Invite to Project
 
 PATCH "/user_accept"
