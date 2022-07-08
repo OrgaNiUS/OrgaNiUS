@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { ProjectGetApplications } from "../../api/ProjectAPI";
+import { ProjectChoose, ProjectGetApplications } from "../../api/ProjectAPI";
 import AuthContext from "../../context/AuthProvider";
 import { toTitleCase } from "../../functions/strings";
 import { BaseButton, IconButton } from "../../styles";
@@ -78,10 +78,10 @@ interface DataShape {
 
 type state = "no" | "accepted" | "rejected";
 interface ApplicationShape {
-    id: string;
-    name: string;
-    description: string;
-    state: state;
+    id: string; // userid of applicant
+    name: string; // name of applicant
+    description: string; // description that applicant provided
+    state: state; // current state of application
 }
 
 const Application = ({
@@ -116,7 +116,9 @@ const ProjectApplications = (): JSX.Element => {
     const [pageData, setPageData] = useState<DataShape | undefined>(undefined);
     const { id: projectid } = useParams();
 
-    useEffect(() => {
+    const loadData = () => {
+        setLoading(true);
+
         ProjectGetApplications(
             auth.axiosInstance,
             { projectid: projectid ?? "" },
@@ -135,7 +137,10 @@ const ProjectApplications = (): JSX.Element => {
             },
             () => {}
         );
+    };
 
+    useEffect(() => {
+        loadData();
         // eslint-disable-next-line
     }, []);
 
@@ -174,9 +179,39 @@ const ProjectApplications = (): JSX.Element => {
     };
 
     const handleSubmit = () => {
-        console.log("parsing & sending");
+        if (pageData === undefined || projectid === undefined) {
+            // should never happen because the button to submit would not be displayed anyways
+            // so this is more for typechecking
+            return;
+        }
 
-        // TODO: send to server!
+        const accepted: ApplicationShape[] = pageData.applications.filter((app) => app.state === "accepted");
+        const rejected: ApplicationShape[] = pageData.applications.filter((app) => app.state === "rejected");
+
+        setPageData((data) => {
+            if (data === undefined) {
+                return undefined;
+            }
+
+            return {
+                ...data,
+                applications: data.applications.filter((app) => app.state === "no"),
+            };
+        });
+
+        // payload only requires userid
+        const payload = {
+            projectid: projectid,
+            acceptedUsers: accepted.map((app) => app.id),
+            rejectedUsers: rejected.map((app) => app.id),
+        };
+
+        ProjectChoose(
+            auth.axiosInstance,
+            payload,
+            () => {},
+            () => {}
+        );
     };
 
     if (pageData === undefined) {
@@ -188,13 +223,19 @@ const ProjectApplications = (): JSX.Element => {
         );
     }
 
+    // TODO: add catch for no applications!
+
     return (
         <Container>
             <Link to={`/project/${projectid}`}>⬅️ Back to Project</Link>
             <Row>
                 <Title>{pageData.name}</Title>
-                {/* TODO: disable button if no changes yet */}
-                <ButtonSubmit type="button" onClick={handleSubmit}>
+                {/* TODO: add button to refresh data */}
+                <ButtonSubmit
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={!pageData.applications.some((app) => app.state !== "no")}
+                >
                     Send changes!
                 </ButtonSubmit>
             </Row>

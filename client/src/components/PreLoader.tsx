@@ -8,6 +8,7 @@ const Container = styled.div`
     height: 100%;
     justify-content: center;
     left: 0;
+    pointer-events: none; /* allows one to click on the elements below the preloader */
     position: fixed;
     top: 0;
     width: 100%;
