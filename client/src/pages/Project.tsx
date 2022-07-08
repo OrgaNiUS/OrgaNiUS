@@ -62,10 +62,13 @@ const Project = (): JSX.Element => {
     const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
 
     const doneTrigger = (task: ITask) => {
-        data.patchTask({
-            id: task.id,
-            isDone: !task.isDone,
-        });
+        data.patchTask(
+            {
+                id: task.id,
+                isDone: !task.isDone,
+            },
+            task
+        );
 
         setTasks((t) => {
             const tasksCopy: ITask[] = [...t];
@@ -183,6 +186,7 @@ const Project = (): JSX.Element => {
                 trashTrigger,
                 createCallback,
                 editCallback,
+                members: project.members,
             }}
         >
             <Container>

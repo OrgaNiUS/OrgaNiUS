@@ -25,12 +25,14 @@ export const TaskCreate = CreatePostFunction<TaskCreateData>("/task_create");
 
 /**
  * Only fill in the fields that are to be changed.
- * assignedTo is userid.
+ * addAssignedTo and removeAssignedTo are userid.
+ * Recommended to use `getDeltaOfArrays` from `arrays.ts` module for convenience.
  */
 export type TaskPatchData = {
     taskid: string;
     name?: string;
-    assignedTo?: string[];
+    addAssignedTo?: string[];
+    removeAssignedTo?: string[];
     description?: string;
     deadline?: string;
     isDone?: boolean;

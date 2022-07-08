@@ -48,6 +48,13 @@ func (c *MockCollection) FindOne(ctx context.Context, user *models.User, id, nam
 func (c *MockCollection) FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error {
 	return nil
 }
+func (c *MockCollection) UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	return nil, nil
+}
+
+func (c *MockCollection) UpdateAll(ctx context.Context, params bson.D) (*mongo.UpdateResult, error) {
+	return nil, nil
+}
 
 func (c *MockCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
 	if user.Id == primitive.NilObjectID {
