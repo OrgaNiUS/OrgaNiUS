@@ -470,8 +470,8 @@ Input: A JSON body with the following **required** parameters.
 
 ```typescript
 {
-  userids: string[]; // will include a parameter to take in usernames instead soon
   projectid: string;
+  users: string[]; // usernames
 }
 ```
 

@@ -201,14 +201,9 @@ func (c *UserController) UsersDeleteProject(ctx context.Context, useridArr []str
 	}
 }
 
-func (c *UserController) UsersInviteFromProject(ctx context.Context, useridArr []string, projectId string) {
+func (c *UserController) UsersInviteFromProject(ctx context.Context, usernames []string, projectId string) {
 	params := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "invites", Value: projectId}}}}
-	var primitiveArr []primitive.ObjectID
-	for _, userid := range useridArr {
-		primitiveId, _ := primitive.ObjectIDFromHex(userid)
-		primitiveArr = append(primitiveArr, primitiveId)
-	}
-	c.Collection(userCollection).UpdateManyByID(ctx, primitiveArr, params)
+	c.Collection(userCollection).UpdateManyByName(ctx, usernames, params)
 }
 
 // Modifies task array of user

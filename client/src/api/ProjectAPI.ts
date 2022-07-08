@@ -13,6 +13,12 @@ type ProjectCreateData = {
 };
 export const ProjectCreate = CreatePostFunction<ProjectCreateData>("/project_create");
 
+type ProjectInviteData = {
+    users: string[] /* EXACT usernames */;
+    projectid: string;
+};
+export const ProjectInvite = CreatePatchFunction<ProjectInviteData>("/project_invite");
+
 type ProjectGetApplicationsParams = {
     projectid: string;
 };

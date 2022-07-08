@@ -158,15 +158,15 @@ func ProjectInviteUser(userController controllers.UserController, jwtParser *aut
 			return
 		}
 		type Query struct {
-			Id      string   `bson:"projectid" json:"projectid"`
-			UserIds []string `bson:"userids" json:"userids"`
+			Id        string   `bson:"projectid" json:"projectid"`
+			Usernames []string `bson:"users" json:"users"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
-		userController.UsersInviteFromProject(ctx, query.UserIds, query.Id)
+		userController.UsersInviteFromProject(ctx, query.Usernames, query.Id)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }

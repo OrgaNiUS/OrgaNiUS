@@ -21,12 +21,17 @@ type UserCollectionInterface interface {
 	// Find All users in id array
 	FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error
 
+	FindAllByName(ctx context.Context, usernames []string, UserArr *[]models.User) error
+
 	// Insert a new user into the database.
 	// Returns the object ID.
 	InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error)
 
 	// Modifies/patches a user by ID.
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
+
+	// Modifies all usernames
+	UpdateManyByName(ctx context.Context, usernames []string, params bson.D) (*mongo.UpdateResult, error)
 
 	// Modifies all userids
 	UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
@@ -69,13 +74,21 @@ func (c *UserCollection) FindOne(ctx context.Context, user *models.User, id, nam
 	return user, err
 }
 
-func (c *UserCollection) FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error {
-	cur, err := c.userCollection.Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: useridArr}}}})
+func (c *UserCollection) FindAllByField(ctx context.Context, field string, arr interface{}, UserArr *[]models.User) error {
+	cur, err := c.userCollection.Find(ctx, bson.D{{Key: field, Value: bson.D{{Key: "$in", Value: arr}}}})
 	if err != nil {
 		return err
 	}
 	cur.All(ctx, UserArr)
 	return nil
+}
+
+func (c *UserCollection) FindAll(ctx context.Context, useridArr []primitive.ObjectID, UserArr *[]models.User) error {
+	return c.FindAllByField(ctx, "_id", useridArr, UserArr)
+}
+
+func (c *UserCollection) FindAllByName(ctx context.Context, usernames []string, UserArr *[]models.User) error {
+	return c.FindAllByField(ctx, "name", usernames, UserArr)
 }
 
 func (c *UserCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
@@ -103,12 +116,20 @@ func (c *UserCollection) UpdateAll(ctx context.Context, params bson.D) (*mongo.U
 	return result, err
 }
 
-func (c *UserCollection) UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
-	result, err := c.userCollection.UpdateMany(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: useridArr}}}}, params)
+func (c *UserCollection) UpdateManyByField(ctx context.Context, field string, arr interface{}, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.userCollection.UpdateMany(ctx, bson.D{{Key: field, Value: bson.D{{Key: "$in", Value: arr}}}}, params)
 	if err != nil {
 		return nil, err
 	}
 	return result, err
+}
+
+func (c *UserCollection) UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	return c.UpdateManyByField(ctx, "_id", useridArr, params)
+}
+
+func (c *UserCollection) UpdateManyByName(ctx context.Context, usernames []string, params bson.D) (*mongo.UpdateResult, error) {
+	return c.UpdateManyByField(ctx, "name", usernames, params)
 }
 
 func (c *UserCollection) DeleteByID(ctx context.Context, id string) (int64, error) {

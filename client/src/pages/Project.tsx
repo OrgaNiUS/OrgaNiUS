@@ -159,7 +159,7 @@ const Project = (): JSX.Element => {
         // eslint-disable-next-line
     }, []);
 
-    if (project === undefined) {
+    if (project === undefined || projectid === undefined) {
         return (
             <Container>
                 <Row className="my-2">
@@ -173,7 +173,7 @@ const Project = (): JSX.Element => {
     return (
         <TodoProvider
             {...{
-                projectid: projectid ?? "",
+                projectid,
                 tasks,
                 defaultFilterOptions: filterOptions,
                 setIsModalShown: undefined,
@@ -185,7 +185,7 @@ const Project = (): JSX.Element => {
             }}
         >
             <Container>
-                {showInviteWindow && <ProjectsInvite {...{ setShowInviteWindow }} />}
+                {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                     <ButtonArray>

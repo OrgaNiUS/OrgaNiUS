@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import styled from "styled-components";
+import { ProjectInvite } from "../../api/ProjectAPI";
+import AuthContext from "../../context/AuthProvider";
 import { BaseButton, InputCSS } from "../../styles";
 
 const Container = styled.div`
@@ -53,10 +55,13 @@ const ButtonCancel = styled(BaseButton)`
  * For clarity, this is the invitation panel for a admin of a project to invite other users.
  */
 const ProjectsInvite = ({
+    projectid,
     setShowInviteWindow,
 }: {
+    projectid: string;
     setShowInviteWindow: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element => {
+    const auth = useContext(AuthContext);
     const [allInvites, setAllInvites] = useState<Set<string>>(new Set());
     const [currentInvite, setCurrentInvite] = useState<string>("");
 
@@ -95,9 +100,15 @@ const ProjectsInvite = ({
         event.preventDefault();
 
         setAllInvites(new Set());
-        console.log("submitting!");
 
-        // TODO: send to server!
+        const users: string[] = Array.from(allInvites);
+
+        ProjectInvite(
+            auth.axiosInstance,
+            { users, projectid },
+            () => {},
+            () => {}
+        );
     };
 
     return (
