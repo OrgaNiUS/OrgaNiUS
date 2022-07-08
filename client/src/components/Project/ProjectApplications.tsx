@@ -228,14 +228,18 @@ const ProjectApplications = (): JSX.Element => {
             <Link to={`/project/${projectid}`}>⬅️ Back to Project</Link>
             <Row>
                 <Title>{pageData.name}</Title>
-                {/* TODO: add button to refresh data */}
-                <ButtonSubmit
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={!pageData.applications.some((app) => app.state !== "no")}
-                >
-                    Send changes!
-                </ButtonSubmit>
+                <div>
+                    <ButtonSubmit type="button" onClick={loadData}>
+                        Refresh
+                    </ButtonSubmit>
+                    <ButtonSubmit
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={!pageData.applications.some((app) => app.state !== "no")}
+                    >
+                        Send changes!
+                    </ButtonSubmit>
+                </div>
             </Row>
             <ApplicationsContainer>
                 {pageData.applications.length === 0 ? (
