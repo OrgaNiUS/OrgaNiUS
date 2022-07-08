@@ -223,8 +223,6 @@ const ProjectApplications = (): JSX.Element => {
         );
     }
 
-    // TODO: add catch for no applications!
-
     return (
         <Container>
             <Link to={`/project/${projectid}`}>⬅️ Back to Project</Link>
@@ -240,9 +238,13 @@ const ProjectApplications = (): JSX.Element => {
                 </ButtonSubmit>
             </Row>
             <ApplicationsContainer>
-                {pageData.applications.map((app, key) => (
-                    <Application key={key} {...{ application: app, handleAccept, handleReject }} />
-                ))}
+                {pageData.applications.length === 0 ? (
+                    <div>No applications found!</div>
+                ) : (
+                    pageData.applications.map((app, key) => (
+                        <Application key={key} {...{ application: app, handleAccept, handleReject }} />
+                    ))
+                )}
             </ApplicationsContainer>
         </Container>
     );

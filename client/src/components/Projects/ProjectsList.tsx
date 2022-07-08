@@ -48,6 +48,14 @@ const ProjectsList = (): JSX.Element => {
         return <PreLoader {...{ loading: data.loading }} />;
     }
 
+    if (data.projects.length === 0) {
+        return (
+            <Container>
+                <div>No projects found!</div>
+            </Container>
+        );
+    }
+
     return (
         <Container>
             {data.projects.map((project, i) => {
