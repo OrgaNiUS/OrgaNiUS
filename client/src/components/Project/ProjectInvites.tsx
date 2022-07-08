@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { UserGetProjectInvites } from "../../api/UserAPI";
+import { UserAcceptInvite, UserGetProjectInvites, UserRejectInvite } from "../../api/UserAPI";
 import AuthContext from "../../context/AuthProvider";
 
 const Container = styled.div`
@@ -19,7 +19,7 @@ const Title = styled.h1`
     margin-bottom: 0.3rem;
 `;
 
-type state = "no" | "accepted" | "rejected";
+type state = "no" | "accepted";
 interface InviteShape {
     id: string;
     name: string;
@@ -47,12 +47,10 @@ const Invite = ({
     project,
     handleAccept,
     handleReject,
-    handleUndo,
 }: {
     project: InviteShape;
     handleAccept: (project: InviteShape) => void;
     handleReject: (project: InviteShape) => void;
-    handleUndo: (project: InviteShape) => void;
 }): JSX.Element => {
     const actions = {
         no: (
@@ -67,7 +65,6 @@ const Invite = ({
                 <Link to={`/project/${project.id}`}>Go to Project</Link>
             </InviteAction>
         ),
-        rejected: <InviteAction onClick={() => handleUndo(project)}>Undo...</InviteAction>,
     };
 
     return (
@@ -83,6 +80,7 @@ const Invite = ({
  */
 const ProjectInvites = (): JSX.Element => {
     const auth = useContext(AuthContext);
+    const [loading, setLoading] = useState<boolean>(true);
     const [invites, setInvites] = useState<InviteShape[]>([]);
 
     // abstracted out because similar code
@@ -104,19 +102,27 @@ const ProjectInvites = (): JSX.Element => {
     };
 
     const handleAccept = (project: InviteShape) => {
-        updateProjectState(project, "accepted");
-
-        // TODO: send to server
+        UserAcceptInvite(
+            auth.axiosInstance,
+            { projectid: project.id },
+            () => {
+                updateProjectState(project, "accepted");
+            },
+            () => {}
+        );
     };
 
     const handleReject = (project: InviteShape) => {
-        updateProjectState(project, "rejected");
-
-        // TODO: send to server
-    };
-
-    const handleUndo = (project: InviteShape) => {
-        updateProjectState(project, "no");
+        UserRejectInvite(
+            auth.axiosInstance,
+            { projectid: project.id },
+            () => {
+                setInvites((invites) => {
+                    return invites.filter((i) => i.id !== project.id);
+                });
+            },
+            () => {}
+        );
     };
 
     useEffect(() => {
@@ -130,20 +136,27 @@ const ProjectInvites = (): JSX.Element => {
                         return { ...proj, state: "no" };
                     })
                 );
+
+                setLoading(false);
             },
             () => {}
         );
-        setInvites([]);
+
         // eslint-disable-next-line
     }, []);
 
-    // TODO: add loading/no invites
+    const invitesSwitch = {
+        loading: <div>Loading!</div>,
+        ok: invites.map((project, key) => {
+            return <Invite key={key} {...{ project, handleAccept, handleReject }} />;
+        }),
+        empty: <div>No invites found!</div>,
+    };
+
     return (
         <Container>
             <Title>Project Invites</Title>
-            {invites.map((project, key) => {
-                return <Invite key={key} {...{ project, handleAccept, handleReject, handleUndo }} />;
-            })}
+            {loading ? invitesSwitch.loading : invites.length === 0 ? invitesSwitch.empty : invitesSwitch.ok}
         </Container>
     );
 };

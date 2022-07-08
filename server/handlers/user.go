@@ -534,18 +534,32 @@ func UserAcceptProject(userController controllers.UserController, projectControl
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		projectid := ctx.DefaultQuery("projectid", "")
+
+		type query struct {
+			Id string `bson:"projectid" json:"projectid"`
+		}
+		var q query
+
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, "bad params")
+			return
+		}
+		if q.Id == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
 		userid, _ := primitive.ObjectIDFromHex(id)
-		userController.UserAddProject(ctx, userid, projectid)          // Add project to user.Projects
-		userController.UserDeleteInvites(ctx, id, []string{projectid}) // Remove invite from user.Invites
-		project, err := projectController.ProjectRetrieve(ctx, projectid)
+		userController.UserAddProject(ctx, userid, q.Id)          // Add project to user.Projects
+		userController.UserDeleteInvites(ctx, id, []string{q.Id}) // Remove invite from user.Invites
+		project, err := projectController.ProjectRetrieve(ctx, q.Id)
 		if err == mongo.ErrNoDocuments {
 			DisplayError(ctx, "project does not exist")
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		}
 		project.Members[id] = "member"
-		projectController.ProjectAddUsers(ctx, projectid, &project) // Add user to project.Members
+		projectController.ProjectAddUsers(ctx, q.Id, &project) // Add user to project.Members
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
@@ -559,8 +573,22 @@ func UserRejectProject(userController controllers.UserController, projectControl
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		projectid := ctx.DefaultQuery("projectid", "")
-		userController.UserDeleteInvites(ctx, id, []string{projectid})
+
+		type query struct {
+			Id string `bson:"projectid" json:"projectid"`
+		}
+		var q query
+
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, "bad params")
+			return
+		}
+		if q.Id == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
+		userController.UserDeleteInvites(ctx, id, []string{q.Id})
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
