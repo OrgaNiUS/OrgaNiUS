@@ -147,15 +147,10 @@ const Project = (): JSX.Element => {
             return;
         }
 
-        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
-            setLoading(false);
-        }, 1000 * 5);
-
         data.getProject(projectid).then(([project, tasks]) => {
             setProject(project);
             setTasks(tasks);
             setLoading(false);
-            clearTimeout(loadingTimeout);
         });
 
         // including data.getProject and id will cause this to continuously fire
@@ -168,7 +163,7 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
-                <PreLoader {...{ loading }} />
+                <PreLoader {...{ loading, setLoading }} />
             </Container>
         );
     }
