@@ -301,7 +301,7 @@ PATCH "/user_apply"
 
 Allows user to apply to join a project.
 
-Input: Query parameters of "projectid"
+Input: Query parameters of "projectid" (required) and "description" (optional).
 
 Example usage:
 

@@ -465,13 +465,19 @@ func UserDelete(controller controllers.UserController, jwtParser *auth.JWTParser
 // input: projectid: string
 func UserApplyProject(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, _, ok := jwtParser.GetFromJWT(ctx)
+		userid, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
 		projectid := ctx.DefaultQuery("projectid", "")
-		projectController.ProjectAddAppl(ctx, projectid, id)
+		if projectid == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
+		description := ctx.DefaultQuery("description", "")
+		projectController.ProjectAddAppl(ctx, projectid, userid, description)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }

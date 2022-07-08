@@ -33,7 +33,7 @@ func (c *ProjectController) ProjectCreate(ctx context.Context, project *models.P
 	project.CreationTime = time.Now()
 	project.Tasks = []string{}
 	project.Settings = models.DefaultSettings()
-	project.Applications = []string{}
+	project.Applications = make(map[string]models.ProjectApplication)
 	project.IsPublic = true
 
 	id, err := c.Collection(projectCollection).InsertOne(ctx, project)
@@ -94,16 +94,23 @@ func (c *ProjectController) ProjectDeleteTasks(ctx context.Context, projectId st
 	c.Collection(projectCollection).UpdateByID(ctx, id, update)
 }
 
-func (c *ProjectController) ProjectAddAppl(ctx context.Context, projectId, userId string) {
-	update := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "applications", Value: userId}}}}
+// if the same user applies multiple times, it will override the previous application
+func (c *ProjectController) ProjectAddAppl(ctx context.Context, projectId, userId, description string) {
+	application := models.ProjectApplication{
+		Id:          userId,
+		Description: description,
+	}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "applications." + userId, Value: application}}}}
 	id, _ := primitive.ObjectIDFromHex(projectId)
 	c.Collection(projectCollection).UpdateByID(ctx, id, update)
 }
 
 func (c *ProjectController) ProjectRemoveAppl(ctx context.Context, projectId string, userIds []string) {
-	params := bson.D{}
-	params = append(params, bson.E{Key: "applications", Value: bson.D{{Key: "$in", Value: userIds}}})
-	update := bson.D{{Key: "$pull", Value: params}}
+	unsetIds := bson.D{}
+	for _, id := range userIds {
+		unsetIds = append(unsetIds, bson.E{Key: "applications." + id, Value: ""})
+	}
+	update := bson.D{{Key: "$unset", Value: unsetIds}}
 	id, _ := primitive.ObjectIDFromHex(projectId)
 	c.Collection(projectCollection).UpdateByID(ctx, id, update)
 }

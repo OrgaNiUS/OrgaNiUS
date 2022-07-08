@@ -7,15 +7,21 @@ import (
 )
 
 type Project struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string             `bson:"name" json:"name"`
-	Description  string             `bson:"description" json:"description"`
-	Members      map[string]string  `bson:"members" json:"members"` // Key: UserID, Value: Role
-	Tasks        []string           `bson:"tasks" json:"tasks"`
-	CreationTime time.Time          `bson:"creationTime" json:"creationTime"`
-	Settings     ProjectSettings    `bson:"settings" json:"settings"`
-	Applications []string           `bson:"applications" json:"applications"` // [userid]
-	IsPublic     bool               `bson:"isPublic" json:"isPublic"`
+	Id           primitive.ObjectID            `bson:"_id,omitempty" json:"id,omitempty"`
+	Name         string                        `bson:"name" json:"name"`
+	Description  string                        `bson:"description" json:"description"`
+	Members      map[string]string             `bson:"members" json:"members"` // Key: UserID, Value: Role
+	Tasks        []string                      `bson:"tasks" json:"tasks"`
+	CreationTime time.Time                     `bson:"creationTime" json:"creationTime"`
+	Settings     ProjectSettings               `bson:"settings" json:"settings"`
+	Applications map[string]ProjectApplication `bson:"applications" json:"applications"` // userid -> appliication
+	IsPublic     bool                          `bson:"isPublic" json:"isPublic"`
+}
+
+// using a struct so we can expand this further if needed
+type ProjectApplication struct {
+	Id          string /* user id of applicant */
+	Description string /* description that the user keyed in while applying */
 }
 
 type ProjectSettings struct {
