@@ -498,7 +498,7 @@ func UserGetProjectInvites(userController controllers.UserController, projectCon
 			DisplayError(ctx, err.Error())
 		}
 
-		projectids := userModel.Projects
+		projectids := userModel.Invites
 		projects := projectController.ProjectArrayToModel(ctx, projectids)
 
 		type invite struct {

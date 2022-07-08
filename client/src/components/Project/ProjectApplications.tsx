@@ -5,7 +5,6 @@ import { ProjectGetApplications } from "../../api/ProjectAPI";
 import AuthContext from "../../context/AuthProvider";
 import { toTitleCase } from "../../functions/strings";
 import { BaseButton, IconButton } from "../../styles";
-import { IUser } from "../../types";
 
 const Container = styled.div`
     padding: 1rem 3rem;
@@ -70,7 +69,6 @@ const ApplicationButton = styled(IconButton)`
     margin-right: 0.5rem;
 `;
 
-// TODO: ApplicationShape and fakeApplications are very temporary for just testing out the UI
 interface DataShape {
     id: string /* id of project */;
     name: string /* name of project */;

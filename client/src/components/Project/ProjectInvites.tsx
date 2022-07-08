@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { UserGetProjectInvites } from "../../api/UserAPI";
+import AuthContext from "../../context/AuthProvider";
 
 const Container = styled.div`
     border-radius: 6px;
@@ -17,136 +19,12 @@ const Title = styled.h1`
     margin-bottom: 0.3rem;
 `;
 
-// TODO: InviteShape and fakeInvites are very temporary for just testing out the UI
 type state = "no" | "accepted" | "rejected";
 interface InviteShape {
     id: string;
     name: string;
     state: state;
 }
-
-const fakeInvites: InviteShape[] = [
-    {
-        id: "best project",
-        name: "OrgaNiUS 😎",
-        state: "no",
-    },
-    {
-        id: "ofc its legit",
-        name: "Non-shady project",
-        state: "no",
-    },
-    {
-        id: "really long name ahead",
-        name: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-    {
-        id: "clone",
-        name: "i'm a clone",
-        state: "no",
-    },
-];
 
 const InviteContainer = styled.div``;
 
@@ -204,6 +82,7 @@ const Invite = ({
  * For clarity, this is the invites panel for a user to accept/decline invites.
  */
 const ProjectInvites = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const [invites, setInvites] = useState<InviteShape[]>([]);
 
     // abstracted out because similar code
@@ -241,10 +120,24 @@ const ProjectInvites = (): JSX.Element => {
     };
 
     useEffect(() => {
-        // TODO: seed the invites from the server
-        setInvites(fakeInvites);
+        UserGetProjectInvites(
+            auth.axiosInstance,
+            (response) => {
+                const data = response.data;
+
+                setInvites(
+                    data.projects.map((proj: any) => {
+                        return { ...proj, state: "no" };
+                    })
+                );
+            },
+            () => {}
+        );
+        setInvites([]);
+        // eslint-disable-next-line
     }, []);
 
+    // TODO: add loading/no invites
     return (
         <Container>
             <Title>Project Invites</Title>

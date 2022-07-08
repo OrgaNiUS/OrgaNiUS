@@ -76,6 +76,8 @@ export const UserFPChange = CreatePostFunction<UserFPChangeData>("/change_forgot
  */
 export const UserGetSelf = CreateGetFunction("/own_user");
 
+export const UserGetProjectInvites = CreateGetFunction("/user_get_project_invites");
+
 type UserPatchData = {
     name?: string;
     email?: string;
