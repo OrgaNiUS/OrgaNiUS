@@ -15,7 +15,7 @@ import (
 // Input parameters "projectid" : "projectid"
 func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, _, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -27,6 +27,10 @@ func ProjectGet(userController controllers.UserController, projectController con
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
+			if _, ok := project.Members[id]; !ok {
+				DisplayNotAuthorized(ctx, "you lack permissions")
+				return
+			}
 			// only return a non-sensitive subset of the information
 			type NameIdRole struct {
 				Name string `bson:"name" json:"name"`
