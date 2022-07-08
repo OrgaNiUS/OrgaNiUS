@@ -90,6 +90,8 @@ const ProjectCreate = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>(emptyFields);
+    type states = "no" | "loading" | "ready";
+    const [state, setState] = useState<states>("no");
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
@@ -121,11 +123,25 @@ const ProjectCreate = (): JSX.Element => {
             creationTime: new Date(),
         };
 
+        setState("loading");
+
         data.addProject(project).then((id) => {
             setFields((f) => {
                 return { ...f, id };
             });
+
+            setState("ready");
         });
+    };
+
+    const buttonSwitch = {
+        no: <ButtonSubmit type="submit">Submit</ButtonSubmit>,
+        loading: <Button disabled>Creating project...</Button>,
+        ready: (
+            <Button type="button">
+                <Link to={`/project/${fields.id}`}>Go to Project Page</Link>
+            </Button>
+        ),
     };
 
     return (
@@ -144,14 +160,8 @@ const ProjectCreate = (): JSX.Element => {
                 <Label>Description</Label>
                 <TextArea name="description" onChange={handleChange} value={fields.description} />
 
-                {/* render either submit button or go to project page button */}
-                {fields.id === undefined ? (
-                    <ButtonSubmit type="submit">Submit</ButtonSubmit>
-                ) : (
-                    <Button type="button">
-                        <Link to={`/project/${fields.id}`}>Go to Project Page</Link>
-                    </Button>
-                )}
+                {/* render the correct button based on current state */}
+                {buttonSwitch[state]}
             </Form>
 
             {errorMessage !== undefined && (
