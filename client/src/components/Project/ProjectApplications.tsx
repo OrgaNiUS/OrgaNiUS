@@ -5,6 +5,7 @@ import { ProjectGetApplications } from "../../api/ProjectAPI";
 import AuthContext from "../../context/AuthProvider";
 import { toTitleCase } from "../../functions/strings";
 import { BaseButton, IconButton } from "../../styles";
+import PreLoader from "../PreLoader";
 
 const Container = styled.div`
     padding: 1rem 3rem;
@@ -111,12 +112,11 @@ const Application = ({
 
 const ProjectApplications = (): JSX.Element => {
     const auth = useContext(AuthContext);
+    const [loading, setLoading] = useState<boolean>(true);
     const [pageData, setPageData] = useState<DataShape | undefined>(undefined);
     const { id: projectid } = useParams();
 
     useEffect(() => {
-        // TODO: add preloader
-
         ProjectGetApplications(
             auth.axiosInstance,
             { projectid: projectid ?? "" },
@@ -130,6 +130,8 @@ const ProjectApplications = (): JSX.Element => {
                         return { ...app, state: "no" };
                     }),
                 });
+
+                setLoading(false);
             },
             () => {}
         );
@@ -178,8 +180,12 @@ const ProjectApplications = (): JSX.Element => {
     };
 
     if (pageData === undefined) {
-        // TODO: add preloader
-        return <div>Loading!</div>;
+        return (
+            <Container>
+                <Link to={`/project/${projectid}`}>⬅️ Back to Project</Link>
+                <PreLoader {...{ loading }} />
+            </Container>
+        );
     }
 
     return (
