@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import PreLoader from "../components/PreLoader";
 import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
 import Todo from "../components/Todo/Todo";
@@ -111,6 +112,10 @@ const Homepage = (): JSX.Element => {
             </RContainer>
         );
     };
+
+    if (data.loading) {
+        return <PreLoader {...{ loading: data.loading }} />;
+    }
 
     return (
         <>

@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import PreLoader from "../components/PreLoader";
 import { DataContext } from "../context/DataProvider";
 import { IProjectCondensed } from "../types";
 
@@ -42,6 +43,10 @@ const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
 
 const ProjectsList = (): JSX.Element => {
     const data = useContext(DataContext);
+
+    if (data.loading) {
+        return <PreLoader {...{ loading: data.loading }} />;
+    }
 
     return (
         <Container>
