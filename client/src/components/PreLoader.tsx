@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import styled, { keyframes, Keyframes } from "styled-components";
 
 const Container = styled.div`
@@ -132,18 +133,48 @@ const Bar = styled.div<{ index: number }>`
     width: 1rem;
 `;
 
+// 5 seconds is the default timeout duration
+const defaultTimeoutDuration: number = 1000 * 5;
+
 /**
  * PreLoader for the website.
  *
  * Inspiration taken from "CSS Stairs Loader" from this website.
  * Code is much less hard coded than the example there.
  * https://steelkiwi.com/blog/30-most-captivating-preloaders-for-website/
+ *
+ * loading should initially be true
+ * timeoutDuration is optional and defaults to 5 seconds.
+ * setTimeoutObject can be used to retrieve the timeout object if needed for killing early (for whatever reason)
  */
-const PreLoader = ({ loading }: { loading: boolean }): JSX.Element => {
-    if (!loading) {
+const PreLoader = ({
+    loading,
+    timeoutDuration,
+    setTimeoutObject,
+}: {
+    loading: boolean;
+    timeoutDuration?: number;
+    setTimeoutObject?: React.Dispatch<React.SetStateAction<NodeJS.Timeout>>;
+}): JSX.Element => {
+    const [hasTimedout, setHasTimedout] = useState<boolean>(false);
+
+    useEffect(() => {
+        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
+            setHasTimedout(true);
+        }, timeoutDuration ?? defaultTimeoutDuration);
+
+        if (setTimeoutObject !== undefined) {
+            // done so that the user of this Preloader has the option to retrieve this timeout to kill it earlier if needed (using clearTimeout)
+            setTimeoutObject(loadingTimeout);
+        }
+
+        // eslint-disable-next-line
+    }, []);
+
+    if (!loading || hasTimedout) {
         return (
             <Container>
-                <BigText>This page failed to load.</BigText>
+                <BigText>Page or resource failed to load.</BigText>
                 <Text>Check if you have permissions or try again in a while.</Text>
             </Container>
         );

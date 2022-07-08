@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { IProjectCondensed } from "../../types";
+import PreLoader from "../PreLoader";
 
 const Container = styled.div`
     border-radius: 6px;
@@ -42,6 +43,10 @@ const Project = ({ project }: { project: IProjectCondensed }): JSX.Element => {
 
 const ProjectsList = (): JSX.Element => {
     const data = useContext(DataContext);
+
+    if (data.loading) {
+        return <PreLoader {...{ loading: data.loading }} />;
+    }
 
     return (
         <Container>

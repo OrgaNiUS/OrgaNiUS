@@ -149,15 +149,10 @@ const Project = (): JSX.Element => {
             return;
         }
 
-        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
-            setLoading(false);
-        }, 1000 * 5);
-
         data.getProject(projectid).then(([project, tasks]) => {
             setProject(project);
             setTasks(tasks);
             setLoading(false);
-            clearTimeout(loadingTimeout);
         });
 
         // including data.getProject and id will cause this to continuously fire
