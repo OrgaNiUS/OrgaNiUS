@@ -23,7 +23,7 @@ const Title = styled.h1`
 
 const Input = styled.input`
     ${InputCSS}
-    width: 90%;
+    width: 85%;
 `;
 
 const IconButton = styled.button`
@@ -33,10 +33,8 @@ const IconButton = styled.button`
 `;
 
 const ButtonAdd = styled(IconButton)`
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: -0.2rem;
+    float: right;
+    padding-top: 7px; /* same as InputCSS's padding */
 `;
 
 const ButtonSubmit = styled(BaseButton)`
@@ -125,8 +123,8 @@ const ProjectsInvite = ({
                 <div>
                     {Array.from(allInvites).map((invite, key) => {
                         return (
-                            <div key={key} className="px-1">
-                                {invite}
+                            <div key={key} className="pl-2">
+                                <span>{invite}</span>
                                 <IconButton className="float-right" onClick={() => handleRemove(invite)}>
                                     {/* minus from https://heroicons.com/ */}
                                     <svg
