@@ -215,6 +215,8 @@ func ProjectGetApplicants(userController controllers.UserController, projectCont
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{
+			"id":         project.Id.Hex(),
+			"name":       project.Name,
 			"applicants": result,
 		})
 	}

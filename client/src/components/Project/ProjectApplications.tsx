@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { ProjectGetApplications } from "../../api/ProjectAPI";
+import AuthContext from "../../context/AuthProvider";
 import { toTitleCase } from "../../functions/strings";
 import { BaseButton, IconButton } from "../../styles";
 import { IUser } from "../../types";
@@ -76,68 +78,12 @@ interface DataShape {
 }
 
 type state = "no" | "accepted" | "rejected";
-interface ApplicationShape extends IUser {
+interface ApplicationShape {
+    id: string;
+    name: string;
     description: string;
     state: state;
 }
-
-const fakeApplications: ApplicationShape[] = [
-    {
-        id: "0",
-        name: "bad applicant",
-        description: "reject me pls",
-        state: "no",
-    },
-    {
-        id: "1",
-        name: "good applicant",
-        description: "accept me pls",
-        state: "no",
-    },
-    {
-        id: "2",
-        name: "SirLikesToTypeALot",
-        description:
-            "who makes names this long anyways? what's their problem, causing problems for people designing UI. they should really reconsider long usernames, or maybe we should be the ones considering limiting their username lengths, or maybe it is just good practice to handle long names evne if its not actually possible, I know I made a typo a few words back but I don't intend to go back and fix it, I'm sorry! but I hope this amount of text is now long enough for testing. done",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-    {
-        id: "3",
-        name: "clones are getting out of hand now",
-        description: "",
-        state: "no",
-    },
-];
 
 const Application = ({
     application,
@@ -166,17 +112,29 @@ const Application = ({
 };
 
 const ProjectApplications = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const [pageData, setPageData] = useState<DataShape | undefined>(undefined);
     const { id: projectid } = useParams();
 
     useEffect(() => {
-        // TODO: seed data properly
+        // TODO: add preloader
 
-        setPageData({
-            id: projectid ?? "WHY NO ID",
-            name: "Test Project!",
-            applications: fakeApplications,
-        });
+        ProjectGetApplications(
+            auth.axiosInstance,
+            { projectid: projectid ?? "" },
+            (response) => {
+                const data = response.data;
+
+                setPageData({
+                    id: data.id,
+                    name: data.name,
+                    applications: data.applicants.map((app: any) => {
+                        return { ...app, state: "no" };
+                    }),
+                });
+            },
+            () => {}
+        );
 
         // eslint-disable-next-line
     }, []);

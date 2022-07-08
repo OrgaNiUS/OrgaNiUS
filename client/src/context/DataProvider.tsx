@@ -295,7 +295,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     };
 
     const addProject = (project: IProject): Promise<string> => {
-        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "" };
+        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "", role: "" };
 
         return ProjectCreate(
             auth.axiosInstance,

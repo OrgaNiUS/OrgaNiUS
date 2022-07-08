@@ -12,3 +12,10 @@ type ProjectCreateData = {
     description: string;
 };
 export const ProjectCreate = CreatePostFunction<ProjectCreateData>("/project_create");
+
+type ProjectGetApplicationsParams = {
+    projectid: string;
+};
+// only for admin use
+export const ProjectGetApplications =
+    CreateGetFunctionWithParams<ProjectGetApplicationsParams>("/project_get_applications");

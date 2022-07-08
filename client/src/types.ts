@@ -23,6 +23,7 @@ export interface ITask {
 export interface IUser {
     id: string;
     name: string;
+    role: string;
 }
 
 export interface IUserSettings {
