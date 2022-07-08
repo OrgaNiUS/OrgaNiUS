@@ -167,6 +167,8 @@ const PreLoader = ({
             // done so that the user of this Preloader has the option to retrieve this timeout to kill it earlier if needed (using clearTimeout)
             setTimeoutObject(loadingTimeout);
         }
+
+        // eslint-disable-next-line
     }, []);
 
     if (!loading) {
