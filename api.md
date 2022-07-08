@@ -340,7 +340,13 @@ PATCH "/user_accept"
 
 User accepts invite to a project and joins the project.
 
-Input: Query parameters of "projectid"
+Input:
+
+```typescript
+{
+    projectid: string; // required
+}
+```
 
 Example usage:
 
@@ -357,7 +363,13 @@ PATCH "/user_reject"
 
 User rejects invite to a project.
 
-Input: Query parameters of "projectid"
+Input:
+
+```typescript
+{
+    projectid: string; // required
+}
+```
 
 Example usage:
 
