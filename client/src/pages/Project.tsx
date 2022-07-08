@@ -6,6 +6,7 @@ import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
+import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton } from "../styles";
@@ -53,6 +54,7 @@ const Button = styled(BaseButton)`
 `;
 
 const Project = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const data = useContext(DataContext);
 
     const { id: projectid } = useParams();
@@ -60,6 +62,7 @@ const Project = (): JSX.Element => {
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
     const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
+    const isAdmin: boolean = project?.members.find((u) => u.name === auth.auth.user)?.role === "admin";
 
     const doneTrigger = (task: ITask) => {
         data.patchTask(
@@ -189,12 +192,19 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                     <ButtonArray>
-                        {/* TODO: in future */}
+                        {/* TODO: in future, add !isAdmin similarly to button below */}
                         <Button disabled>Settings</Button>
-                        <Button>
-                            <Link to={`/project_applications/${projectid}`}>Applications</Link>
+                        <Button disabled={!isAdmin}>
+                            {isAdmin ? (
+                                // show link only if is admin (else just regular disabled button)
+                                <Link to={`/project_applications/${projectid}`}>Applications</Link>
+                            ) : (
+                                "Applications"
+                            )}
                         </Button>
-                        <Button onClick={() => setShowInviteWindow(true)}>Invite</Button>
+                        <Button onClick={() => setShowInviteWindow(true)} disabled={!isAdmin}>
+                            Invite
+                        </Button>
                     </ButtonArray>
                 </Row>
                 <Row>
