@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import styled, { keyframes, Keyframes } from "styled-components";
 
 const Container = styled.div`
@@ -143,24 +143,24 @@ const defaultTimeoutDuration: number = 1000 * 5;
  * Code is much less hard coded than the example there.
  * https://steelkiwi.com/blog/30-most-captivating-preloaders-for-website/
  *
- * loading should initially be true and setLoading should ever only be set to false.
+ * loading should initially be true
  * timeoutDuration is optional and defaults to 5 seconds.
  * setTimeoutObject can be used to retrieve the timeout object if needed for killing early (for whatever reason)
  */
 const PreLoader = ({
     loading,
-    setLoading,
     timeoutDuration,
     setTimeoutObject,
 }: {
     loading: boolean;
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     timeoutDuration?: number;
     setTimeoutObject?: React.Dispatch<React.SetStateAction<NodeJS.Timeout>>;
 }): JSX.Element => {
+    const [hasTimedout, setHasTimedout] = useState<boolean>(false);
+
     useEffect(() => {
         const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
-            setLoading(false);
+            setHasTimedout(true);
         }, timeoutDuration ?? defaultTimeoutDuration);
 
         if (setTimeoutObject !== undefined) {
@@ -171,7 +171,7 @@ const PreLoader = ({
         // eslint-disable-next-line
     }, []);
 
-    if (!loading) {
+    if (!loading || hasTimedout) {
         return (
             <Container>
                 <BigText>Page or resource failed to load.</BigText>

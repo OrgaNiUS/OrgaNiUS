@@ -163,7 +163,7 @@ const Project = (): JSX.Element => {
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                 </Row>
-                <PreLoader {...{ loading, setLoading }} />
+                <PreLoader {...{ loading }} />
             </Container>
         );
     }
