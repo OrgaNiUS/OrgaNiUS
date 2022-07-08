@@ -48,6 +48,7 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
  * removeTask: provide the "id" of the task to be removed.
  */
 interface IDataContext {
+    loading: boolean;
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
     patchTask: (task: patchTaskData, fullTask: ITask) => void;
@@ -60,6 +61,7 @@ interface IDataContext {
 }
 
 const defaultDataContext: IDataContext = {
+    loading: false,
     tasks: [],
     addTask: (_) => Promise.resolve(undefined),
     patchTask: (_) => {},
@@ -80,11 +82,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
     // TODO: get initialEvents from server
+    const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
     // until events CRUD is implemented
     // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
     useEffect(() => {
@@ -102,6 +107,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
+                setIsTasksLoading(false);
                 setTasks(tasks);
             },
             () => {}
@@ -111,10 +117,15 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             auth.axiosInstance,
             (response) => {
                 const data = response.data;
+
+                setIsProjectsLoading(false);
                 setProjects(data.projects);
             },
             () => {}
         );
+
+        // put this in the callback later
+        setIsEventsLoading(false);
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
@@ -326,6 +337,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     return (
         <DataContext.Provider
             value={{
+                /* if anything is still loading, it is considered loading */
+                loading: isTasksLoading || isEventsLoading || isProjectsLoading,
                 tasks,
                 addTask,
                 patchTask,

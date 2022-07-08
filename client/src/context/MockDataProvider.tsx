@@ -79,6 +79,7 @@ const MockDataProvider = ({
     return (
         <DataContext.Provider
             value={{
+                loading: false,
                 tasks,
                 addTask: addTask,
                 patchTask,
