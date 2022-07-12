@@ -3,11 +3,11 @@ import PreLoader from "../PreLoader";
 
 describe("Preloader", () => {
     it("loading", () => {
-        render(<PreLoader {...{ loading: true }} />);
+        render(<PreLoader {...{ loading: true, setLoading: jest.fn() }} />);
         expect(screen.queryByText("Loading...")).toBeVisible();
     });
     it("not loading", () => {
-        render(<PreLoader {...{ loading: false }} />);
-        expect(screen.queryByText("This page failed to load.")).toBeVisible();
+        render(<PreLoader {...{ loading: false, setLoading: jest.fn() }} />);
+        expect(screen.queryByText("Page or resource failed to load.")).toBeVisible();
     });
 });

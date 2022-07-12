@@ -170,11 +170,40 @@ func (c *UserController) UserDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *UserController) UserAddProject(ctx context.Context, user *models.User) {
+func (c *UserController) UserAddProject(ctx context.Context, userid primitive.ObjectID, projectid string) {
 	params := bson.D{}
-	params = append(params, bson.E{Key: "projects", Value: user.Projects})
-	update := bson.D{{Key: "$set", Value: params}}
-	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
+	params = append(params, bson.E{Key: "projects", Value: projectid})
+	update := bson.D{{Key: "$addToSet", Value: params}}
+	c.Collection(userCollection).UpdateByID(ctx, userid, update)
+}
+
+func (c *UserController) UsersAddProject(ctx context.Context, useridArr []string, projectId string) {
+	params := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "projects", Value: projectId}}}}
+	var primitiveArr []primitive.ObjectID
+	for _, userid := range useridArr {
+		primitiveId, _ := primitive.ObjectIDFromHex(userid)
+		primitiveArr = append(primitiveArr, primitiveId)
+	}
+	c.Collection(userCollection).UpdateManyByID(ctx, primitiveArr, params)
+}
+
+func (c *UserController) UsersDeleteProject(ctx context.Context, useridArr []string, projectId string) {
+	params := bson.D{{Key: "$pull", Value: bson.D{{Key: "projects", Value: projectId}}}}
+	if len(useridArr) == 0 {
+		c.Collection(userCollection).UpdateAll(ctx, params)
+	} else {
+		var primitiveArr []primitive.ObjectID
+		for _, userid := range useridArr {
+			primitiveId, _ := primitive.ObjectIDFromHex(userid)
+			primitiveArr = append(primitiveArr, primitiveId)
+		}
+		c.Collection(userCollection).UpdateManyByID(ctx, primitiveArr, params)
+	}
+}
+
+func (c *UserController) UsersInviteFromProject(ctx context.Context, usernames []string, projectId string) {
+	params := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "invites", Value: projectId}}}}
+	c.Collection(userCollection).UpdateManyByName(ctx, usernames, params)
 }
 
 // Modifies task array of user
@@ -185,13 +214,21 @@ func (c *UserController) UserModifyTask(ctx context.Context, user *models.User) 
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-func (c *UserController) UserMapToArray(ctx context.Context, Users map[string]struct{}) []models.User {
+func (c *UserController) UserMapToArray(ctx context.Context, useridStrArr []string) []models.User {
 	usersArray := []models.User{}
 	useridArr := []primitive.ObjectID{}
-	for userid := range Users {
+	for _, userid := range useridStrArr {
 		id, _ := primitive.ObjectIDFromHex(userid)
 		useridArr = append(useridArr, id)
 	}
 	c.Collection(userCollection).FindAll(ctx, useridArr, &usersArray)
 	return usersArray
+}
+
+func (c *UserController) UserDeleteInvites(ctx context.Context, userid string, projectids []string) {
+	params := bson.D{}
+	params = append(params, bson.E{Key: "invites", Value: bson.D{{Key: "$in", Value: projectids}}})
+	update := bson.D{{Key: "$pull", Value: params}}
+	id, _ := primitive.ObjectIDFromHex(userid)
+	c.Collection(userCollection).UpdateByID(ctx, id, update)
 }

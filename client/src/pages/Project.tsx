@@ -2,9 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
 import PreLoader from "../components/PreLoader";
+import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
+import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton } from "../styles";
@@ -52,12 +54,15 @@ const Button = styled(BaseButton)`
 `;
 
 const Project = (): JSX.Element => {
+    const auth = useContext(AuthContext);
     const data = useContext(DataContext);
 
     const { id: projectid } = useParams();
     const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
+    const isAdmin: boolean = project?.members.find((u) => u.name === auth.auth.user)?.role === "admin";
 
     const doneTrigger = (task: ITask) => {
         data.patchTask(
@@ -147,22 +152,17 @@ const Project = (): JSX.Element => {
             return;
         }
 
-        const loadingTimeout: NodeJS.Timeout = setTimeout(() => {
-            setLoading(false);
-        }, 1000 * 5);
-
         data.getProject(projectid).then(([project, tasks]) => {
             setProject(project);
             setTasks(tasks);
             setLoading(false);
-            clearTimeout(loadingTimeout);
         });
 
         // including data.getProject and id will cause this to continuously fire
         // eslint-disable-next-line
     }, []);
 
-    if (project === undefined) {
+    if (project === undefined || projectid === undefined) {
         return (
             <Container>
                 <Row className="my-2">
@@ -176,7 +176,7 @@ const Project = (): JSX.Element => {
     return (
         <TodoProvider
             {...{
-                projectid: projectid ?? "",
+                projectid,
                 tasks,
                 defaultFilterOptions: filterOptions,
                 setIsModalShown: undefined,
@@ -188,12 +188,23 @@ const Project = (): JSX.Element => {
             }}
         >
             <Container>
+                {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>
                     <ButtonArray>
-                        {/* TODO: in future */}
+                        {/* TODO: in future, add !isAdmin similarly to button below */}
                         <Button disabled>Settings</Button>
-                        <Button disabled>Invite</Button>
+                        <Button disabled={!isAdmin}>
+                            {isAdmin ? (
+                                // show link only if is admin (else just regular disabled button)
+                                <Link to={`/project_applications/${projectid}`}>Applications</Link>
+                            ) : (
+                                "Applications"
+                            )}
+                        </Button>
+                        <Button onClick={() => setShowInviteWindow(true)} disabled={!isAdmin}>
+                            Invite
+                        </Button>
                     </ButtonArray>
                 </Row>
                 <Row>

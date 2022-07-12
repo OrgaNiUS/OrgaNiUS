@@ -27,7 +27,6 @@ func (c *TaskController) TaskRetrieve(ctx context.Context, id string) (models.Ta
 func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) error {
 	task.CreationTime = time.Now()
 	task.IsDone = false
-	task.Tags = []string{}
 	id, err := c.Collection(taskCollection).InsertOne(ctx, task)
 
 	if err != nil {
@@ -38,7 +37,7 @@ func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) erro
 	return nil
 }
 
-func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.ObjectID, name, description, deadline *string, isdone *bool, addAssignedTo, removeAssignedTo *[]string) {
+func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.ObjectID, name, description, deadline *string, isdone *bool, addAssignedTo, removeAssignedTo, addTags, removeTags *[]string) {
 	setParams := bson.D{}
 	if name != nil {
 		setParams = append(setParams, bson.E{Key: "name", Value: *name})
@@ -58,9 +57,15 @@ func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.Object
 	if addAssignedTo != nil {
 		addParams = append(addParams, bson.E{Key: "assignedTo", Value: bson.D{{Key: "$each", Value: *addAssignedTo}}})
 	}
+	if addTags != nil {
+		addParams = append(addParams, bson.E{Key: "tags", Value: bson.D{{Key: "$each", Value: *addTags}}})
+	}
 	removeParams := bson.D{}
 	if removeAssignedTo != nil {
 		removeParams = append(removeParams, bson.E{Key: "assignedTo", Value: bson.D{{Key: "$in", Value: *removeAssignedTo}}})
+	}
+	if removeTags != nil {
+		removeParams = append(removeParams, bson.E{Key: "tags", Value: bson.D{{Key: "$in", Value: *removeTags}}})
 	}
 
 	update := bson.D{
@@ -87,6 +92,19 @@ func (c *TaskController) TaskDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+// Deletes all tasks passed in to this
+func (c *TaskController) TaskDeleteMany(ctx context.Context, ids []string) error {
+	var idArr []primitive.ObjectID
+	for _, id := range ids {
+		temp, _ := primitive.ObjectIDFromHex(id)
+		idArr = append(idArr, temp)
+	}
+	params := bson.D{}
+	params = append(params, bson.E{Key: "_id", Value: bson.E{Key: "$in", Value: idArr}})
+	c.Collection(taskCollection).DeleteMany(ctx, params)
+	return nil
+}
+
 func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[string]bool) []models.Task {
 	tasksArray := []models.Task{}
 	taskidArr := []primitive.ObjectID{}
@@ -98,13 +116,13 @@ func (c *TaskController) TaskMapToArrayUser(ctx context.Context, Tasks map[strin
 	return tasksArray
 }
 
-func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks map[string]struct{}) []models.Task {
+func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks []string) []models.Task {
 	tasksArray := []models.Task{}
-	taskidArr := []primitive.ObjectID{}
-	for taskid := range Tasks {
+	taskPrimitiveIdArr := []primitive.ObjectID{}
+	for _, taskid := range Tasks {
 		id, _ := primitive.ObjectIDFromHex(taskid)
-		taskidArr = append(taskidArr, id)
+		taskPrimitiveIdArr = append(taskPrimitiveIdArr, id)
 	}
-	c.Collection(taskCollection).FindAll(ctx, taskidArr, &tasksArray)
+	c.Collection(taskCollection).FindAll(ctx, taskPrimitiveIdArr, &tasksArray)
 	return tasksArray
 }

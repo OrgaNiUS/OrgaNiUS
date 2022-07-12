@@ -50,14 +50,13 @@ const TextArea = styled.textarea`
 
 const Button = styled(BaseButton)`
     background-color: rgb(59, 130, 246);
-    /* max-width: fit-content; */
-`;
-
-const ButtonSubmit = styled(BaseButton)`
-    background-color: rgb(255, 85, 0);
-    border: 1px solid rgb(255, 85, 0);
     float: right;
     margin-top: 1rem;
+`;
+
+const ButtonSubmit = styled(Button)`
+    background-color: rgb(255, 85, 0);
+    border: 1px solid rgb(255, 85, 0);
 `;
 
 const ErrorMessage = styled.div`
@@ -91,7 +90,8 @@ const ProjectCreate = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>(emptyFields);
-    const [inviteCode, setInviteCode] = useState<string | undefined>(undefined);
+    type states = "no" | "loading" | "ready";
+    const [state, setState] = useState<states>("no");
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
@@ -123,12 +123,25 @@ const ProjectCreate = (): JSX.Element => {
             creationTime: new Date(),
         };
 
-        data.addProject(project).then(([id, code]) => {
+        setState("loading");
+
+        data.addProject(project).then((id) => {
             setFields((f) => {
                 return { ...f, id };
             });
-            setInviteCode(code);
+
+            setState("ready");
         });
+    };
+
+    const buttonSwitch = {
+        no: <ButtonSubmit type="submit">Submit</ButtonSubmit>,
+        loading: <Button disabled>Creating project...</Button>,
+        ready: (
+            <Button type="button">
+                <Link to={`/project/${fields.id}`}>Go to Project Page</Link>
+            </Button>
+        ),
     };
 
     return (
@@ -146,17 +159,10 @@ const ProjectCreate = (): JSX.Element => {
                 <Input type="text" name="name" onChange={handleChange} value={fields.name} autoFocus required />
                 <Label>Description</Label>
                 <TextArea name="description" onChange={handleChange} value={fields.description} />
-                <ButtonSubmit type="submit">Submit</ButtonSubmit>
-            </Form>
 
-            {inviteCode !== undefined && (
-                <Row>
-                    <div className="flex-1">Invite Code: {inviteCode}</div>
-                    <Button className="flex-1">
-                        <Link to={`/project/${fields.id}`}>Go to Project Page</Link>
-                    </Button>
-                </Row>
-            )}
+                {/* render the correct button based on current state */}
+                {buttonSwitch[state]}
+            </Form>
 
             {errorMessage !== undefined && (
                 <ErrorMessage>

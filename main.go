@@ -51,9 +51,20 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/user_exists", handlers.UserExistsGet(userController))
 	v1.GET("/user", handlers.UserGet(userController))
 
+	v1.GET("/user_get_project_invites", handlers.UserGetProjectInvites(userController, projectController, jwtParser))
+	v1.PATCH("/user_apply", handlers.UserApplyProject(projectController, jwtParser))
+	v1.PATCH("/user_accept", handlers.UserAcceptProject(userController, projectController, jwtParser))
+	v1.PATCH("/user_reject", handlers.UserRejectProject(userController, projectController, jwtParser))
+
 	v1.POST("/project_create", handlers.ProjectCreate(userController, projectController, jwtParser))
 	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, jwtParser))
 	v1.GET("/project_get_all", handlers.ProjectGetAll(userController, projectController, jwtParser))
+	v1.PATCH("/project_modify", handlers.ProjectModify(projectController, jwtParser))
+	v1.PATCH("/project_invite", handlers.ProjectInviteUser(userController, jwtParser))
+	v1.GET("/project_get_applications", handlers.ProjectGetApplicants(userController, projectController, jwtParser))
+	v1.PATCH("/project_choose", handlers.ProjectChooseUsers(userController, projectController, jwtParser))
+	v1.PATCH("/project_remove_user", handlers.ProjectRemoveUsers(userController, projectController, jwtParser))
+	v1.DELETE("/project_delete", handlers.ProjectDelete(userController, projectController, taskController, jwtParser))
 
 	v1.POST("/task_create", handlers.TaskCreate(userController, projectController, taskController, jwtParser))
 	v1.DELETE("/task_delete", handlers.TaskDelete(userController, projectController, taskController, jwtParser))

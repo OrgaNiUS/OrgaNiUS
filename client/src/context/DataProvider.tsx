@@ -41,6 +41,8 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
     addAssignedTo?: string[];
     removeAssignedTo?: string[];
     assignedTo?: IUser[];
+    addTags?: string[];
+    removeTags?: string[];
 }
 
 /**
@@ -48,6 +50,7 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
  * removeTask: provide the "id" of the task to be removed.
  */
 interface IDataContext {
+    loading: boolean;
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
     patchTask: (task: patchTaskData, fullTask: ITask) => void;
@@ -56,10 +59,11 @@ interface IDataContext {
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
-    addProject: (project: IProject) => Promise<[string, string]>;
+    addProject: (project: IProject) => Promise<string>;
 }
 
 const defaultDataContext: IDataContext = {
+    loading: false,
     tasks: [],
     addTask: (_) => Promise.resolve(undefined),
     patchTask: (_) => {},
@@ -68,7 +72,7 @@ const defaultDataContext: IDataContext = {
     mergedEvents: [],
     projects: [],
     getProject: (_) => Promise.resolve([undefined, []]),
-    addProject: (_) => Promise.resolve(["", ""]),
+    addProject: (_) => Promise.resolve(""),
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -80,11 +84,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
     // TODO: get initialEvents from server
+    const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
     // until events CRUD is implemented
     // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
     useEffect(() => {
@@ -102,6 +109,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
+                setIsTasksLoading(false);
                 setTasks(tasks);
             },
             () => {}
@@ -111,10 +119,15 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             auth.axiosInstance,
             (response) => {
                 const data = response.data;
+
+                setIsProjectsLoading(false);
                 setProjects(data.projects);
             },
             () => {}
         );
+
+        // put this in the callback later
+        setIsEventsLoading(false);
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
@@ -127,6 +140,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 assignedTo,
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
+                tags: task.tags,
             },
             {
                 headers: { "Content-Type": "application/json" },
@@ -181,7 +195,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     id: t.id,
                     name: task.name ?? t.name,
                     assignedTo: task.assignedTo ?? t.assignedTo,
-                    description: task.name ?? t.name,
+                    description: task.description ?? t.description,
                     creationTime: task.creationTime ?? t.creationTime,
                     deadline: task.deadline ?? t.deadline,
                     isDone: task.isDone ?? t.isDone,
@@ -220,6 +234,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         }
         if (task.isDone !== undefined) {
             payload.isDone = task.isDone;
+        }
+        if (task.addTags !== undefined) {
+            payload.addTags = task.addTags;
+        }
+        if (task.removeTags !== undefined) {
+            payload.removeTags = task.removeTags;
         }
 
         TaskPatch(
@@ -294,8 +314,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const addProject = (project: IProject): Promise<[string, string]> => {
-        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "" };
+    const addProject = (project: IProject): Promise<string> => {
+        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "", role: "" };
 
         return ProjectCreate(
             auth.axiosInstance,
@@ -308,17 +328,16 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 withCredentials: true,
             },
             (response) => {
-                // TODO: get invite code from here & update
                 const data = response.data;
                 const id: string = data.projectid;
 
                 setProjects((p) => {
                     return [...p, { ...project, id, members: [ownUser] }];
                 });
-                return [id, "A72BC1"];
+                return id;
             },
             (_) => {
-                return ["", ""];
+                return "";
             }
         );
     };
@@ -326,6 +345,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     return (
         <DataContext.Provider
             value={{
+                /* if anything is still loading, it is considered loading */
+                loading: isTasksLoading || isEventsLoading || isProjectsLoading,
                 tasks,
                 addTask,
                 patchTask,

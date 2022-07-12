@@ -214,6 +214,14 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         }
         if (!isEqualArrays(tags, editingTask.tags)) {
             task.tags = tags;
+
+            const [added, removed] = getDeltaOfArrays(editingTask.tags, tags);
+            if (added !== []) {
+                task.addTags = added;
+            }
+            if (removed !== []) {
+                task.removeTags = removed;
+            }
         }
 
         data.patchTask(task, { ...fields, deadline, tags, isPersonal: editingTask.isPersonal });

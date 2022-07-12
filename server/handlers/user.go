@@ -202,8 +202,9 @@ func UserSignup(controller controllers.UserController, jwtParser *auth.JWTParser
 		user.Verified = false
 		hash, pin := auth.GeneratePin()
 		user.VerificationPin = hash
-		user.Projects = make(map[string]struct{})
-		user.Events = make(map[string]struct{})
+		user.Projects = []string{}
+		user.Events = []string{}
+		user.Invites = []string{}
 		user.Tasks = make(map[string]bool)
 		if err := controller.UserCreate(ctx, &user); err != nil {
 			DisplayError(ctx, err.Error())
@@ -458,5 +459,136 @@ func UserDelete(controller controllers.UserController, jwtParser *auth.JWTParser
 			jwtParser.DeleteJWT(ctx)
 			ctx.JSON(http.StatusOK, gin.H{})
 		}
+	}
+}
+
+// input: projectid: string
+func UserApplyProject(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userid, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+		if projectid == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
+		description := ctx.DefaultQuery("description", "")
+		projectController.ProjectAddAppl(ctx, projectid, userid, description)
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// does not take in any parameters
+// returns a list of sanitied project invites
+func UserGetProjectInvites(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		userModel, err := userController.UserRetrieve(ctx, id, "")
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		}
+
+		projectids := userModel.Invites
+		projects := projectController.ProjectArrayToModel(ctx, projectids)
+
+		type invite struct {
+			Id          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+			Name        string             `bson:"name" json:"name"`
+			Description string             `bson:"description" json:"description"`
+			Members     map[string]string  `bson:"members" json:"members"` // Key: UserID, Value: Role
+		}
+
+		invites := []invite{}
+
+		for _, project := range projects {
+			invites = append(invites, invite{
+				Id:          project.Id,
+				Name:        project.Name,
+				Description: project.Description,
+				Members:     project.Members,
+			})
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"projects": invites,
+		})
+	}
+}
+
+// Input parameters projectid: string Query
+// Approach 2: Whenever the user accepts a project, call backend to update
+func UserAcceptProject(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		type query struct {
+			Id string `bson:"projectid" json:"projectid"`
+		}
+		var q query
+
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, "bad params")
+			return
+		}
+		if q.Id == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
+		userid, _ := primitive.ObjectIDFromHex(id)
+		userController.UserAddProject(ctx, userid, q.Id)          // Add project to user.Projects
+		userController.UserDeleteInvites(ctx, id, []string{q.Id}) // Remove invite from user.Invites
+		project, err := projectController.ProjectRetrieve(ctx, q.Id)
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "project does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		}
+		project.Members[id] = "member"
+		projectController.ProjectAddUsers(ctx, q.Id, &project) // Add user to project.Members
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// Input parameters projectid: string Query
+// Can combine with above function with additonal parameter { accept: bool }, but I feel this is more clearer in the long term.
+func UserRejectProject(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		type query struct {
+			Id string `bson:"projectid" json:"projectid"`
+		}
+		var q query
+
+		if err := ctx.BindJSON(&q); err != nil {
+			DisplayError(ctx, "bad params")
+			return
+		}
+		if q.Id == "" {
+			DisplayError(ctx, "provide a projectid")
+			return
+		}
+
+		userController.UserDeleteInvites(ctx, id, []string{q.Id})
+		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
