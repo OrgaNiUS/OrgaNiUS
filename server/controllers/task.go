@@ -27,7 +27,6 @@ func (c *TaskController) TaskRetrieve(ctx context.Context, id string) (models.Ta
 func (c *TaskController) TaskCreate(ctx context.Context, task *models.Task) error {
 	task.CreationTime = time.Now()
 	task.IsDone = false
-	task.Tags = []string{}
 	id, err := c.Collection(taskCollection).InsertOne(ctx, task)
 
 	if err != nil {

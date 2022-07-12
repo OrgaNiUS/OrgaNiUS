@@ -20,6 +20,7 @@ type TaskCreateData = {
     assignedTo: string[]; // id of users
     projectid: string;
     deadline: string;
+    tags: string[];
 };
 export const TaskCreate = CreatePostFunction<TaskCreateData>("/task_create");
 

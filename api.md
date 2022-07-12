@@ -580,6 +580,7 @@ Input: A JSON body with the following parameters. name is only **required** para
   assignedTo: string[]; // string[] of userid
   projectID: string;
   deadline: string; // ISO 8601 format
+  tags: string[];
 }
 ```
 

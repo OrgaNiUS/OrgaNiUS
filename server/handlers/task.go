@@ -30,6 +30,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 			Users       []string `bson:"assignedTo" json:"assignedTo"`
 			ProjectId   string   `bson:"projectid" json:"projectid"`
 			Deadline    string   `bson:"deadline" json:"deadline"`
+			Tags        []string `bson:"tags" json:"tags"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
@@ -46,6 +47,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 			}
 			task.Deadline = deadline
 		}
+		task.Tags = query.Tags
 
 		if query.ProjectId == "" {
 			task.AssignedTo = []string{id}

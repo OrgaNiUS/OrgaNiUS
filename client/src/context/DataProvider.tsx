@@ -138,6 +138,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 assignedTo,
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
+                tags: task.tags,
             },
             {
                 headers: { "Content-Type": "application/json" },
