@@ -41,6 +41,8 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
     addAssignedTo?: string[];
     removeAssignedTo?: string[];
     assignedTo?: IUser[];
+    addTags?: string[];
+    removeTags?: string[];
 }
 
 /**
@@ -193,7 +195,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     id: t.id,
                     name: task.name ?? t.name,
                     assignedTo: task.assignedTo ?? t.assignedTo,
-                    description: task.name ?? t.name,
+                    description: task.description ?? t.description,
                     creationTime: task.creationTime ?? t.creationTime,
                     deadline: task.deadline ?? t.deadline,
                     isDone: task.isDone ?? t.isDone,
@@ -232,6 +234,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         }
         if (task.isDone !== undefined) {
             payload.isDone = task.isDone;
+        }
+        if (task.addTags !== undefined) {
+            payload.addTags = task.addTags;
+        }
+        if (task.removeTags !== undefined) {
+            payload.removeTags = task.removeTags;
         }
 
         TaskPatch(

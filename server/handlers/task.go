@@ -182,6 +182,8 @@ func TaskModify(userController controllers.UserController, taskController contro
 			Description      *string   `bson:"description" json:"description"`
 			Deadline         *string   `bson:"deadline" json:"deadline"`
 			IsDone           *bool     `bson:"isDone" json:"isDone"`
+			AddTags          *[]string `bson:"addTags" json:"addTags"`
+			RemoveTags       *[]string `bson:"removeTags" json:"removeTags"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {
@@ -226,7 +228,7 @@ func TaskModify(userController controllers.UserController, taskController contro
 			}
 		}
 
-		taskController.TaskModify(ctx, taskid, query.Name, query.Description, query.Deadline, query.IsDone, query.AddAssignedTo, query.RemoveAssignedTo)
+		taskController.TaskModify(ctx, taskid, query.Name, query.Description, query.Deadline, query.IsDone, query.AddAssignedTo, query.RemoveAssignedTo, query.AddTags, query.RemoveTags)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }

@@ -37,6 +37,8 @@ export type TaskPatchData = {
     description?: string;
     deadline?: string;
     isDone?: boolean;
+    addTags?: string[];
+    removeTags?: string[];
 };
 export const TaskPatch = CreatePatchFunction<TaskPatchData>("/task_modify");
 

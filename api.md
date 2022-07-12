@@ -602,6 +602,8 @@ Input: A JSON body with the following parameters. taskid is only **required** pa
 
 For assignedTo array, do parse the changes on the client side and pass in the deltas add and remove separately.
 
+For tags array, do parse the changes similarly to assignedTo.
+
 ```typescript
 {
   taskid: string;
@@ -611,6 +613,8 @@ For assignedTo array, do parse the changes on the client side and pass in the de
   description: string;
   deadline: string; // ISO8601 format
   isDone: bool;
+  addTags: string[];
+  removeTags: string[];
 }
 ```
 
