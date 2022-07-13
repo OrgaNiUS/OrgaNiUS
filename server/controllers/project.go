@@ -217,7 +217,7 @@ func (c *ProjectController) ProjectSearch(ctx context.Context, query string) ([]
 	}
 
 	// run pipeline
-	cursor, err := c.Collection(projectCollection).Aggregate(context.TODO(), mongo.Pipeline{searchStage, filterStage, limitStage, projectStage})
+	cursor, err := c.Collection(projectCollection).Aggregate(ctx, mongo.Pipeline{searchStage, filterStage, limitStage, projectStage})
 
 	var results []bson.D
 	if err != nil {

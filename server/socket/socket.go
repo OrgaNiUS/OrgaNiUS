@@ -1,7 +1,6 @@
 package socket
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +8,7 @@ import (
 )
 
 var (
-	// might have to change CheckOrigin func here
+	// TODO: might have to change CheckOrigin func here
 	upgrader = websocket.Upgrader{}
 )
 
@@ -29,8 +28,6 @@ func CreateWebSocketFunction(transform func(ctx *gin.Context, message []byte) (i
 				log.Print("Error when reading from websocket connection: ", err)
 				break
 			}
-
-			fmt.Printf("Received %s\n", message)
 
 			returnMessage, shouldClose := transform(ctx, message)
 

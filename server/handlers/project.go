@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -434,7 +433,6 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 		results, err := projectController.ProjectSearch(ctx, query)
 
 		if err != nil {
-			fmt.Println(err)
 			return r{}, true
 		}
 
