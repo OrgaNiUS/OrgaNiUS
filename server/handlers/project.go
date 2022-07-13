@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/OrgaNiUS/OrgaNiUS/server/socket"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -413,4 +416,35 @@ func ProjectDelete(userController controllers.UserController, projectController 
 		projectController.ProjectDelete(ctx, projectid)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
+}
+
+func ProjectSearch(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type r struct {
+			Projects []bson.M
+		}
+
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		query := string(message)
+		results, err := projectController.ProjectSearch(ctx, query)
+
+		if err != nil {
+			fmt.Println(err)
+			return r{}, true
+		}
+
+		projects := make([]bson.M, len(results))
+		for i, res := range results {
+			projects[i] = res.Map()
+		}
+
+		return r{
+			Projects: projects,
+		}, false
+	})
 }

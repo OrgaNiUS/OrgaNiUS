@@ -49,8 +49,10 @@ const ParseJWT = (): AuthInterface => {
 const group: string = "api/v1/";
 const url: string = process.env.REACT_APP_URL || "https://organius.herokuapp.com/";
 
+export const API_URL = url + group;
+
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL: url + group,
+    baseURL: API_URL,
 });
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
