@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	// TODO: might have to change CheckOrigin func here
+	// not using checkorigin because no reason to restrict frontend URL (because not transmitting any secret information through web sockets, only search data -> which is meant to be publicly available as long as you are logged in)
 	upgrader = websocket.Upgrader{}
 )
 
