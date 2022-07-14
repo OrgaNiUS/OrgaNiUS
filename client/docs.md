@@ -76,15 +76,21 @@ The user can click on these tasks and events to toggle a popup card that reveals
 
 ## Projects
 
-The user can see their projects here.
+The user can see their projects and project invites here.
 
-From there they can click on the project name to navigate to the project page.
+The user can click on the project name to navigate to the project page.
+
+The user can click on the "accept" and "reject" buttons beside the project invites to accept or reject them.
+
+The user can also create a new project from here.
 
 ## Project Page
 
 The user can see an individual project's dashboard here.
 
-They can work with the tasks, similarly to the user dashboard, and other features (to be implemented).
+They can work with the tasks, similarly to the user dashboard, and other features.
+
+Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen. Admins can also manage user applications from this screen.
 
 ### Task Assignment
 
@@ -94,9 +100,21 @@ To add assignment to users, the user can edit the task and then start typing the
 
 To remove assignment from users, the user can edit the task and then press on the "-" icon or the name of the user to remove that user.
 
-## User
+### Project Applications
 
-The user can see their user page here. (to be implemented)
+This page is only accessible by the project admins.
+
+The admin can click on the green checkmarks or red crosses to mark an application as accepted or rejected respectively.
+
+After marking the applicants, the admin can click on the "Send changes!" button on the top right to act on those applications.
+
+There is also a "Refresh" button on the top right to refresh the data, as an alternative to refreshing the entire page.
+
+## Project Search
+
+A page where a user can search for public projects to request to join.
+
+(to be implemented)
 
 ## Settings
 

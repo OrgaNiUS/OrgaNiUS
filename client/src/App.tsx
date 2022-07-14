@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { UserRefreshJWT } from "./api/UserAPI";
 import "./App.css";
 import Navbar from "./components/Navbar";
+import ProjectApplications from "./components/Project/ProjectApplications";
 import AuthContext from "./context/AuthProvider";
 import { DataProvider } from "./context/DataProvider";
 import PageDoesNotExist from "./pages/ErrorPages/PageDoesNotExist";
@@ -57,6 +58,7 @@ function App() {
                     <Route path="/project_create" element={<ProjectCreate />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/project/:id" element={<Project />} />
+                    <Route path="/project_applications/:id" element={<ProjectApplications />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/user/:username" element={<User />} />
                     <Route path="*" element={<PageDoesNotExist />} />
