@@ -91,6 +91,19 @@ const ButtonSubmit = styled(BaseButton)`
     border: 1px solid black;
 `;
 
+const DisconnectedContainer = styled.div`
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    justify-content: center;
+    text-align: center;
+`;
+
+const DisconnectedBigText = styled.h1`
+    font-size: 2rem;
+`;
+
 interface ProjectShape {
     id: string /* projectid */;
     name: string /* name of project */;
@@ -234,8 +247,10 @@ const ProjectSearch = (): JSX.Element => {
         return (
             <Container>
                 <Link to="/projects">⬅️ Back to Projects</Link>
-                {/* TODO: render disconnect message in the middle of the screen */}
-                <div>Disconnected! Please refresh the page or try again later.</div>
+                <DisconnectedContainer>
+                    <DisconnectedBigText>Disconnected!</DisconnectedBigText>
+                    <p>Please check your connection and refresh the page.</p>
+                </DisconnectedContainer>
             </Container>
         );
     }
