@@ -414,3 +414,63 @@ func ProjectDelete(userController controllers.UserController, projectController 
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
+
+func ProjectLeave(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id  string `bson:"projectid" json:"projectid"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		project, err := projectController.ProjectRetrieve(ctx, query.Id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		user, err := userController.UserRetrieve(ctx, id, "")
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+		}
+		useridArr := []string{id}
+
+		// If user is admin, assign someone else admin role
+		if len(project.Members) > 1 {
+			if project.Settings.Roles[project.Members[id]].IsAdmin {
+				for nextUserId := range project.Members {
+					if nextUserId != id {
+						project.Members[nextUserId] = "admin"
+						break
+					}
+				}
+			}
+		}
+
+		// Delete user from project.Members
+		delete(project.Members, id)
+		projectController.ProjectModifyUser(ctx, &project)
+
+		// Delete all project tasks from user.Tasks
+		for _, taskid := range project.Tasks {
+			delete(user.Tasks, taskid)
+			primTaskId, _ := primitive.ObjectIDFromHex(taskid)
+			// Remove User from all project.Tasks.assignedTo
+			taskController.TaskModify(ctx, primTaskId, nil, nil, nil, nil, nil, &useridArr, nil, nil)
+		}
+		userController.UserModifyTask(ctx, &user)
+
+		// delete projectid from user.projects
+		userController.UsersDeleteProject(ctx, useridArr, query.Id)
+
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}

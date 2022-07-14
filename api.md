@@ -548,6 +548,22 @@ Input: A JSON body with the following parameters. projectid is only **required**
 
 Status Code: 200 or 400
 
+### Project Leave
+
+PATCH "/project_leave"
+
+User will leave the project / Project will remove current User.
+
+Input: A JSON body with the following **required** parameters. 
+
+```typescript
+{
+  projectid: string;
+}
+```
+
+Status Code: 200 or 400
+
 ### Project Delete
 
 DELETE "/project_delete"
