@@ -301,13 +301,13 @@ PATCH "/user_apply"
 
 Allows user to apply to join a project.
 
-Input: Query parameters of "projectid" (required) and "description" (optional).
+Input:
 
-Example usage:
-
-```
-PATCH {url}/user_apply?projectid=48321740872149281
-
+```typescript
+type input = {
+    projectid: string;
+    description?: string /* can be left blank */;
+};
 ```
 
 Status Code: 200 or 400
@@ -349,13 +349,6 @@ type input = {
 };
 ```
 
-Example usage:
-
-```
-PATCH {url}/user_accept?projectid=48321740872149281
-
-```
-
 Status Code: 200 or 400
 
 ### User Reject Invite to Project
@@ -370,13 +363,6 @@ Input:
 type input = {
     projectid: string; // required
 };
-```
-
-Example usage:
-
-```
-PATCH {url}/user_reject?projectid=48321740872149281
-
 ```
 
 Status Code: 200 or 400
