@@ -423,14 +423,14 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 			Projects []bson.M `json:"projects"`
 		}
 
-		_, _, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			// not logged in
 			return r{}, true
 		}
 
 		query := string(message)
-		results, err := projectController.ProjectSearch(ctx, query)
+		results, err := projectController.ProjectSearch(ctx, id, query)
 
 		if err != nil {
 			return r{}, true

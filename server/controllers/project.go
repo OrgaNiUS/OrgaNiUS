@@ -170,7 +170,7 @@ const (
 	searchLimit = 10
 )
 
-func (c *ProjectController) ProjectSearch(ctx context.Context, query string) ([]bson.D, error) {
+func (c *ProjectController) ProjectSearch(ctx context.Context, userid, query string) ([]bson.D, error) {
 	if query == "" {
 		// autocomplete.query cannot be empty!
 		// we will just return no results instead
@@ -200,6 +200,8 @@ func (c *ProjectController) ProjectSearch(ctx context.Context, query string) ([]
 	filterStage := bson.D{
 		{Key: "$match", Value: bson.D{
 			{Key: "isPublic", Value: true},
+			// filter out the projects where the user is already a member of
+			{Key: "members." + userid, Value: bson.D{{Key: "$exists", Value: false}}},
 		}},
 	}
 	limitStage := bson.D{
