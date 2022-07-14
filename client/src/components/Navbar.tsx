@@ -28,11 +28,11 @@ const Navbar = (): JSX.Element => {
             <Link to="/" className="home-icon">
                 OrgaNiUS
             </Link>
+            <Link to="/" className="navbar-icon">
+                Home
+            </Link>
             <Link to="/projects" className="navbar-icon">
                 Projects
-            </Link>
-            <Link to={linkToUser} className="navbar-icon">
-                User
             </Link>
             <Link to="/settings" className="navbar-icon">
                 Settings
