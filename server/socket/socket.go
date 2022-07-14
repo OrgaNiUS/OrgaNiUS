@@ -18,6 +18,8 @@ func CreateWebSocketFunction(transform func(ctx *gin.Context, message []byte) (i
 		c, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			log.Print("Error when upgrading websocket connection: ", err)
+			// need this early return because if upgrade fails, it will attempt to close a nil connection
+			return
 		}
 		defer c.Close()
 

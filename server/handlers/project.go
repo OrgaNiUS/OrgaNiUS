@@ -420,7 +420,7 @@ func ProjectDelete(userController controllers.UserController, projectController 
 func ProjectSearch(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
 		type r struct {
-			Projects []bson.M
+			Projects []bson.M `json:"projects"`
 		}
 
 		_, _, ok := jwtParser.GetFromJWT(ctx)

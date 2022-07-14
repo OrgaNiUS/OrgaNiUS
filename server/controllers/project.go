@@ -209,7 +209,8 @@ func (c *ProjectController) ProjectSearch(ctx context.Context, query string) ([]
 		{
 			Key: "$project",
 			Value: bson.D{
-				{Key: "_id", Value: 1},
+				{Key: "_id", Value: 0},     /* hide _id field */
+				{Key: "id", Value: "$_id"}, /* create a id field that is _id's value (essentially renaming the field) */
 				{Key: "name", Value: 1},
 				{Key: "description", Value: 1},
 			},
