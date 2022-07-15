@@ -52,6 +52,12 @@ interface SuggestionShape {
     name: string;
 }
 
+const parseData = (data: any): SuggestionShape[] => {
+    const json = JSON.parse(data);
+    const projects = json.users;
+    return projects;
+};
+
 /**
  * For clarity, this is the invitation panel for a admin of a project to invite other users.
  */
@@ -64,7 +70,6 @@ const ProjectsInvite = ({
 }): JSX.Element => {
     const auth = useContext(AuthContext);
     const [socket, setSocket] = useState<WebSocket | undefined>(undefined);
-    // TODO: set up preloader
     const [connectionState, setConnectionState] = useState<"loading" | "connected" | "disconnected">("loading");
     const [suggestions, setSuggestions] = useState<SuggestionShape[]>([]);
     const [selected, setSelected] = useState<string[]>([]);
@@ -103,7 +108,8 @@ const ProjectsInvite = ({
     const handleSubmit: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
 
-        if (selected === []) {
+        if (selected.length === 0) {
+            // if nothing selected yet, assume the user clicked this by accident, so don't do anyhing
             return;
         }
 
@@ -118,13 +124,9 @@ const ProjectsInvite = ({
         );
     };
 
-    const parseData = (data: any): SuggestionShape[] => {
-        const json = JSON.parse(data);
-        const projects = json.users.filter((s: SuggestionShape) => !selected.includes(s.name));
-        return projects;
-    };
+    const setupSocket = () => {
+        setConnectionState("loading");
 
-    useEffect(() => {
         const socket: WebSocket = CreateWebSocket("project_invite_search");
 
         socket.addEventListener("open", () => {
@@ -145,14 +147,37 @@ const ProjectsInvite = ({
         });
 
         setSocket(socket);
+    };
+
+    useEffect(() => {
+        setupSocket();
     }, []);
+
+    if (connectionState === "loading") {
+        return (
+            <Container>
+                <Title>Invite members...</Title>
+                <div>Loading...</div>
+            </Container>
+        );
+    }
+
+    if (connectionState === "disconnected") {
+        return (
+            <Container>
+                <Title>Invite members...</Title>
+                <div>Disconnected!</div>
+                <ButtonSubmit onClick={setupSocket}>Attempt Re-Connect</ButtonSubmit>
+            </Container>
+        );
+    }
 
     return (
         <Container>
             <Title>Invite members...</Title>
             <form onSubmit={(event) => event.preventDefault()}>
                 <div className="relative my-2">
-                    <Input onChange={handleChange} value={field} autoFocus />
+                    <Input onChange={handleChange} value={field} placeholder="Enter a name..." autoFocus />
                     {suggestions
                         // filter out those already selected
                         .filter((sug) => !selected.includes(sug.name))
