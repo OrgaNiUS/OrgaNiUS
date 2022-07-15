@@ -1,5 +1,6 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
+import { CreateWebSocket } from "../../api/API";
 import { ProjectInvite } from "../../api/ProjectAPI";
 import AuthContext from "../../context/AuthProvider";
 import { BaseButton, InputCSS } from "../../styles";
@@ -34,11 +35,6 @@ const IconButton = styled.button`
     }
 `;
 
-const ButtonAdd = styled(IconButton)`
-    float: right;
-    padding-top: 7px; /* same as InputCSS's padding */
-`;
-
 const ButtonSubmit = styled(BaseButton)`
     background-color: rgb(59, 130, 246);
     float: right;
@@ -51,6 +47,11 @@ const ButtonCancel = styled(BaseButton)`
     float: right;
 `;
 
+interface SuggestionShape {
+    id: string;
+    name: string;
+}
+
 /**
  * For clarity, this is the invitation panel for a admin of a project to invite other users.
  */
@@ -62,77 +63,122 @@ const ProjectsInvite = ({
     setShowInviteWindow: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element => {
     const auth = useContext(AuthContext);
-    const [allInvites, setAllInvites] = useState<Set<string>>(new Set());
-    const [currentInvite, setCurrentInvite] = useState<string>("");
+    const [socket, setSocket] = useState<WebSocket | undefined>(undefined);
+    // TODO: set up preloader
+    const [connectionState, setConnectionState] = useState<"loading" | "connected" | "disconnected">("loading");
+    const [suggestions, setSuggestions] = useState<SuggestionShape[]>([]);
+    const [selected, setSelected] = useState<string[]>([]);
+    const [field, setField] = useState<string>("");
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
 
-        setCurrentInvite(event.target.value);
-    };
+        setField(event.target.value);
 
-    const handleAdd = (event: any) => {
-        event.preventDefault();
-
-        if (currentInvite === "") {
+        if (socket === undefined) {
             return;
         }
+        const payload = {
+            projectid: projectid,
+            query: event.target.value,
+        };
+        socket.send(JSON.stringify(payload));
+    };
 
-        setAllInvites((invites) => {
-            const invitesCopy: Set<string> = new Set(invites);
-            if (!invitesCopy.has(currentInvite)) {
-                setCurrentInvite("");
-                invitesCopy.add(currentInvite);
-            }
-            return invitesCopy;
-        });
+    const handleAdd = (name: string) => {
+        setSelected((invs) => [...invs, name]);
+
+        setField("");
+        setSuggestions([]);
     };
 
     const handleRemove = (name: string) => {
-        setAllInvites((invites) => {
-            const invitesCopy: Set<string> = new Set(invites);
-            invitesCopy.delete(name);
-            return invitesCopy;
-        });
+        setSelected((invs) => invs.filter((inv) => inv !== name));
+    };
+
+    const handleClose = () => {
+        setShowInviteWindow(false);
     };
 
     const handleSubmit: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
 
-        setAllInvites(new Set());
-
-        const users: string[] = Array.from(allInvites);
+        if (selected === []) {
+            return;
+        }
 
         ProjectInvite(
             auth.axiosInstance,
-            { users, projectid },
-            () => {},
+            { users: selected, projectid },
+            () => {
+                setSelected([]);
+                handleClose();
+            },
             () => {}
         );
     };
 
+    const parseData = (data: any): SuggestionShape[] => {
+        const json = JSON.parse(data);
+        const projects = json.users.filter((s: SuggestionShape) => !selected.includes(s.name));
+        return projects;
+    };
+
+    useEffect(() => {
+        const socket: WebSocket = CreateWebSocket("project_invite_search");
+
+        socket.addEventListener("open", () => {
+            setConnectionState("connected");
+        });
+
+        socket.addEventListener("message", (event) => {
+            const suggestions = parseData(event.data);
+            setSuggestions(suggestions);
+        });
+
+        socket.addEventListener("close", () => {
+            setConnectionState("disconnected");
+        });
+
+        socket.addEventListener("error", () => {
+            setConnectionState("disconnected");
+        });
+
+        setSocket(socket);
+    }, []);
+
     return (
         <Container>
             <Title>Invite members...</Title>
-            <form onSubmit={handleAdd}>
+            <form onSubmit={(event) => event.preventDefault()}>
                 <div className="relative my-2">
-                    <Input onChange={handleChange} value={currentInvite} autoFocus />
-                    <ButtonAdd onClick={handleAdd}>
-                        {/* plus from https://heroicons.com/ */}
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </ButtonAdd>
+                    <Input onChange={handleChange} value={field} autoFocus />
+                    {suggestions
+                        // filter out those already selected
+                        .filter((sug) => !selected.includes(sug.name))
+                        .map((suggestion, key) => {
+                            return (
+                                <div key={key} className="pl-2">
+                                    <span>{suggestion.name}</span>
+                                    <IconButton className="float-right" onClick={() => handleAdd(suggestion.name)}>
+                                        {/* plus from https://heroicons.com/ */}
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-6 w-6"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </IconButton>
+                                </div>
+                            );
+                        })}
                 </div>
                 <div>
-                    {Array.from(allInvites).map((invite, key) => {
+                    {selected.map((invite, key) => {
                         return (
                             <div key={key} className="pl-2">
                                 <span>{invite}</span>
@@ -156,8 +202,8 @@ const ProjectsInvite = ({
                 <ButtonSubmit type="button" onClick={handleSubmit}>
                     Send Invites!
                 </ButtonSubmit>
-                <ButtonCancel type="button" onClick={() => setShowInviteWindow(false)}>
-                    Cancel
+                <ButtonCancel type="button" onClick={handleClose}>
+                    Close
                 </ButtonCancel>
             </form>
         </Container>

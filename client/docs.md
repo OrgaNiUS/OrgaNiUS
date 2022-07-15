@@ -90,7 +90,7 @@ The user can see an individual project's dashboard here.
 
 They can work with the tasks, similarly to the user dashboard, and other features.
 
-Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen. Admins can also manage user applications from this screen.
+Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen, with autocomplete. Admins can also manage user applications from this screen.
 
 ### Task Assignment
 
