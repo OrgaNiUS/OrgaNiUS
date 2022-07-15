@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -415,6 +416,41 @@ func ProjectDelete(userController controllers.UserController, projectController 
 		projectController.ProjectDelete(ctx, projectid)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
+}
+
+// autocomplete for searching for users to invite
+func ProjectInviteSearch(userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type q struct {
+			ProjectId string `json:"projectid"`
+			Query     string `json:"query"`
+		}
+		type r struct {
+			Users []bson.M `json:"users"`
+		}
+
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		var query q
+		json.Unmarshal(message, &query)
+		results, err := userController.ProjectInviteSearch(ctx, query.ProjectId, query.Query)
+		if err != nil {
+			return r{}, true
+		}
+
+		users := make([]bson.M, len(results))
+		for i, res := range results {
+			users[i] = res.Map()
+		}
+
+		return r{
+			Users: users,
+		}, false
+	})
 }
 
 func ProjectSearch(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {

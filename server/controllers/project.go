@@ -148,6 +148,8 @@ Some sections of this tutorial by MongoDB is useful.
 https://www.youtube.com/watch?v=jnxnhbTO2RA
 
 OrgaNiUS.projects
+
+index name: autoCompleteProjects
 {
   "mappings": {
     "dynamic": false,
@@ -166,11 +168,8 @@ OrgaNiUS.projects
 }
 */
 
-const (
-	searchLimit = 10
-)
-
 func (c *ProjectController) ProjectSearch(ctx context.Context, userid, query string) ([]bson.D, error) {
+	const searchLimit = 10
 	if query == "" {
 		// autocomplete.query cannot be empty!
 		// we will just return no results instead

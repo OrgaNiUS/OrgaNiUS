@@ -73,6 +73,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 
 	// web socket handlers here
 	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))
+	v1.GET("/project_invite_search", handlers.ProjectInviteSearch(userController, jwtParser))
 }
 
 func main() {

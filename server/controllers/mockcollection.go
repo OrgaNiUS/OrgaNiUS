@@ -125,6 +125,11 @@ func (c *MockCollection) DeleteByID(ctx context.Context, id string) (int64, erro
 	return 1, nil
 }
 
+func (c *MockCollection) Aggregate(ctx context.Context, pipeline interface{},
+	opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	return nil, nil
+}
+
 const (
 	TEST_URL = ""
 )

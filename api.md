@@ -652,6 +652,8 @@ type input = {
 
 Web Socket "/project_search". This upgrades the existing http/s connection to a web socket connection.
 
+This is used for establishing the autocomplete feature for searching projects.
+
 Send: A string of the search query.
 
 Receive:
@@ -665,6 +667,37 @@ type project = {
     id: string /* projectid */;
     name: string /* name of project */;
     description: string /* description of project */;
+};
+```
+
+### Project Invite Search
+
+Web Socket "/project_search". This upgrades the existing http/s connection to a web socket connection.
+
+This is used for establishing the autocomplete feature for searching users (when inviting them to a project).
+
+Send:
+
+```typescript
+// NOTE: use JSON.stringify to stringify the payload and send as a string.
+// https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications#using_json_to_transmit_objects
+
+type send = {
+    projectid: string;
+    query: string;
+};
+```
+
+Receive:
+
+```typescript
+type receive = {
+    users = user[];
+};
+
+type user = {
+    id: string;
+    name: string;
 };
 ```
 
