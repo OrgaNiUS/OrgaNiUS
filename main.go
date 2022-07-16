@@ -17,7 +17,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
+func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -71,7 +71,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.PATCH("/task_modify", handlers.TaskModify(userController, taskController, jwtParser))
 	v1.GET("/task_get_all", handlers.TaskGetAll(userController, projectController, taskController, jwtParser))
 
-	v1.POST("/event_create", handlers.EventCreate())
+	v1.POST("/event_create", handlers.EventCreate(eventController, jwtParser))
 	v1.GET("/event_get", handlers.EventGet())
 	v1.GET("/event_get_all", handlers.EventGetAll())
 	v1.PATCH("/event_modify", handlers.EventModify())
@@ -128,9 +128,10 @@ func main() {
 	userController := controllers.NewU(client, URL)
 	projectController := controllers.NewP(client, URL)
 	taskController := controllers.NewT(client, URL)
+	eventController := controllers.NewE(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
-	handleRoutes(URL, router, *userController, *projectController, *taskController, jwtParser, mailer)
+	handleRoutes(URL, router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
 
 	log.Print("Server booted up!")
 

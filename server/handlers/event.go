@@ -1,10 +1,68 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-func EventCreate() gin.HandlerFunc {
+	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
+	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
+	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/gin-gonic/gin"
+)
+
+func EventCreate(eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type q struct {
+			Name      string `bson:"name" json:"name"`
+			Start     string `bson:"start" json:"start"`
+			End       string `bson:"end" json:"end"`
+			ProjectId string `bson:"projectid" json:"projectid"`
+		}
+		var query q
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if query.Name == "" {
+			DisplayError(ctx, "name is required")
+			return
+		}
+		start, err := functions.StringToTime(query.Start)
+		if err != nil {
+			DisplayError(ctx, "bad start time")
+			return
+		}
+		end, err := functions.StringToTime(query.End)
+		if err != nil {
+			DisplayError(ctx, "bad end time")
+			return
+		}
+		event := models.Event{
+			Name:  query.Name,
+			Start: start,
+			End:   end,
+		}
 
+		// create the event in database, the Id field of event will be populated as a side effect
+		if err := eventController.EventCreate(ctx, &event); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		if query.ProjectId == "" {
+			// TODO: place in user
+		} else {
+			// TODO: place in project
+		}
+
+		ctx.JSON(http.StatusCreated, gin.H{
+			"eventid": event.Id,
+		})
 	}
 }
 
