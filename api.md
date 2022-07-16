@@ -623,7 +623,7 @@ For tags array, do parse the changes similarly to assignedTo.
 GET "/task_get_all"
 
 Get All User Tasks: Leave projectid blank
-Get All Project Tasks: Put Relevant projectId
+Get All Project Tasks: Put relevant projectId
 
 Input: Query parameters of "projectid"
 
@@ -658,6 +658,91 @@ Input: A JSON body with the following **required** parameters.
   tasks: string[];
 }
 ```
+
+### Event Create
+
+POST "/event_create"
+
+This will create a personal event or project event.
+
+1. If _no_ projectid is passed in, the task will be created for the current user.
+2. If a projectid is passed in, the task will be created for the project with that projectid.
+
+Input:
+
+```typescript
+type input = {
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+    projectid?: string;
+};
+```
+
+Output:
+
+```typescript
+type output = {
+    eventid: string; // id of the created event
+};
+```
+
+### Event Get
+
+GET "/event_get"
+
+Input: Query parameters of "eventid".
+
+Output:
+
+```typescript
+type output = {
+    id: string; // id of event
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+};
+```
+
+### Event Get All
+
+GET "/event_get_all"
+
+Get All User Events: Leave projectid blank
+Get All Project Events: Put relevant projectid
+
+Input: Query parameters of "projectid"
+
+Output:
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
+### Event Modify
+
+PATCH "/event_modify"
+
+Input:
+
+```typescript
+type input = {
+    taskid: string;
+    name?: string;
+    start?: string; // ISO 8601 format
+    end?: string; // ISO 8601 format
+};
+```
+
+Output: None
+
+### Event Delete
+
+DELETE "/event_delete"
+
+Input: Query parameter of eventid of event to be deleted.
 
 ## Definitions
 
