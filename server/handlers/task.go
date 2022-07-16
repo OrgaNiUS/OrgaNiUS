@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
+	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -40,7 +40,7 @@ func TaskCreate(userController controllers.UserController, projectController con
 		task.Name = query.Name
 		task.Description = query.Description
 		if query.Deadline != "" {
-			deadline, err := time.Parse("2006-01-02T15:04:05.999Z", query.Deadline)
+			deadline, err := functions.StringToTime(query.Deadline)
 			if err != nil {
 				DisplayError(ctx, "Please provide time in proper ISO8601 format")
 				return

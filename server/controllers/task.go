@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,7 +47,7 @@ func (c *TaskController) TaskModify(ctx context.Context, taskid primitive.Object
 		setParams = append(setParams, bson.E{Key: "description", Value: *description})
 	}
 	if deadline != nil {
-		parsedDeadline, _ := time.Parse("2006-01-02T15:04:05.999Z", *deadline)
+		parsedDeadline, _ := functions.StringToTime(*deadline)
 		setParams = append(setParams, bson.E{Key: "deadline", Value: parsedDeadline})
 	}
 	if isdone != nil {
