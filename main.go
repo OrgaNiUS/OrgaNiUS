@@ -37,7 +37,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.POST("/signup", handlers.UserSignup(userController, jwtParser, mailer))
 	v1.POST("/verify", handlers.UserVerify(userController, jwtParser))
 	v1.POST("/login", handlers.UserLogin(userController, jwtParser))
-	v1.GET("/refresh-jwt", handlers.UserRefreshJWT(userController, jwtParser))
+	v1.GET("/refresh_jwt", handlers.UserRefreshJWT(userController, jwtParser))
 	v1.DELETE("/logout", handlers.UserLogout(userController, jwtParser))
 
 	v1.POST("/forgot_pw", handlers.UserForgotPW(userController, mailer))
