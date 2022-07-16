@@ -232,3 +232,14 @@ func (c *UserController) UserDeleteInvites(ctx context.Context, userid string, p
 	id, _ := primitive.ObjectIDFromHex(userid)
 	c.Collection(userCollection).UpdateByID(ctx, id, update)
 }
+
+// adds multiple events to a user
+func (c *UserController) UserAddEvents(ctx context.Context, userid string, eventids []string) {
+	update := bson.D{
+		{Key: "$addToSet", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$each", Value: eventids}}},
+		}},
+	}
+	id, _ := primitive.ObjectIDFromHex(userid)
+	c.Collection(userCollection).UpdateByID(ctx, id, update)
+}

@@ -10,9 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func EventCreate(eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func EventCreate(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, _, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -55,7 +55,7 @@ func EventCreate(eventController controllers.EventController, jwtParser *auth.JW
 		}
 
 		if query.ProjectId == "" {
-			// TODO: place in user
+			userController.UserAddEvents(ctx, id, []string{string(event.Id.Hex())})
 		} else {
 			// TODO: place in project
 		}
