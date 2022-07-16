@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func EventCreate(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func EventCreate(userController controllers.UserController, projectController controllers.ProjectController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -54,10 +54,11 @@ func EventCreate(userController controllers.UserController, eventController cont
 			return
 		}
 
+		eventids := []string{string(event.Id.Hex())}
 		if query.ProjectId == "" {
-			userController.UserAddEvents(ctx, id, []string{string(event.Id.Hex())})
+			userController.UserAddEvents(ctx, id, eventids)
 		} else {
-			// TODO: place in project
+			projectController.ProjectAddEvents(ctx, query.ProjectId, eventids)
 		}
 
 		ctx.JSON(http.StatusCreated, gin.H{

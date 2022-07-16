@@ -32,6 +32,7 @@ func (c *ProjectController) ProjectCreate(ctx context.Context, project *models.P
 	}
 	project.CreationTime = time.Now()
 	project.Tasks = []string{}
+	project.Events = []string{}
 	project.Settings = models.DefaultSettings()
 	project.Applications = make(map[string]models.ProjectApplication)
 	project.IsPublic = true
@@ -134,4 +135,14 @@ func (c *ProjectController) ProjectArrayToModel(ctx context.Context, Projects []
 
 	c.Collection(projectCollection).FindAll(ctx, projectidArr, &projectsArray)
 	return projectsArray
+}
+
+func (c *ProjectController) ProjectAddEvents(ctx context.Context, projectid string, eventids []string) {
+	update := bson.D{
+		{Key: "$addToSet", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$each", Value: eventids}}},
+		}},
+	}
+	id, _ := primitive.ObjectIDFromHex(projectid)
+	c.Collection(projectCollection).UpdateByID(ctx, id, update)
 }
