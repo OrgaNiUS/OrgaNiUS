@@ -554,11 +554,11 @@ PATCH "/project_leave"
 
 User will leave the project / Project will remove current User.
 
-Input: A JSON body with the following **required** parameters. 
+Input: A JSON body with the following **required** parameters.
 
 ```typescript
 {
-  projectid: string;
+    projectid: string;
 }
 ```
 
