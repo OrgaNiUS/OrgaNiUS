@@ -72,7 +72,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/task_get_all", handlers.TaskGetAll(userController, projectController, taskController, jwtParser))
 
 	v1.POST("/event_create", handlers.EventCreate(userController, projectController, eventController, jwtParser))
-	v1.GET("/event_get", handlers.EventGet())
+	v1.GET("/event_get", handlers.EventGet(eventController, jwtParser))
 	v1.GET("/event_get_all", handlers.EventGetAll())
 	v1.PATCH("/event_modify", handlers.EventModify())
 	v1.DELETE("/event_delete", handlers.EventDelete())

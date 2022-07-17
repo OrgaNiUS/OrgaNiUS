@@ -67,9 +67,25 @@ func EventCreate(userController controllers.UserController, projectController co
 	}
 }
 
-func EventGet() gin.HandlerFunc {
+func EventGet(eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		eventid := ctx.DefaultQuery("eventid", "")
+		event, err := eventController.EventGet(ctx, eventid)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"id":    event.Id.Hex(),
+			"name":  event.Name,
+			"start": event.Start,
+			"end":   event.End,
+		})
 	}
 }
 

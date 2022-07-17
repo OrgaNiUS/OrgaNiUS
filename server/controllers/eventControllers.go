@@ -13,6 +13,8 @@ import (
 type EventCollectionInterface interface {
 	InsertOne(ctx context.Context, event *models.Event) (primitive.ObjectID, error)
 
+	FindOne(ctx context.Context, id string) (*models.Event, error)
+
 	FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error
 }
 
@@ -37,6 +39,17 @@ func (c *EventCollection) FindAll(ctx context.Context, ids []primitive.ObjectID,
 	}
 	cursor.All(ctx, events)
 	return nil
+}
+
+func (c *EventCollection) FindOne(ctx context.Context, id string) (*models.Event, error) {
+	event := models.Event{}
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return &event, err
+	}
+	params := bson.D{{Key: "_id", Value: objectId}}
+	err = c.eventCollection.FindOne(ctx, params).Decode(&event)
+	return &event, err
 }
 
 type EventController struct {
