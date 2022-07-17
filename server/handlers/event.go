@@ -89,9 +89,37 @@ func EventGet(eventController controllers.EventController, jwtParser *auth.JWTPa
 	}
 }
 
-func EventGetAll() gin.HandlerFunc {
+func EventGetAll(userController controllers.UserController, projectController controllers.ProjectController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+		var eventids []string
+		if projectid == "" {
+			// Get all user events.
+			user, err := userController.UserRetrieve(ctx, id, "")
+			if err != nil {
+				// should never reach here unless someone messed with their JWT
+				DisplayNotAuthorized(ctx, "something went wrong, try again")
+				return
+			}
+			eventids = user.Events
+		} else {
+			// Get all project events for a projectid.
+			project, err := projectController.ProjectRetrieve(ctx, projectid)
+			if err != nil {
+				DisplayNotAuthorized(ctx, "bad project id")
+				return
+			}
+			eventids = project.Events
+		}
+		events := eventController.EventMapToArray(ctx, eventids)
+		ctx.JSON(http.StatusOK, gin.H{
+			"events": events,
+		})
 	}
 }
 
