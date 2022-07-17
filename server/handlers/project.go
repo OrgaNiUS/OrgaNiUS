@@ -13,7 +13,7 @@ import (
 )
 
 // Input parameters "projectid" : "projectid"
-func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -55,7 +55,7 @@ func ProjectGet(userController controllers.UserController, projectController con
 				"creationTime": project.CreationTime,
 				"members":      userArr,
 				"tasks":        taskController.TaskMapToArray(ctx, project.Tasks),
-				"events":       struct{}{}, // to be implemented
+				"events":       eventController.EventMapToArray(ctx, project.Events),
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
 		}

@@ -384,7 +384,7 @@ Status Code: 200 or 400
 
 GET "/project_get"
 
-This will get the project's name, description and creation time.
+This will get the project's name, description and creation time, events, members, tasks.
 
 Input: Query parameters of "projectid"
 
@@ -400,7 +400,7 @@ Output:
 {
   "creationTime": string,
   "description": string,
-  "events": {},
+  "events": Event[],
   "members": [
       {
           "name": string,

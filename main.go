@@ -57,7 +57,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.PATCH("/user_reject", handlers.UserRejectProject(userController, projectController, jwtParser))
 
 	v1.POST("/project_create", handlers.ProjectCreate(userController, projectController, jwtParser))
-	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, jwtParser))
+	v1.GET("/project_get", handlers.ProjectGet(userController, projectController, taskController, eventController, jwtParser))
 	v1.GET("/project_get_all", handlers.ProjectGetAll(userController, projectController, jwtParser))
 	v1.PATCH("/project_modify", handlers.ProjectModify(projectController, jwtParser))
 	v1.PATCH("/project_invite", handlers.ProjectInviteUser(userController, jwtParser))

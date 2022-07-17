@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,6 +12,8 @@ import (
 
 type EventCollectionInterface interface {
 	InsertOne(ctx context.Context, event *models.Event) (primitive.ObjectID, error)
+
+	FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error
 }
 
 type EventCollection struct {
@@ -24,6 +27,16 @@ func (c *EventCollection) InsertOne(ctx context.Context, event *models.Event) (p
 	}
 	id := result.InsertedID.(primitive.ObjectID)
 	return id, nil
+}
+
+func (c *EventCollection) FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error {
+	params := bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: ids}}}}
+	cursor, err := c.eventCollection.Find(ctx, params)
+	if err != nil {
+		return err
+	}
+	cursor.All(ctx, events)
+	return nil
 }
 
 type EventController struct {
