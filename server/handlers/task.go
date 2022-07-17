@@ -198,6 +198,7 @@ func TaskModify(userController controllers.UserController, taskController contro
 		taskid, err := primitive.ObjectIDFromHex(query.TaskId)
 		if err != nil {
 			DisplayError(ctx, "invalid taskid")
+			return
 		}
 
 		// Delete users from task

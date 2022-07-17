@@ -729,7 +729,7 @@ Input:
 
 ```typescript
 type input = {
-    taskid: string;
+    eventid: string;
     name?: string;
     start?: string; // ISO 8601 format
     end?: string; // ISO 8601 format

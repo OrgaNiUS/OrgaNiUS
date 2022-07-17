@@ -8,6 +8,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func EventCreate(userController controllers.UserController, projectController controllers.ProjectController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
@@ -123,9 +124,40 @@ func EventGetAll(userController controllers.UserController, projectController co
 	}
 }
 
-func EventModify() gin.HandlerFunc {
+func EventModify(eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type q struct {
+			Id    string  `bson:"eventid" json:"eventid"`
+			Name  *string `bson:"name" json:"name"`
+			Start *string `bson:"start" json:"start"`
+			End   *string `bson:"end" json:"end"`
+		}
+		var query q
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if query.Id == "" {
+			DisplayError(ctx, "please provide eventid")
+			return
+		}
+		eventid, err := primitive.ObjectIDFromHex(query.Id)
+		if err != nil {
+			DisplayError(ctx, "invalid eventid")
+			return
+		}
 
+		err = eventController.EventModify(ctx, eventid, query.Name, query.Start, query.End)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
 

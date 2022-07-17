@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -40,4 +42,29 @@ func (c *EventController) EventMapToArray(ctx context.Context, events []string) 
 	}
 	c.Collection(eventCollection).FindAll(ctx, ids, &result)
 	return result
+}
+
+func (c *EventController) EventModify(ctx context.Context, eventid primitive.ObjectID, name, start, end *string) error {
+	params := bson.D{}
+	if name != nil {
+		params = append(params, bson.E{Key: "name", Value: *name})
+	}
+	if start != nil {
+		startTime, err := functions.StringToTime(*start)
+		if err != nil {
+			return errors.New("bad start time")
+		}
+		params = append(params, bson.E{Key: "start", Value: startTime})
+	}
+	if end != nil {
+		endTime, err := functions.StringToTime(*end)
+		if err != nil {
+			return errors.New("bad end time")
+		}
+		params = append(params, bson.E{Key: "end", Value: endTime})
+	}
+
+	update := bson.D{{Key: "$set", Value: params}}
+	c.Collection(eventCollection).UpdateByID(ctx, eventid, update)
+	return nil
 }

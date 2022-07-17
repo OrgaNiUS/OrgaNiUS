@@ -16,6 +16,8 @@ type EventCollectionInterface interface {
 	FindOne(ctx context.Context, id string) (*models.Event, error)
 
 	FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error
+
+	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
 }
 
 type EventCollection struct {
@@ -50,6 +52,14 @@ func (c *EventCollection) FindOne(ctx context.Context, id string) (*models.Event
 	params := bson.D{{Key: "_id", Value: objectId}}
 	err = c.eventCollection.FindOne(ctx, params).Decode(&event)
 	return &event, err
+}
+
+func (c *EventCollection) UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.eventCollection.UpdateByID(ctx, id, params)
+	if err != nil {
+		return nil, err
+	}
+	return result, err
 }
 
 type EventController struct {
