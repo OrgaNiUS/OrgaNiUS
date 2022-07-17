@@ -68,3 +68,8 @@ func (c *EventController) EventModify(ctx context.Context, eventid primitive.Obj
 	c.Collection(eventCollection).UpdateByID(ctx, eventid, update)
 	return nil
 }
+
+func (c *EventController) EventDelete(ctx context.Context, eventid primitive.ObjectID) error {
+	_, err := c.Collection(eventCollection).DeleteByID(ctx, eventid)
+	return err
+}

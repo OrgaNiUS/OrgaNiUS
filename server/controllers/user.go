@@ -243,3 +243,12 @@ func (c *UserController) UserAddEvents(ctx context.Context, userid string, event
 	id, _ := primitive.ObjectIDFromHex(userid)
 	c.Collection(userCollection).UpdateByID(ctx, id, update)
 }
+
+func (c *UserController) UserRemoveEvents(ctx context.Context, userid primitive.ObjectID, eventids []string) {
+	update := bson.D{
+		{Key: "$pull", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$in", Value: eventids}}},
+		}},
+	}
+	c.Collection(userCollection).UpdateByID(ctx, userid, update)
+}

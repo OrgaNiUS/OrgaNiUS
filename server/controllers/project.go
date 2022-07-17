@@ -146,3 +146,12 @@ func (c *ProjectController) ProjectAddEvents(ctx context.Context, projectid stri
 	id, _ := primitive.ObjectIDFromHex(projectid)
 	c.Collection(projectCollection).UpdateByID(ctx, id, update)
 }
+
+func (c *ProjectController) ProjectRemoveEvents(ctx context.Context, projectid primitive.ObjectID, eventids []string) {
+	update := bson.D{
+		{Key: "$pull", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$in", Value: eventids}}},
+		}},
+	}
+	c.Collection(projectCollection).UpdateByID(ctx, projectid, update)
+}

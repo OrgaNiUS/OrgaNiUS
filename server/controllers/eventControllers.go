@@ -18,6 +18,8 @@ type EventCollectionInterface interface {
 	FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error
 
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
+
+	DeleteByID(ctx context.Context, id primitive.ObjectID) (int64, error)
 }
 
 type EventCollection struct {
@@ -60,6 +62,15 @@ func (c *EventCollection) UpdateByID(ctx context.Context, id primitive.ObjectID,
 		return nil, err
 	}
 	return result, err
+}
+
+func (c *EventCollection) DeleteByID(ctx context.Context, id primitive.ObjectID) (int64, error) {
+	params := bson.D{{Key: "_id", Value: id}}
+	result, err := c.eventCollection.DeleteOne(ctx, params)
+	if err != nil {
+		return -1, err
+	}
+	return result.DeletedCount, nil
 }
 
 type EventController struct {

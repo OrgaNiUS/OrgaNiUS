@@ -161,8 +161,41 @@ func EventModify(eventController controllers.EventController, jwtParser *auth.JW
 	}
 }
 
-func EventDelete() gin.HandlerFunc {
+func EventDelete(userController controllers.UserController, projectController controllers.ProjectController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		eventid := ctx.DefaultQuery("eventid", "")
+		if eventid == "" {
+			DisplayError(ctx, "provide the eventid")
+			return
+		}
+		objectid, err := primitive.ObjectIDFromHex(eventid)
+		if err != nil {
+			DisplayError(ctx, "invalid eventid")
+			return
+		}
+		if err := eventController.EventDelete(ctx, objectid); err != nil {
+			DisplayError(ctx, "could not delete event")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+		if projectid == "" {
+			// Delete from the user.
+			userid, _ := primitive.ObjectIDFromHex(id)
+			userController.UserRemoveEvents(ctx, userid, []string{eventid})
+		} else {
+			// Delete from the project.
+			projectobjectid, err := primitive.ObjectIDFromHex(projectid)
+			if err != nil {
+				DisplayError(ctx, "invalid projectid")
+				return
+			}
+			projectController.ProjectRemoveEvents(ctx, projectobjectid, []string{eventid})
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }

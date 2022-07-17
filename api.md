@@ -742,7 +742,7 @@ Output: None
 
 DELETE "/event_delete"
 
-Input: Query parameter of eventid of event to be deleted.
+Input: Query parameter of eventid of event to be deleted, and projectid (if associated with a project).
 
 ## Definitions
 
