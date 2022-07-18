@@ -450,7 +450,7 @@ const Project = (): JSX.Element => {
                         onClick={() => {
                             setShowRemModal(false);
                             setShowSettingsModal(true);
-                            setCurrUsers(project.members);
+                            setCurrUsers(project.members.filter((user) => user.id !== auth.auth.id));
                             setRemovedUsers([]);
                         }}
                     >
@@ -566,7 +566,7 @@ const Project = (): JSX.Element => {
                         body: RemoveUsersModal,
                         callback: () => {
                             setShowRemModal(false);
-                            setCurrUsers(project.members);
+                            setCurrUsers(project.members.filter((user) => user.id !== auth.auth.id));
                             setRemovedUsers([]);
                         },
                     }}
