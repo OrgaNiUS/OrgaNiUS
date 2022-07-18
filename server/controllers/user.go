@@ -252,3 +252,88 @@ func (c *UserController) UserRemoveEvents(ctx context.Context, userid primitive.
 	}
 	c.Collection(userCollection).UpdateByID(ctx, userid, update)
 }
+
+/*
+OrgaNiUS.projects
+
+index name: autoCompleteUsers
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "name": [
+        {
+          "foldDiacritics": true,
+          "maxGrams": 15,
+          "minGrams": 2,
+          "tokenization": "edgeGram",
+          "type": "autocomplete"
+        }
+      ]
+    }
+  }
+}
+*/
+
+func (c *UserController) ProjectInviteSearch(ctx context.Context, projectid, query string) ([]bson.D, error) {
+	const searchLimit = 10
+	if query == "" {
+		// autocomplete.query cannot be empty!
+		// we will just return no results instead
+		return []bson.D{}, nil
+	}
+	searchStage := bson.D{
+		{
+			Key: "$search",
+			Value: bson.D{
+				{Key: "index", Value: "autoCompleteUsers"},
+				{Key: "autocomplete", Value: bson.D{
+					{Key: "path", Value: "name"},
+					{Key: "query", Value: query},
+					{Key: "tokenOrder", Value: "sequential"},
+					{Key: "fuzzy", Value: bson.D{
+						{Key: "maxEdits", Value: 1},
+						{Key: "prefixLength", Value: 1},
+						{Key: "maxExpansions", Value: 256},
+					}},
+				}},
+			},
+		},
+	}
+	filterStage := bson.D{
+		{Key: "$match", Value: bson.D{
+			// filter out the users who are already in the project
+			{Key: "projects", Value: bson.D{{Key: "$ne", Value: projectid}}},
+		}},
+	}
+	limitStage := bson.D{
+		{Key: "$limit", Value: searchLimit},
+	}
+	projectStage := bson.D{
+		{
+			Key: "$project",
+			Value: bson.D{
+				{Key: "_id", Value: 0}, /* hide _id field */
+				{Key: "id", Value: bson.D{{Key: "$toString", Value: "$_id"}}}, /* create a id field that is _id's value (essentially renaming the field & changing to string) */
+				{Key: "name", Value: 1},
+			},
+		},
+	}
+
+	// run pipeline
+	cursor, err := c.Collection(userCollection).Aggregate(ctx, mongo.Pipeline{searchStage, filterStage, limitStage, projectStage})
+
+	var results []bson.D
+	if err != nil {
+		return nil, err
+	}
+
+	if cursor == nil {
+		return results, errors.New("check server project controller")
+	}
+	if err = cursor.All(ctx, &results); err != nil {
+		return results, err
+	}
+
+	return results, nil
+}

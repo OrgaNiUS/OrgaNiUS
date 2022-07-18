@@ -90,7 +90,7 @@ The user can see an individual project's dashboard here.
 
 They can work with the tasks, similarly to the user dashboard, and other features.
 
-Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen. Admins can also manage user applications from this screen.
+Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen, with autocomplete. Admins can also manage user applications from this screen.
 
 ### Task Assignment
 
@@ -114,7 +114,7 @@ There is also a "Refresh" button on the top right to refresh the data, as an alt
 
 A page where a user can search for public projects to request to join.
 
-(to be implemented)
+The user can simply search for a project name through the search box. They will receive real-time suggestions from the server. After which, they can click on a project name to open a modal where they can apply to join a project. They can optionally include a message when applying.
 
 ## Settings
 

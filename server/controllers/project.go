@@ -8,6 +8,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -154,4 +155,103 @@ func (c *ProjectController) ProjectRemoveEvents(ctx context.Context, projectid p
 		}},
 	}
 	c.Collection(projectCollection).UpdateByID(ctx, projectid, update)
+}
+
+/*
+Define search index in Atlas for better autocomplete performance.
+
+https://www.mongodb.com/docs/atlas/atlas-search/tutorial/autocomplete-tutorial/
+https://www.mongodb.com/docs/atlas/atlas-search/autocomplete/
+https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/
+
+Some sections of this tutorial by MongoDB is useful.
+https://www.youtube.com/watch?v=jnxnhbTO2RA
+
+OrgaNiUS.projects
+
+index name: autoCompleteProjects
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "name": [
+        {
+          "foldDiacritics": true,
+          "maxGrams": 15,
+          "minGrams": 2,
+          "tokenization": "edgeGram",
+          "type": "autocomplete"
+        }
+      ]
+    }
+  }
+}
+*/
+
+func (c *ProjectController) ProjectSearch(ctx context.Context, userid, query string) ([]bson.D, error) {
+	const searchLimit = 10
+	if query == "" {
+		// autocomplete.query cannot be empty!
+		// we will just return no results instead
+		return []bson.D{}, nil
+	}
+
+	searchStage := bson.D{
+		{
+			Key: "$search",
+			Value: bson.D{
+				{Key: "index", Value: "autoCompleteProjects"},
+				{Key: "autocomplete", Value: bson.D{
+					{Key: "path", Value: "name"},
+					{Key: "query", Value: query},
+					{Key: "tokenOrder", Value: "sequential"},
+					{Key: "fuzzy", Value: bson.D{
+						{Key: "maxEdits", Value: 1},
+						{Key: "prefixLength", Value: 1},
+						{Key: "maxExpansions", Value: 256},
+					}},
+				}},
+			},
+		},
+	}
+	// could not get this to work with a compound search
+	// so opted to make it an extra stage instead
+	filterStage := bson.D{
+		{Key: "$match", Value: bson.D{
+			{Key: "isPublic", Value: true},
+			// filter out the projects where the user is already a member of
+			{Key: "members." + userid, Value: bson.D{{Key: "$exists", Value: false}}},
+		}},
+	}
+	limitStage := bson.D{
+		{Key: "$limit", Value: searchLimit},
+	}
+	projectStage := bson.D{
+		{
+			Key: "$project",
+			Value: bson.D{
+				{Key: "_id", Value: 0},     /* hide _id field */
+				{Key: "id", Value: "$_id"}, /* create a id field that is _id's value (essentially renaming the field) */
+				{Key: "name", Value: 1},
+				{Key: "description", Value: 1},
+			},
+		},
+	}
+
+	// run pipeline
+	cursor, err := c.Collection(projectCollection).Aggregate(ctx, mongo.Pipeline{searchStage, filterStage, limitStage, projectStage})
+
+	var results []bson.D
+	if err != nil {
+		return nil, err
+	}
+
+	if cursor == nil {
+		return results, errors.New("check server project controller")
+	}
+	if err = cursor.All(ctx, &results); err != nil {
+		return results, err
+	}
+
+	return results, nil
 }
