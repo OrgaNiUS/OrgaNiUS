@@ -371,7 +371,7 @@ Status Code: 200 or 400
 
 GET "/project_get"
 
-This will get the project's name, description and creation time.
+This will get the project's name, description and creation time, events, members, tasks.
 
 Input: Query parameters of "projectid"
 
@@ -387,7 +387,7 @@ Output:
 type output = {
     creationTime: string;
     description: string;
-    events: {};
+    events: Event[];
     members: member[];
     name: string;
     tasks: Task[];
@@ -612,7 +612,7 @@ type input = {
 GET "/task_get_all"
 
 Get All User Tasks: Leave projectid blank
-Get All Project Tasks: Put Relevant projectId
+Get All Project Tasks: Put relevant projectId
 
 Input: Query parameters of "projectid"
 
@@ -700,6 +700,91 @@ type user = {
     name: string;
 };
 ```
+
+### Event Create
+
+POST "/event_create"
+
+This will create a personal event or project event.
+
+1. If _no_ projectid is passed in, the task will be created for the current user.
+2. If a projectid is passed in, the task will be created for the project with that projectid.
+
+Input:
+
+```typescript
+type input = {
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+    projectid?: string;
+};
+```
+
+Output:
+
+```typescript
+type output = {
+    eventid: string; // id of the created event
+};
+```
+
+### Event Get
+
+GET "/event_get"
+
+Input: Query parameters of "eventid".
+
+Output:
+
+```typescript
+type output = {
+    id: string; // id of event
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+};
+```
+
+### Event Get All
+
+GET "/event_get_all"
+
+Get All User Events: Leave projectid blank
+Get All Project Events: Put relevant projectid
+
+Input: Query parameters of "projectid"
+
+Output:
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
+### Event Modify
+
+PATCH "/event_modify"
+
+Input:
+
+```typescript
+type input = {
+    eventid: string;
+    name?: string;
+    start?: string; // ISO 8601 format
+    end?: string; // ISO 8601 format
+};
+```
+
+Output: None
+
+### Event Delete
+
+DELETE "/event_delete"
+
+Input: Query parameter of eventid of event to be deleted, and projectid (if associated with a project).
 
 ## Definitions
 
