@@ -102,3 +102,9 @@ export const UserPatch = CreatePatchFunction<UserPatchData>("/user");
  * Handles user delete.
  */
 export const UserDelete = CreateDeleteFunction("/user");
+
+type UserApplyData = {
+    projectid: string;
+    description?: string;
+};
+export const UserApply = CreatePatchFunction<UserApplyData>("/user_apply");

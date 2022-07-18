@@ -46,10 +46,12 @@ const Projects = (): JSX.Element => {
                     <ProjectsList />
                 </ListContainer>
                 <SidePanel>
+                    <Link to="/project_search">
+                        <ProjectButton>Search for a Project</ProjectButton>
+                    </Link>
                     <Link to="/project_create">
                         <ProjectButton>Create Project</ProjectButton>
                     </Link>
-                    <ProjectButton disabled>Project Finder (in the future!)</ProjectButton>
                     <ProjectInvites />
                 </SidePanel>
             </Container>

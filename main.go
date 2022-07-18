@@ -70,6 +70,10 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.DELETE("/task_delete", handlers.TaskDelete(userController, projectController, taskController, jwtParser))
 	v1.PATCH("/task_modify", handlers.TaskModify(userController, taskController, jwtParser))
 	v1.GET("/task_get_all", handlers.TaskGetAll(userController, projectController, taskController, jwtParser))
+
+	// web socket handlers here
+	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))
+	v1.GET("/project_invite_search", handlers.ProjectInviteSearch(userController, jwtParser))
 }
 
 func main() {

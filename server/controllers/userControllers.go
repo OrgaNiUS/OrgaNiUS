@@ -41,6 +41,8 @@ type UserCollectionInterface interface {
 
 	// Deletes a user by ID.
 	DeleteByID(ctx context.Context, id string) (int64, error)
+
+	Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error)
 }
 
 type UserCollection struct {
@@ -143,6 +145,11 @@ func (c *UserCollection) DeleteByID(ctx context.Context, id string) (int64, erro
 		return -1, err
 	}
 	return result.DeletedCount, nil
+}
+
+func (c *UserCollection) Aggregate(ctx context.Context, pipeline interface{},
+	opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	return c.userCollection.Aggregate(ctx, pipeline, opts...)
 }
 
 type UserController struct {
