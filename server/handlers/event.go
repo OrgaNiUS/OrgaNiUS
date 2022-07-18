@@ -199,3 +199,9 @@ func EventDelete(userController controllers.UserController, projectController co
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
+
+func EventNusmods(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+	}
+}

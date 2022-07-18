@@ -786,6 +786,27 @@ DELETE "/event_delete"
 
 Input: Query parameter of eventid of event to be deleted, and projectid (if associated with a project).
 
+### Event Parse NUSMODS
+
+POST "/event_nusmods"
+
+Input:
+
+URL should be the "share/sync" URL.
+Example: https://nusmods.com/timetable/sem-1/share?CS2101=&CS2102=LEC:1V,TUT:08&CS2103T=LEC:G13&CS3230=TUT:08,LEC:1V&ST2334=LEC:1,TUT:14
+
+```typescript
+type input = {
+    url: string;
+};
+```
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
 ## Definitions
 
 ```typescript
