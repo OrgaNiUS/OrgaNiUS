@@ -1,8 +1,11 @@
 package nusmods
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -77,6 +80,73 @@ func ParseModule(modBlob string) (Module, error) {
 	}, nil
 }
 
+// Structs from https://api.nusmods.com/v2/
+type WeekRange struct {
+	Start        string // YYYY-MM-DD
+	End          string // YYYY-MM-DD
+	WeekInterval int
+	Weeks        []int
+}
+
+type Lesson struct {
+	ClassNo    string
+	StartTime  string
+	EndTime    string
+	Weeks      interface{} // either []int or WeekRange struct
+	Venue      string
+	Day        string
+	LessonType string
+	Size       int
+}
+
+type SemesterData struct {
+	Semester     int
+	ExamDate     string // of date-time
+	ExamDuration int
+	Timetable    []Lesson
+}
+
+type ModuleInfo struct {
+	AcadYear            string
+	Preclusion          string
+	Description         string
+	Title               string
+	Department          string
+	Faculty             string
+	Workload            []float32
+	Prerequisite        string
+	ModuleCredit        string
+	ModuleCode          string
+	SemesterData        []SemesterData
+	PrereqTree          interface{} // not using
+	FulFillRequirements interface{} // not using
+}
+
+func GetModuleInfo(acadYear int, moduleCode string) (ModuleInfo, error) {
+	// API info from: https://api.nusmods.com/v2/#/Modules/get__acadYear__modules__moduleCode__json
+
+	var moduleInfo ModuleInfo
+
+	url := fmt.Sprintf("https://api.nusmods.com/v2/%v-%v/modules/%v.json", acadYear, acadYear+1, moduleCode)
+	resp, err := http.Get(url)
+	if err != nil {
+		return moduleInfo, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return moduleInfo, err
+	}
+	if err := json.Unmarshal(body, &moduleInfo); err != nil {
+		return moduleInfo, err
+	}
+	return moduleInfo, nil
+}
+
+func ParseModuleInfo(startOfSemester time.Time, moduleInfo ModuleInfo) models.Event {
+	// TODO: this
+	return models.Event{}
+}
+
 // Gets semester & list of modules & error (if invalid URL) from URL.
 func ParseURL(url string) (int, []Module, error) {
 	regex := regexp.MustCompile(`https?://nusmods\.com/timetable/sem-([12])/share\?(.*)`)
@@ -103,18 +173,34 @@ func ParseURL(url string) (int, []Module, error) {
 
 // This is the entrypoint used by EventsNusmods handler.
 func GenerateEvents(url string) ([]models.Event, error) {
-	semester, _, err := ParseURL(url)
-	if err != nil {
-		return nil, err
-	}
-	currentYear := time.Now().Year()
-	_, err = StartOfSemester(currentYear, semester)
+	semester, modules, err := ParseURL(url)
 	if err != nil {
 		return nil, err
 	}
 
+	currentTime := time.Now()
+	currentMonth := currentTime.Month()
+	currentYear := currentTime.Year()
+	startOfSemester, err := StartOfSemester(currentYear, semester)
 	if err != nil {
 		return nil, err
 	}
-	return []models.Event{}, nil
+
+	acadYear := currentYear
+	if int(currentMonth) <= 5 {
+		// May and before, treat as previous acad year
+		acadYear--
+	}
+
+	events := make([]models.Event, len(modules))
+
+	for i, module := range modules {
+		moduleInfo, err := GetModuleInfo(acadYear, module.Code)
+		if err != nil {
+			return nil, err
+		}
+		events[i] = ParseModuleInfo(startOfSemester, moduleInfo)
+	}
+
+	return events, nil
 }
