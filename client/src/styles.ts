@@ -15,6 +15,13 @@ export const BaseButton = styled.button`
     }
 `;
 
+export const NoEffectButton = styled.button`
+    border-radius: 6px; /* border-radius for rounded button */
+    color: white;
+    margin: 0.25rem;
+    padding: 0.1rem 0.5rem;
+`;
+
 // for buttons that are a SVG icon
 export const IconButton = styled.button`
     transition: transform 0.2s;
