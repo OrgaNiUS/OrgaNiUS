@@ -17,7 +17,8 @@ describe("Timeline", () => {
             name: "Task 1",
             assignedTo: [],
             description: "This is a short description.",
-            deadline: new Date(2022, 6, 12),
+            // after 1000 years, this test will fail!
+            deadline: new Date(3022, 6, 12),
             creationTime: new Date(),
             isDone: false,
             tags: ["tag1", "tag2"],

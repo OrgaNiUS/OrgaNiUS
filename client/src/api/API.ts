@@ -1,5 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig } from "axios";
 import { stringify } from "qs";
+import { API_URL } from "../context/AuthProvider";
 
 const arraySerializer = (params: any): string => {
     return stringify(params, { arrayFormat: "repeat" });
@@ -85,4 +86,16 @@ export const CreateDeleteFunctionWithParams = <T>(url: string) => {
         const config = { params, paramsSerializer: arraySerializer };
         return axiosInstance.delete(url, config).then(success).catch(failure);
     };
+};
+
+/**
+ * Returns a Web Socket.
+ * @param url URL for web socket request, don't put an extra "/" at the front, as opposed to the other HOF in this file. See ProjectSearch.tsx for an example usage.
+ * @returns Web Socket.
+ */
+export const CreateWebSocket = (url: string): WebSocket => {
+    const full_url: string = API_URL + url;
+    // replace http or https with ws
+    const ws_url: string = full_url.replace(/^https?/, "ws");
+    return new WebSocket(ws_url);
 };

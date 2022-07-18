@@ -1,20 +1,24 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/OrgaNiUS/OrgaNiUS/server/socket"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Input parameters "projectid" : "projectid"
-func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, _, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -26,16 +30,26 @@ func ProjectGet(userController controllers.UserController, projectController con
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		} else {
+			if _, ok := project.Members[id]; !ok {
+				DisplayNotAuthorized(ctx, "you lack permissions")
+				return
+			}
 			// only return a non-sensitive subset of the information
-			type NameId struct {
+			type NameIdRole struct {
 				Name string `bson:"name" json:"name"`
 				Id   string `bson:"_id,omitempty" json:"id,omitempty"`
+				Role string `bson:"role" json:"role"`
 			}
-			userArr := []NameId{}
-			for _, user := range userController.UserMapToArray(ctx, project.Members) {
-				var nameid NameId
+			userArr := []NameIdRole{}
+			useridStrArr := []string{}
+			for userid := range project.Members {
+				useridStrArr = append(useridStrArr, userid)
+			}
+			for _, user := range userController.UserMapToArray(ctx, useridStrArr) {
+				var nameid NameIdRole
 				nameid.Name = user.Name
 				nameid.Id = user.Id.Hex()
+				nameid.Role = project.Members[nameid.Id]
 				userArr = append(userArr, nameid)
 			}
 			returnedProject := gin.H{
@@ -44,7 +58,7 @@ func ProjectGet(userController controllers.UserController, projectController con
 				"creationTime": project.CreationTime,
 				"members":      userArr,
 				"tasks":        taskController.TaskMapToArray(ctx, project.Tasks),
-				"events":       struct{}{}, // to be implemented
+				"events":       eventController.EventMapToArray(ctx, project.Events),
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
 		}
@@ -64,7 +78,7 @@ func ProjectGetAll(userController controllers.UserController, projectController 
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
 		}
-		projArr := projectController.ProjectMapToArray(ctx, user.Projects)
+		projArr := projectController.ProjectArrayToModel(ctx, user.Projects)
 		type Result struct {
 			Id           string    `bson:"_id,omitempty" json:"id,omitempty"`
 			Name         string    `bson:"name" json:"name"`
@@ -130,11 +144,341 @@ func ProjectCreate(userController controllers.UserController, projectController 
 			DisplayError(ctx, err.Error())
 			return
 		}
-		user.Projects[project.Id.Hex()] = struct{}{}
-		userController.UserAddProject(ctx, &user)
+		userController.UserAddProject(ctx, user.Id, project.Id.Hex())
 
 		ctx.JSON(http.StatusCreated, gin.H{
 			"projectid": project.Id.Hex(),
 		})
 	}
+}
+
+// Input parameters users: []string{userids}, projectid: string
+func ProjectInviteUser(userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id        string   `bson:"projectid" json:"projectid"`
+			Usernames []string `bson:"users" json:"users"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		userController.UsersInviteFromProject(ctx, query.Usernames, query.Id)
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+func ProjectGetApplicants(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+
+		project, err := projectController.ProjectRetrieve(ctx, projectid)
+		if err != nil {
+			DisplayError(ctx, "project not found")
+		}
+
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+
+		size := len(project.Applications)
+		userids := make([]string, size)
+
+		i := 0
+		for k := range project.Applications {
+			userids[i] = k
+			i++
+		}
+
+		users := userController.UserMapToArray(ctx, userids)
+
+		type resultType struct {
+			Id          string `bson:"id" json:"id"`
+			Name        string `bson:"name" json:"name"`
+			Description string `bson:"description" json:"description"`
+		}
+
+		result := make([]resultType, size)
+
+		for i, user := range users {
+			id := user.Id.Hex()
+			result[i] = resultType{
+				Id:          id,
+				Name:        user.Name,
+				Description: project.Applications[id].Description,
+			}
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"id":         project.Id.Hex(),
+			"name":       project.Name,
+			"applicants": result,
+		})
+	}
+}
+
+// Input parameters rejectedUsers:[]string{userids} acceptedUsers: []string{userids}, projectid: string
+// Approach 1: pass in a final call to backend after selecting who you want to choose and who you want to reject. Approach 2 look at user.go/handlers
+// Only for admin to do
+func ProjectChooseUsers(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id     string   `bson:"projectid" json:"projectid"`
+			AccIds []string `bson:"acceptedUsers" json:"acceptedUsers"`
+			RejIds []string `bson:"rejectedUsers" json:"rejectedUsers"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		project, err := projectController.ProjectRetrieve(ctx, query.Id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+
+		if len(query.RejIds) != 0 {
+			projectController.ProjectRemoveAppl(ctx, query.Id, query.RejIds)
+		}
+		if len(query.AccIds) != 0 {
+			for _, userid := range query.AccIds {
+				project.Members[userid] = "member"
+			}
+			projectController.ProjectAddUsers(ctx, query.Id, &project)       // Add userid to project.Members
+			projectController.ProjectRemoveAppl(ctx, query.Id, query.AccIds) // Remove userid from project.Applications
+			userController.UsersAddProject(ctx, query.AccIds, query.Id)      // Add projectid to user.Projects
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// input: projectid: string, userids: []string
+func ProjectRemoveUsers(userController controllers.UserController, projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id      string   `bson:"projectid" json:"projectid"`
+			UserIds []string `bson:"userids" json:"userids"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if len(query.UserIds) == 0 {
+			return
+		}
+		project, err := projectController.ProjectRetrieve(ctx, query.Id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+
+		// cross check any project tasks from removed users.
+		for _, userid := range query.UserIds {
+			user, err := userController.UserRetrieve(ctx, userid, "")
+			if err != nil {
+				DisplayError(ctx, err.Error())
+				return
+			}
+			for _, projectid := range project.Tasks {
+				delete(user.Tasks, projectid)
+			}
+			userController.UserModifyTask(ctx, &user)
+			delete(project.Members, userid)
+		}
+
+		// delete the projectid from user
+		userController.UsersDeleteProject(ctx, query.UserIds, query.Id)
+
+		// delete the userids from project
+		projectController.ProjectModifyUser(ctx, &project)
+
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// projectid: string; name: string; description: string; isPublic: bool
+func ProjectModify(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id          string  `bson:"projectid" json:"projectid"`
+			Name        *string `bson:"name" json:"name"`
+			Description *string `bson:"description" json:"description"`
+			IsPublic    *bool   `bson:"isPublic" json:"isPublic"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if query.Id == "" {
+			DisplayError(ctx, "Please provide id of project to modify")
+			return
+		}
+		project, err := projectController.ProjectRetrieve(ctx, query.Id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+		primId, _ := primitive.ObjectIDFromHex(query.Id)
+		projectController.ProjectModifyGeneral(ctx, primId, query.Name, query.Description, query.IsPublic)
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// projectid: string
+func ProjectDelete(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		projectid := ctx.DefaultQuery("projectid", "")
+		project, err := projectController.ProjectRetrieve(ctx, projectid)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		if !project.Settings.Roles[project.Members[id]].IsAdmin {
+			DisplayNotAuthorized(ctx, "lacking admin permissions to execute action")
+			return
+		}
+
+		// Delete projectid from all users in userCollection
+		userController.UsersDeleteProject(ctx, []string{}, projectid)
+
+		// Delete all project tasks completely
+		for _, taskid := range project.Tasks {
+			task, err := taskController.TaskRetrieve(ctx, taskid)
+			if err == mongo.ErrNoDocuments {
+				DisplayError(ctx, "task does not exist")
+			} else if err != nil {
+				DisplayError(ctx, err.Error())
+			}
+			for _, userid := range task.AssignedTo {
+				user, err := userController.UserRetrieve(ctx, userid, "")
+				if err == mongo.ErrNoDocuments {
+					DisplayError(ctx, "user does not exist")
+				} else if err != nil {
+					DisplayError(ctx, err.Error())
+				}
+				delete(user.Tasks, taskid)
+				userController.UserModifyTask(ctx, &user)
+			}
+		}
+		taskController.TaskDeleteMany(ctx, project.Tasks)
+
+		// Delete project from database
+		projectController.ProjectDelete(ctx, projectid)
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
+// autocomplete for searching for users to invite
+func ProjectInviteSearch(userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type q struct {
+			ProjectId string `json:"projectid"`
+			Query     string `json:"query"`
+		}
+		type r struct {
+			Users []bson.M `json:"users"`
+		}
+
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		var query q
+		json.Unmarshal(message, &query)
+		results, err := userController.ProjectInviteSearch(ctx, query.ProjectId, query.Query)
+		if err != nil {
+			return r{}, true
+		}
+
+		users := make([]bson.M, len(results))
+		for i, res := range results {
+			users[i] = res.Map()
+		}
+
+		return r{
+			Users: users,
+		}, false
+	})
+}
+
+func ProjectSearch(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type r struct {
+			Projects []bson.M `json:"projects"`
+		}
+
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		query := string(message)
+		results, err := projectController.ProjectSearch(ctx, id, query)
+
+		if err != nil {
+			return r{}, true
+		}
+
+		projects := make([]bson.M, len(results))
+		for i, res := range results {
+			projects[i] = res.Map()
+		}
+
+		return r{
+			Projects: projects,
+		}, false
+	})
 }

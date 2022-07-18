@@ -26,7 +26,9 @@ type ProjectCollectionInterface interface {
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
 
 	// Deletes a project by ID
-	// TODO
+	DeleteByID(ctx context.Context, id string) (int64, error)
+
+	Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error)
 }
 
 type ProjectCollection struct {
@@ -78,6 +80,24 @@ func (c *ProjectCollection) UpdateByID(ctx context.Context, id primitive.ObjectI
 		return nil, err
 	}
 	return result, err
+}
+
+func (c *ProjectCollection) DeleteByID(ctx context.Context, id string) (int64, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return -1, err
+	}
+	params := bson.D{{Key: "_id", Value: objectID}}
+	result, err := c.projectCollection.DeleteOne(ctx, params)
+	if err != nil {
+		return -1, err
+	}
+	return result.DeletedCount, nil
+}
+
+func (c *ProjectCollection) Aggregate(ctx context.Context, pipeline interface{},
+	opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	return c.projectCollection.Aggregate(ctx, pipeline, opts...)
 }
 
 type ProjectController struct {

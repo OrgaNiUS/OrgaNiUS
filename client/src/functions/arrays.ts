@@ -17,3 +17,18 @@ export const isEqualArrays = <T>(a: T[], b: T[]): boolean => {
     }
     return true;
 };
+
+/**
+ * Gets the delta (or difference) between 2 arrays.
+ *
+ * @param original The original array for comparison.
+ * @param changed  The new array for comparison.
+ *
+ * @returns [added, removed] An array of 2 arrays which indicates added and removed respsectively.
+ */
+export const getDeltaOfArrays = <T>(original: T[], changed: T[]): [T[], T[]] => {
+    const added: T[] = changed.filter((x) => !original.includes(x));
+    const removed: T[] = original.filter((x) => !changed.includes(x));
+
+    return [added, removed];
+};

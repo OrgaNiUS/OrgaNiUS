@@ -13,11 +13,11 @@ POST "/signup" request
 Input: A JSON body with the following **required** parameters. You may include other parameters specified in the `User` [definitions](#definitions) below, but they are not guaranteed to be kept.
 
 ```typescript
-{
+type input = {
     name: string;
     password: string;
     email: string;
-}
+};
 ```
 
 Output:
@@ -55,11 +55,11 @@ POST "/verify" request
 
 Input: Name and pin. Pin is sent to the email account used in signup.
 
-```json
-{
-  name: string;
-  pin: string;
-}
+```typescript
+type input = {
+    name: string;
+    pin: string;
+};
 ```
 
 Output:
@@ -76,10 +76,10 @@ POST "/login" request
 Input: A JSON body with the following **required** parameters.
 
 ```typescript
-{
+type input = {
     name: string;
     password: string;
-}
+};
 ```
 
 Output:
@@ -133,10 +133,10 @@ POST "/forgot_pw" request
 
 Input:
 
-```json
-{
-  name: string;
-}
+```typescript
+type input = {
+    name: string;
+};
 ```
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
@@ -151,19 +151,19 @@ This step is optional as an extra check before requesting the new password from 
 
 Input:
 
-```json
-{
-  name: string;
-  pin: string;
-}
+```typescript
+type input = {
+    name: string;
+    pin: string;
+};
 ```
 
 Output:
 
-```json
-{
-    "valid": true
-}
+```typescript
+type output = {
+    valid: boolean;
+};
 ```
 
 Status Code: 200 or 400
@@ -176,12 +176,12 @@ POST "/change_forgot_pw" request
 
 Input:
 
-```json
-{
-  name: string;
-  pin: string;
-  password: string;
-}
+```typescript
+type input = {
+    name: string;
+    pin: string;
+    password: string;
+};
 ```
 
 Output: No output if successful (except status code of 200), else, error message in "error" field.
@@ -230,10 +230,10 @@ Input: Query parameters of "name" and "email".
 
 Output:
 
-```json
-{
-    "exists": true
-}
+```typescript
+type output = {
+    exists: boolean;
+};
 ```
 
 Status Code: 200 or 400
@@ -258,12 +258,12 @@ Input: Query parameters of "id" and "name". (Example: "GET {url}/?name=user100")
 
 Output:
 
-```json
-{
-  "name": string,
-  "email": string,
-  "projects": Project[]
-}
+```typescript
+type output = {
+    name: string;
+    email: string;
+    project: Project[];
+};
 ```
 
 Status Code: 200 or 400
@@ -279,27 +279,99 @@ Only requires name and description of the project.
 Input: A JSON body with the following **required** parameters.
 
 ```typescript
-{
+type input = {
     name: string;
     description: string;
-}
+};
 ```
 
 Output:
 
-```json
-{
-  "projectid": string
-}
+```typescript
+type output = {
+    projectid: string;
+};
 ```
 
 Status Code: 201 or 400
+
+### User Apply to Project
+
+PATCH "/user_apply"
+
+Allows user to apply to join a project.
+
+Input:
+
+```typescript
+type input = {
+    projectid: string;
+    description?: string /* can be left blank */;
+};
+```
+
+Status Code: 200 or 400
+
+### User Get Project Invites
+
+GET "/user_get_project_invites"
+
+Input: None
+
+Output:
+
+```typescript
+type output = {
+    projects: project[];
+};
+
+type project = {
+    id: string /* project id */;
+    name: string;
+    description: string;
+    members: { [key: string]: string } /* username -> role */;
+};
+```
+
+Status Code: 200 or 400
+
+### User Accept Invite to Project
+
+PATCH "/user_accept"
+
+User accepts invite to a project and joins the project.
+
+Input:
+
+```typescript
+type input = {
+    projectid: string; // required
+};
+```
+
+Status Code: 200 or 400
+
+### User Reject Invite to Project
+
+PATCH "/user_reject"
+
+User rejects invite to a project.
+
+Input:
+
+```typescript
+type input = {
+    projectid: string; // required
+};
+```
+
+Status Code: 200 or 400
 
 ### Get Project
 
 GET "/project_get"
 
-This will get the project's name, description and creation time.
+This will get the project's name, description and creation time, events, members, tasks.
 
 Input: Query parameters of "projectid"
 
@@ -311,20 +383,21 @@ GET {url}/project_get/?projectid=48321740872149281
 
 Output:
 
-```json
-{
-  "creationTime": string,
-  "description": string,
-  "events": {},
-  "members": [
-      {
-          "name": string,
-          "id": string
-      }
-  ],
-  "name": "Project1",
-  "tasks": []models.Task
-}
+```typescript
+type output = {
+    creationTime: string;
+    description: string;
+    events: Event[];
+    members: member[];
+    name: string;
+    tasks: Task[];
+};
+
+type member = {
+    name: string;
+    id: string;
+    role: string;
+};
 ```
 
 Status Code: 200 or 400
@@ -344,13 +417,137 @@ GET {url}/project_get_all
 
 Output:
 
-```json
-{
-    "id": string,
-    "name": string,
-    "description": string,
-    "creationTime": string;
-}
+```typescript
+type output = {
+    id: string;
+    name: string;
+    description: string;
+    creationTime: string;
+};
+```
+
+Status Code: 200 or 400
+
+### Project Modify
+
+PATCH "/project_modify"
+
+Allows admin to modify Name, Description and Public status of project.
+
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+type input = {
+    name: string; // required, rest optional
+    projectid: string;
+    description: string; // string[] of userid
+    isPublic: boolean;
+};
+```
+
+Status Code: 200 or 400
+
+### Project Invite User
+
+PATCH "/project_invite"
+
+Allows admin to invite users to project.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+type input = {
+    projectid: string;
+    users: string[]; // usernames
+};
+```
+
+Status Code: 200 or 400
+
+### Project Get Applications
+
+GET "/project_get_applications"
+
+User must be admin of the project. Otherwise, status code of 400.
+
+Input: Query parameter of "projectid" (required).
+
+Output:
+
+```typescript
+type output = {
+    applicants: applicant[];
+};
+
+type applicant = {
+    id: string /* userid of applicant, needed for project_choose */;
+    name: string /* name of applicant, for UI display */;
+    description: string /* if the applicant did not write a description, this is blank! */;
+};
+```
+
+Example output:
+
+```typescript
+const result = {
+    applicants: [
+        {
+            id: "62c7a851de1f35440890e8da",
+            name: "User5",
+            description: "user5 wanna apply",
+        },
+    ],
+};
+```
+
+Status Code: 200 or 400 or 401
+
+### Project Choose Users
+
+PATCH "/project_choose"
+
+Allows admin to choose which applied users to add to project.
+
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+type input = {
+    projectid: string; // required, rest optional
+    acceptedUsers: string[]; // string[] of userid, if want to use name, change function in controller from UpdateManyById to UpdateManyByName
+    rejectedUsers: string[]; // string[] of userid, if want to use name, change function in controller from UpdateManyById to UpdateManyByName
+};
+```
+
+Status Code: 200 or 400
+
+### Project Remove User
+
+PATCH "/project_remove_user"
+
+Allows admin to remove users.
+
+Input: A JSON body with the following parameters. projectid is only **required** parameter.
+
+```typescript
+type input = {
+    projectid: string;
+    userids: string[]; // string[] of userid
+};
+```
+
+Status Code: 200 or 400
+
+### Project Delete
+
+DELETE "/project_delete"
+
+Allows admin to delete project.
+
+Example usage:
+
+```
+DELETE {url}/project_delete?projectid=48321740872149281
+
 ```
 
 Status Code: 200 or 400
@@ -366,21 +563,22 @@ If specified, will create a task for the project and assign users in user array 
 Input: A JSON body with the following parameters. name is only **required** parameter.
 
 ```typescript
-{
-  name: string; // required, rest optional
-  description: string;
-  assignedTo: string[];
-  projectID: string;
-  deadline: string; // ISO 8601 format
-}
+type input = {
+    name: string; // required, rest optional
+    description: string;
+    assignedTo: string[]; // string[] of userid
+    projectID: string;
+    deadline: string; // ISO 8601 format
+    tags: string[];
+};
 ```
 
 Output:
 
-```json
-{
-  "taskid": string
-}
+```typescript
+type output = {
+    taskid: string;
+};
 ```
 
 ### Task Modify
@@ -391,15 +589,22 @@ Modifies the below mentioned parameters of the task.
 
 Input: A JSON body with the following parameters. taskid is only **required** parameter.
 
+For assignedTo array, do parse the changes on the client side and pass in the deltas add and remove separately.
+
+For tags array, do parse the changes similarly to assignedTo.
+
 ```typescript
-{
-  taskid: string;
-  name: string;
-  assignedTo: string[]; // array of userids
-  description: string;
-  deadline: string; // ISO8601 format
-  isDone: bool;
-}
+type input = {
+    taskid: string;
+    name: string;
+    addAssignedTo: string[]; // string[] of userids
+    removeAssignedTo: string[]; // string[] of userids
+    description: string;
+    deadline: string; // ISO8601 format
+    isDone: bool;
+    addTags: string[];
+    removeTags: string[];
+};
 ```
 
 ### Task Get All
@@ -407,16 +612,16 @@ Input: A JSON body with the following parameters. taskid is only **required** pa
 GET "/task_get_all"
 
 Get All User Tasks: Leave projectid blank
-Get All Project Tasks: Put Relevant projectId
+Get All Project Tasks: Put relevant projectId
 
 Input: Query parameters of "projectid"
 
 Output:
 
-```json
-{
-  "tasks": []models.Task
-}
+```typescript
+type output = {
+    tasks: Task[];
+};
 ```
 
 Example usage:
@@ -437,11 +642,149 @@ Deletes all tasks that are given. Provide projectid if its a task belonging to a
 Input: A JSON body with the following **required** parameters.
 
 ```typescript
-{
-  projectid: string;
-  tasks: string[];
-}
+type input = {
+    projectid: string;
+    tasks: string[];
+};
 ```
+
+### Project Search
+
+Web Socket "/project_search". This upgrades the existing http/s connection to a web socket connection.
+
+This is used for establishing the autocomplete feature for searching projects.
+
+Send: A string of the search query.
+
+Receive:
+
+```typescript
+type receive = {
+    projects: project[];
+};
+
+type project = {
+    id: string /* projectid */;
+    name: string /* name of project */;
+    description: string /* description of project */;
+};
+```
+
+### Project Invite Search
+
+Web Socket "/project_search". This upgrades the existing http/s connection to a web socket connection.
+
+This is used for establishing the autocomplete feature for searching users (when inviting them to a project).
+
+Send:
+
+```typescript
+// NOTE: use JSON.stringify to stringify the payload and send as a string.
+// https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications#using_json_to_transmit_objects
+
+type send = {
+    projectid: string;
+    query: string;
+};
+```
+
+Receive:
+
+```typescript
+type receive = {
+    users = user[];
+};
+
+type user = {
+    id: string;
+    name: string;
+};
+```
+
+### Event Create
+
+POST "/event_create"
+
+This will create a personal event or project event.
+
+1. If _no_ projectid is passed in, the task will be created for the current user.
+2. If a projectid is passed in, the task will be created for the project with that projectid.
+
+Input:
+
+```typescript
+type input = {
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+    projectid?: string;
+};
+```
+
+Output:
+
+```typescript
+type output = {
+    eventid: string; // id of the created event
+};
+```
+
+### Event Get
+
+GET "/event_get"
+
+Input: Query parameters of "eventid".
+
+Output:
+
+```typescript
+type output = {
+    id: string; // id of event
+    name: string;
+    start: string; // ISO 8601 format
+    end: string; // ISO 8601 format
+};
+```
+
+### Event Get All
+
+GET "/event_get_all"
+
+Get All User Events: Leave projectid blank
+Get All Project Events: Put relevant projectid
+
+Input: Query parameters of "projectid"
+
+Output:
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
+### Event Modify
+
+PATCH "/event_modify"
+
+Input:
+
+```typescript
+type input = {
+    eventid: string;
+    name?: string;
+    start?: string; // ISO 8601 format
+    end?: string; // ISO 8601 format
+};
+```
+
+Output: None
+
+### Event Delete
+
+DELETE "/event_delete"
+
+Input: Query parameter of eventid of event to be deleted, and projectid (if associated with a project).
 
 ## Definitions
 

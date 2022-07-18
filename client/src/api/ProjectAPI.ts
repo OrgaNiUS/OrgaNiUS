@@ -1,4 +1,4 @@
-import { CreateGetFunction, CreateGetFunctionWithParams, CreatePostFunction } from "./API";
+import { CreateGetFunction, CreateGetFunctionWithParams, CreatePatchFunction, CreatePostFunction } from "./API";
 
 type ProjectGetParams = {
     projectid: string;
@@ -12,3 +12,23 @@ type ProjectCreateData = {
     description: string;
 };
 export const ProjectCreate = CreatePostFunction<ProjectCreateData>("/project_create");
+
+type ProjectInviteData = {
+    users: string[] /* EXACT usernames */;
+    projectid: string;
+};
+export const ProjectInvite = CreatePatchFunction<ProjectInviteData>("/project_invite");
+
+type ProjectGetApplicationsParams = {
+    projectid: string;
+};
+// only for admin use
+export const ProjectGetApplications =
+    CreateGetFunctionWithParams<ProjectGetApplicationsParams>("/project_get_applications");
+
+type ProjectChooseData = {
+    projectid: string;
+    acceptedUsers: string[];
+    rejectedUsers: string[];
+};
+export const ProjectChoose = CreatePatchFunction<ProjectChooseData>("/project_choose");

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { BaseButton } from "../styles";
-import ProjectsList from "./ProjectsList";
+import ProjectsList from "../components/Projects/ProjectsList";
+import ProjectInvites from "../components/Project/ProjectInvites";
 
-const Message = styled.h1`
+const Title = styled.h1`
     font-size: 2rem;
     margin-top: 1rem;
     margin-left: 3rem;
@@ -20,14 +21,14 @@ const Container = styled.div`
 `;
 
 const ListContainer = styled.div`
-    width: 80%;
+    width: 60%;
 `;
 
-const Buttons = styled.div`
+const SidePanel = styled.div`
     align-items: flex-end;
     display: flex;
     flex-direction: column;
-    width: 20%;
+    width: 40%;
 `;
 
 const ProjectButton = styled(BaseButton)`
@@ -39,19 +40,20 @@ const ProjectButton = styled(BaseButton)`
 const Projects = (): JSX.Element => {
     return (
         <>
-            <Message>Your Projects</Message>
+            <Title>Your Projects</Title>
             <Container>
                 <ListContainer>
                     <ProjectsList />
                 </ListContainer>
-                <Buttons>
+                <SidePanel>
+                    <Link to="/project_search">
+                        <ProjectButton>Search for a Project</ProjectButton>
+                    </Link>
                     <Link to="/project_create">
                         <ProjectButton>Create Project</ProjectButton>
                     </Link>
-                    {/* TODO: join project pops up a modal */}
-                    <ProjectButton disabled>Join Project (in the future!)</ProjectButton>
-                    <ProjectButton disabled>Find Project (in the future!)</ProjectButton>
-                </Buttons>
+                    <ProjectInvites />
+                </SidePanel>
             </Container>
         </>
     );

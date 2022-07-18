@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { UserDelete, UserGetSelf, UserPatch } from "../api/UserAPI";
+import { UserDelete, UserPatch } from "../api/UserAPI";
 import Modal from "../components/Modal";
-import { validEmail, validPassword, validUsername } from "../components/regex";
+import { validPassword, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
+import { deleteCookie } from "../functions/cookies";
 import { toTitleCase } from "../functions/strings";
 import { BaseButton } from "../styles";
 
@@ -13,22 +14,14 @@ import { BaseButton } from "../styles";
 // validityChecks object in Settings
 interface Fields {
     name: string;
-    email: string;
     password: string;
     confirm_password: string;
 }
 
-const defaultFields: Fields = {
-    name: "",
-    email: "",
-    password: "",
-    confirm_password: "",
-};
-
 // ensure these keys match the keys of interface Fields
 // keyof Fields is there to prevent extra keys (but cannot prevent missing/duplicate keys, no other better yet simple solution)
 // https://stackoverflow.com/questions/43909566/get-keys-of-a-typescript-interface-as-array-of-strings
-const keys: (keyof Fields)[] = ["name", "email", "password"];
+const keys: (keyof Fields)[] = ["name", "password"];
 
 const centered = css`
     text-align: center;
@@ -141,7 +134,11 @@ const Settings = (): JSX.Element => {
     const navigate = useNavigate();
 
     const [selection, setSelection] = useState<typeof keys[number]>();
-    const [fields, setFields] = useState<Fields>(defaultFields);
+    const [fields, setFields] = useState<Fields>({
+        name: auth.auth.user ?? "",
+        password: "",
+        confirm_password: "",
+    });
     const [message, setMessage] = useState<string>("");
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
@@ -151,10 +148,6 @@ const Settings = (): JSX.Element => {
         name: () => {
             const name: string = fields["name"];
             return validUsername.test(name);
-        },
-        email: () => {
-            const email: string = fields["email"];
-            return validEmail.test(email);
         },
         password: () => {
             const name: string = auth.auth.user || "";
@@ -168,23 +161,6 @@ const Settings = (): JSX.Element => {
             return validPassword.test(password);
         },
     };
-
-    useEffect(() => {
-        // get user name and email and populate fields on page load
-        UserGetSelf(
-            auth.axiosInstance,
-            (response) => {
-                const data = response.data;
-                setFields((f) => {
-                    return { ...f, name: data["name"], email: data["email"] };
-                });
-            },
-            (err) => {
-                console.log(err.config);
-                console.log(err);
-            }
-        );
-    }, [auth.axiosInstance]);
 
     const handleClick = (key: keyof Fields) => {
         setSelection(key);
@@ -248,10 +224,9 @@ const Settings = (): JSX.Element => {
         UserDelete(
             auth.axiosInstance,
             (_) => {
-                auth.setAuth({
-                    user: undefined,
-                    loggedIn: false,
-                });
+                // also delete from client side (sometimes doesn't get deleted properly otherwise, maybe racing on the server?)
+                deleteCookie("jwt");
+                auth.setAuth({ user: undefined, loggedIn: false });
                 navigate("/");
             },
             (err) => {

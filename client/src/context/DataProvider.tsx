@@ -36,23 +36,34 @@ import AuthContext from "./AuthProvider";
 //     },
 // ];
 
+export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
+    id: string;
+    addAssignedTo?: string[];
+    removeAssignedTo?: string[];
+    assignedTo?: IUser[];
+    addTags?: string[];
+    removeTags?: string[];
+}
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
  */
 interface IDataContext {
+    loading: boolean;
     tasks: ITask[];
     addTask: (task: ITask, projectid?: string) => Promise<ITask | undefined>;
-    patchTask: (task: Partial<ITask>) => void;
+    patchTask: (task: patchTaskData, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
-    addProject: (project: IProject) => Promise<[string, string]>;
+    addProject: (project: IProject) => Promise<string>;
 }
 
 const defaultDataContext: IDataContext = {
+    loading: false,
     tasks: [],
     addTask: (_) => Promise.resolve(undefined),
     patchTask: (_) => {},
@@ -61,7 +72,7 @@ const defaultDataContext: IDataContext = {
     mergedEvents: [],
     projects: [],
     getProject: (_) => Promise.resolve([undefined, []]),
-    addProject: (_) => Promise.resolve(["", ""]),
+    addProject: (_) => Promise.resolve(""),
 };
 
 export const DataContext = createContext<IDataContext>(defaultDataContext);
@@ -73,11 +84,14 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
     // TODO: get initialEvents from server
+    const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
     // until events CRUD is implemented
     // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
     useEffect(() => {
@@ -90,9 +104,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+                    // assignedTo doesn't matter for personal tasks
+                    const assignedTo: IUser[] = [];
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
+                setIsTasksLoading(false);
                 setTasks(tasks);
             },
             () => {}
@@ -102,21 +119,28 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             auth.axiosInstance,
             (response) => {
                 const data = response.data;
+
+                setIsProjectsLoading(false);
                 setProjects(data.projects);
             },
             () => {}
         );
+
+        // put this in the callback later
+        setIsEventsLoading(false);
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
+        const assignedTo: string[] = task.assignedTo.map((u) => u.id); /* convert to id */
         return TaskCreate(
             auth.axiosInstance,
             {
                 name: task.name,
                 description: task.description,
-                assignedTo: task.assignedTo,
+                assignedTo,
                 projectid: projectid,
                 deadline: task.deadline ? task.deadline.toISOString() : new Date(0).toISOString(),
+                tags: task.tags,
             },
             {
                 headers: { "Content-Type": "application/json" },
@@ -126,9 +150,13 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const newTask: ITask = { ...task, id: data.taskid };
 
-                setTasks((t) => {
-                    return [...t, newTask];
-                });
+                // only add to user if personal task OR user is included in assignedTo
+                const ownUserIsAssigned: boolean = auth.auth.id !== undefined && assignedTo.includes(auth.auth.id);
+                if (projectid === "" || ownUserIsAssigned) {
+                    setTasks((t) => {
+                        return [...t, newTask];
+                    });
+                }
 
                 return newTask;
             },
@@ -138,21 +166,49 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const patchTask = (task: Partial<ITask>) => {
+    /**
+     * Do not use `assignedTo` field
+     */
+    const patchTask = (task: patchTaskData, fullTask: ITask) => {
+        // undefined checks + check if included in add/remove array
+        const shouldRemoveFromOwnUser: boolean =
+            task.removeAssignedTo !== undefined &&
+            auth.auth.id !== undefined &&
+            task.removeAssignedTo.includes(auth.auth.id);
+        const shouldAddToOwnUser: boolean =
+            task.addAssignedTo !== undefined && auth.auth.id !== undefined && task.addAssignedTo.includes(auth.auth.id);
+
         setTasks((t) => {
+            if (shouldRemoveFromOwnUser) {
+                // remove current task if in local copy
+                const tasksCopy: ITask[] = t.filter((t) => t.id !== task.id);
+                return tasksCopy;
+            }
+
             const tasksCopy: ITask[] = [...t];
             for (let i = 0; i < tasksCopy.length; i++) {
                 const t: ITask = { ...tasksCopy[i] };
                 if (t.id !== task.id) {
                     continue;
                 }
-                Object.entries(task).forEach(([k, v]) => {
-                    const key = k as keyof ITask;
-                    // not fully typed but Partial<ITask> ensures types will match
-                    (t[key] as any) = v;
-                });
-                tasksCopy[i] = t;
+                tasksCopy[i] = {
+                    id: t.id,
+                    name: task.name ?? t.name,
+                    assignedTo: task.assignedTo ?? t.assignedTo,
+                    description: task.description ?? t.description,
+                    creationTime: task.creationTime ?? t.creationTime,
+                    deadline: task.deadline ?? t.deadline,
+                    isDone: task.isDone ?? t.isDone,
+                    tags: task.tags ?? t.tags,
+                    isPersonal: task.isPersonal ?? t.isPersonal,
+                };
                 break;
+            }
+
+            if (shouldAddToOwnUser) {
+                // if this task was not in the local copy but now it is, we add it in!
+                // this is the reason we have to take in the `fullTask` parameter.
+                return [...tasksCopy, fullTask];
             }
             return tasksCopy;
         });
@@ -164,8 +220,11 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         if (task.name !== undefined) {
             payload.name = task.name;
         }
-        if (task.assignedTo !== undefined) {
-            payload.assignedTo = task.assignedTo;
+        if (task.addAssignedTo !== undefined) {
+            payload.addAssignedTo = task.addAssignedTo;
+        }
+        if (task.removeAssignedTo !== undefined) {
+            payload.removeAssignedTo = task.removeAssignedTo;
         }
         if (task.description !== undefined) {
             payload.description = task.description;
@@ -175,6 +234,12 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         }
         if (task.isDone !== undefined) {
             payload.isDone = task.isDone;
+        }
+        if (task.addTags !== undefined) {
+            payload.addTags = task.addTags;
+        }
+        if (task.removeTags !== undefined) {
+            payload.removeTags = task.removeTags;
         }
 
         TaskPatch(
@@ -205,20 +270,25 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: id },
             (response) => {
                 const data = response.data;
+                const members = data.members;
 
                 // convert server tasks to client tasks
                 const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
                     const deadline: Date | undefined =
                         task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    return { ...task, creationTime: new Date(task.creationTime), deadline };
+
+                    const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
+                        members.find((u: IUser) => u.id === id)
+                    );
+                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
-                    members: data.members,
+                    members,
                     events: [],
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
@@ -244,8 +314,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const addProject = (project: IProject): Promise<[string, string]> => {
-        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "" };
+    const addProject = (project: IProject): Promise<string> => {
+        const ownUser: IUser = { name: auth.auth.user ?? "", id: auth.auth.id ?? "", role: "" };
 
         return ProjectCreate(
             auth.axiosInstance,
@@ -258,17 +328,16 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 withCredentials: true,
             },
             (response) => {
-                // TODO: get invite code from here & update
                 const data = response.data;
                 const id: string = data.projectid;
 
                 setProjects((p) => {
                     return [...p, { ...project, id, members: [ownUser] }];
                 });
-                return [id, "A72BC1"];
+                return id;
             },
             (_) => {
-                return ["", ""];
+                return "";
             }
         );
     };
@@ -276,6 +345,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     return (
         <DataContext.Provider
             value={{
+                /* if anything is still loading, it is considered loading */
+                loading: isTasksLoading || isEventsLoading || isProjectsLoading,
                 tasks,
                 addTask,
                 patchTask,

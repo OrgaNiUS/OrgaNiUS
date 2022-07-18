@@ -76,6 +76,18 @@ export const UserFPChange = CreatePostFunction<UserFPChangeData>("/change_forgot
  */
 export const UserGetSelf = CreateGetFunction("/own_user");
 
+export const UserGetProjectInvites = CreateGetFunction("/user_get_project_invites");
+
+type UserAcceptInviteData = {
+    projectid: string;
+};
+export const UserAcceptInvite = CreatePatchFunction<UserAcceptInviteData>("/user_accept");
+
+type UserRejectInviteData = {
+    projectid: string;
+};
+export const UserRejectInvite = CreatePatchFunction<UserRejectInviteData>("/user_reject");
+
 type UserPatchData = {
     name?: string;
     email?: string;
@@ -90,3 +102,9 @@ export const UserPatch = CreatePatchFunction<UserPatchData>("/user");
  * Handles user delete.
  */
 export const UserDelete = CreateDeleteFunction("/user");
+
+type UserApplyData = {
+    projectid: string;
+    description?: string;
+};
+export const UserApply = CreatePatchFunction<UserApplyData>("/user_apply");

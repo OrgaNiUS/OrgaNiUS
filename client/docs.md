@@ -76,28 +76,53 @@ The user can click on these tasks and events to toggle a popup card that reveals
 
 ## Projects
 
-The user can see their projects here.
+The user can see their projects and project invites here.
 
-From there they can click on the project name to navigate to the project page.
+The user can click on the project name to navigate to the project page.
+
+The user can click on the "accept" and "reject" buttons beside the project invites to accept or reject them.
+
+The user can also create a new project from here.
 
 ## Project Page
 
 The user can see an individual project's dashboard here.
 
-They can work with the tasks, similarly to the user dashboard, and other features (to be implemented).
+They can work with the tasks, similarly to the user dashboard, and other features.
 
-## User
+Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen, with autocomplete. Admins can also manage user applications from this screen.
 
-The user can see their user page here. (to be implemented)
+### Task Assignment
+
+However, a small difference between Project tasks and Personal tasks is that Project tasks can be assigned to users.
+
+To add assignment to users, the user can edit the task and then start typing the username to be added, at that point, suggestions will pop up below the text field and the user can click on the "+" icon or the name of the user to add that user.
+
+To remove assignment from users, the user can edit the task and then press on the "-" icon or the name of the user to remove that user.
+
+### Project Applications
+
+This page is only accessible by the project admins.
+
+The admin can click on the green checkmarks or red crosses to mark an application as accepted or rejected respectively.
+
+After marking the applicants, the admin can click on the "Send changes!" button on the top right to act on those applications.
+
+There is also a "Refresh" button on the top right to refresh the data, as an alternative to refreshing the entire page.
+
+## Project Search
+
+A page where a user can search for public projects to request to join.
+
+The user can simply search for a project name through the search box. They will receive real-time suggestions from the server. After which, they can click on a project name to open a modal where they can apply to join a project. They can optionally include a message when applying.
 
 ## Settings
 
 The user can perform the following actions:
 
 1. Change username
-2. Change email
-3. Change password
-4. Delete account
+2. Change password
+3. Delete account
 
 ## Logout
 

@@ -49,6 +49,22 @@ func (c *MockCollection) FindAll(ctx context.Context, useridArr []primitive.Obje
 	return nil
 }
 
+func (c *MockCollection) FindAllByName(ctx context.Context, usernames []string, UserArr *[]models.User) error {
+	return nil
+}
+
+func (c *MockCollection) UpdateManyByName(ctx context.Context, usernames []string, params bson.D) (*mongo.UpdateResult, error) {
+	return nil, nil
+}
+
+func (c *MockCollection) UpdateManyByID(ctx context.Context, useridArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	return nil, nil
+}
+
+func (c *MockCollection) UpdateAll(ctx context.Context, params bson.D) (*mongo.UpdateResult, error) {
+	return nil, nil
+}
+
 func (c *MockCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
 	if user.Id == primitive.NilObjectID {
 		user.Id = primitive.NewObjectID()
@@ -107,6 +123,11 @@ func (c *MockCollection) DeleteByID(ctx context.Context, id string) (int64, erro
 	}
 	delete(c.Data, objectId)
 	return 1, nil
+}
+
+func (c *MockCollection) Aggregate(ctx context.Context, pipeline interface{},
+	opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	return nil, nil
 }
 
 const (

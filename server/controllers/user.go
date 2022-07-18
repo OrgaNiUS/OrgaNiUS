@@ -170,11 +170,40 @@ func (c *UserController) UserDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *UserController) UserAddProject(ctx context.Context, user *models.User) {
+func (c *UserController) UserAddProject(ctx context.Context, userid primitive.ObjectID, projectid string) {
 	params := bson.D{}
-	params = append(params, bson.E{Key: "projects", Value: user.Projects})
-	update := bson.D{{Key: "$set", Value: params}}
-	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
+	params = append(params, bson.E{Key: "projects", Value: projectid})
+	update := bson.D{{Key: "$addToSet", Value: params}}
+	c.Collection(userCollection).UpdateByID(ctx, userid, update)
+}
+
+func (c *UserController) UsersAddProject(ctx context.Context, useridArr []string, projectId string) {
+	params := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "projects", Value: projectId}}}}
+	var primitiveArr []primitive.ObjectID
+	for _, userid := range useridArr {
+		primitiveId, _ := primitive.ObjectIDFromHex(userid)
+		primitiveArr = append(primitiveArr, primitiveId)
+	}
+	c.Collection(userCollection).UpdateManyByID(ctx, primitiveArr, params)
+}
+
+func (c *UserController) UsersDeleteProject(ctx context.Context, useridArr []string, projectId string) {
+	params := bson.D{{Key: "$pull", Value: bson.D{{Key: "projects", Value: projectId}}}}
+	if len(useridArr) == 0 {
+		c.Collection(userCollection).UpdateAll(ctx, params)
+	} else {
+		var primitiveArr []primitive.ObjectID
+		for _, userid := range useridArr {
+			primitiveId, _ := primitive.ObjectIDFromHex(userid)
+			primitiveArr = append(primitiveArr, primitiveId)
+		}
+		c.Collection(userCollection).UpdateManyByID(ctx, primitiveArr, params)
+	}
+}
+
+func (c *UserController) UsersInviteFromProject(ctx context.Context, usernames []string, projectId string) {
+	params := bson.D{{Key: "$addToSet", Value: bson.D{{Key: "invites", Value: projectId}}}}
+	c.Collection(userCollection).UpdateManyByName(ctx, usernames, params)
 }
 
 // Modifies task array of user
@@ -185,13 +214,126 @@ func (c *UserController) UserModifyTask(ctx context.Context, user *models.User) 
 	c.Collection(userCollection).UpdateByID(ctx, user.Id, update)
 }
 
-func (c *UserController) UserMapToArray(ctx context.Context, Users map[string]struct{}) []models.User {
+func (c *UserController) UserMapToArray(ctx context.Context, useridStrArr []string) []models.User {
 	usersArray := []models.User{}
 	useridArr := []primitive.ObjectID{}
-	for userid := range Users {
+	for _, userid := range useridStrArr {
 		id, _ := primitive.ObjectIDFromHex(userid)
 		useridArr = append(useridArr, id)
 	}
 	c.Collection(userCollection).FindAll(ctx, useridArr, &usersArray)
 	return usersArray
+}
+
+func (c *UserController) UserDeleteInvites(ctx context.Context, userid string, projectids []string) {
+	params := bson.D{}
+	params = append(params, bson.E{Key: "invites", Value: bson.D{{Key: "$in", Value: projectids}}})
+	update := bson.D{{Key: "$pull", Value: params}}
+	id, _ := primitive.ObjectIDFromHex(userid)
+	c.Collection(userCollection).UpdateByID(ctx, id, update)
+}
+
+// adds multiple events to a user
+func (c *UserController) UserAddEvents(ctx context.Context, userid string, eventids []string) {
+	update := bson.D{
+		{Key: "$addToSet", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$each", Value: eventids}}},
+		}},
+	}
+	id, _ := primitive.ObjectIDFromHex(userid)
+	c.Collection(userCollection).UpdateByID(ctx, id, update)
+}
+
+func (c *UserController) UserRemoveEvents(ctx context.Context, userid primitive.ObjectID, eventids []string) {
+	update := bson.D{
+		{Key: "$pull", Value: bson.D{
+			{Key: "events", Value: bson.D{{Key: "$in", Value: eventids}}},
+		}},
+	}
+	c.Collection(userCollection).UpdateByID(ctx, userid, update)
+}
+
+/*
+OrgaNiUS.projects
+
+index name: autoCompleteUsers
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "name": [
+        {
+          "foldDiacritics": true,
+          "maxGrams": 15,
+          "minGrams": 2,
+          "tokenization": "edgeGram",
+          "type": "autocomplete"
+        }
+      ]
+    }
+  }
+}
+*/
+
+func (c *UserController) ProjectInviteSearch(ctx context.Context, projectid, query string) ([]bson.D, error) {
+	const searchLimit = 10
+	if query == "" {
+		// autocomplete.query cannot be empty!
+		// we will just return no results instead
+		return []bson.D{}, nil
+	}
+	searchStage := bson.D{
+		{
+			Key: "$search",
+			Value: bson.D{
+				{Key: "index", Value: "autoCompleteUsers"},
+				{Key: "autocomplete", Value: bson.D{
+					{Key: "path", Value: "name"},
+					{Key: "query", Value: query},
+					{Key: "tokenOrder", Value: "sequential"},
+					{Key: "fuzzy", Value: bson.D{
+						{Key: "maxEdits", Value: 1},
+						{Key: "prefixLength", Value: 1},
+						{Key: "maxExpansions", Value: 256},
+					}},
+				}},
+			},
+		},
+	}
+	filterStage := bson.D{
+		{Key: "$match", Value: bson.D{
+			// filter out the users who are already in the project
+			{Key: "projects", Value: bson.D{{Key: "$ne", Value: projectid}}},
+		}},
+	}
+	limitStage := bson.D{
+		{Key: "$limit", Value: searchLimit},
+	}
+	projectStage := bson.D{
+		{
+			Key: "$project",
+			Value: bson.D{
+				{Key: "_id", Value: 0}, /* hide _id field */
+				{Key: "id", Value: bson.D{{Key: "$toString", Value: "$_id"}}}, /* create a id field that is _id's value (essentially renaming the field & changing to string) */
+				{Key: "name", Value: 1},
+			},
+		},
+	}
+
+	// run pipeline
+	cursor, err := c.Collection(userCollection).Aggregate(ctx, mongo.Pipeline{searchStage, filterStage, limitStage, projectStage})
+
+	var results []bson.D
+	if err != nil {
+		return nil, err
+	}
+
+	if cursor == nil {
+		return results, errors.New("check server project controller")
+	}
+	if err = cursor.All(ctx, &results); err != nil {
+		return results, err
+	}
+
+	return results, nil
 }
