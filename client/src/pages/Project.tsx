@@ -325,7 +325,7 @@ const Project = (): JSX.Element => {
 
     const SettingsModal = (
         <>
-            <h1 className="mb-1 text-2xl">Project Settings</h1>
+            <h1 className="mb-1 text-2xl underline underline-offset-auto">Project Settings</h1>
 
             <div className="w-full flex-col">
                 {/* <h1>Change Name</h1> */}
@@ -390,7 +390,7 @@ const Project = (): JSX.Element => {
 
     const RemoveUsersModal = (
         <>
-            <h1 className="mb-1 text-2xl">Edit Users</h1>
+            <h1 className="mb-1 text-2xl underline underline-offset-auto">Edit Users</h1>
             <div className="w-full flex-col" key={currUsers.length}>
                 <div className="w-full ">
                     Current Users:
@@ -584,7 +584,7 @@ const Project = (): JSX.Element => {
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">
                         <Link to="/projects">⬅️ Back to Projects</Link>
-                        <ButtonArray className="border-2 rounded border-orange-400 bg-orange-300">
+                        <ButtonArray className="border-2 rounded border-orange-300 bg-orange-200">
                             {isAdmin ? (
                                 <Button onClick={() => setShowSettingsModal(true)}>Settings</Button>
                             ) : (
