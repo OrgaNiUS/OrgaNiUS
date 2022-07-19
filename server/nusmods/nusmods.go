@@ -81,11 +81,13 @@ func ParseModule(modBlob string) (Module, error) {
 }
 
 // Structs from https://api.nusmods.com/v2/
+
+// Can't actually find any module that uses WeekRange format (might be outdated, so can't test if types here are correct, thus use float64).
 type WeekRange struct {
 	Start        string // YYYY-MM-DD
 	End          string // YYYY-MM-DD
-	WeekInterval int
-	Weeks        []int
+	WeekInterval float64
+	Weeks        []float64
 }
 
 type Lesson struct {
@@ -142,9 +144,78 @@ func GetModuleInfo(acadYear int, moduleCode string) (ModuleInfo, error) {
 	return moduleInfo, nil
 }
 
-func ParseModuleInfo(startOfSemester time.Time, moduleInfo ModuleInfo) models.Event {
-	// TODO: this
-	return models.Event{}
+var weekMap = map[string]int{
+	"Monday":    0,
+	"Tuesday":   1,
+	"Wednesday": 2,
+	"Thursday":  3,
+	"Friday":    4,
+	"Saturday":  5,
+	"Sunday":    6,
+}
+
+// Simple parsing of 24h time like "1300", "0800". No checks done.
+func convertTime(t string) time.Duration {
+	hours := t[0:2]
+	minutes := t[2:4]
+	hourDuration, _ := strconv.Atoi(hours)
+	minuteDuration, _ := strconv.Atoi(minutes)
+	return time.Duration(hourDuration*60+minuteDuration) * time.Minute
+}
+
+func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleInfo, classes map[string]string) ([]models.Event, error) {
+	var events []models.Event
+
+	foundSemester := false
+	var lessons []Lesson
+	for _, sem := range moduleInfo.SemesterData {
+		if sem.Semester != semester {
+			continue
+		}
+		foundSemester = true
+		lessons = sem.Timetable
+		break
+	}
+	if !foundSemester {
+		return events, errors.New("could not find semester")
+	}
+
+	// not very efficient search O(nm), but data size is generally < 100 (small)
+	for _, lesson := range lessons {
+		lessonType := strings.ToUpper(lesson.LessonType[:3])
+		if classes[lessonType] == lesson.ClassNo {
+			// Found a match.
+			name := moduleInfo.ModuleCode + " " + lesson.LessonType
+			// handle range list of weekRange VS weekrange
+			switch weekRange := lesson.Weeks.(type) {
+			case []interface{}:
+				weekOffset := weekMap[lesson.Day]
+				startOffset := convertTime(lesson.StartTime)
+				endOffset := convertTime(lesson.EndTime)
+				for _, week := range weekRange {
+					weekNumber := int(week.(float64)) - 1
+					date := startOfSemester.AddDate(0, 0, weekOffset+weekNumber*7)
+					start := date.Add(startOffset)
+					end := date.Add(endOffset)
+					events = append(events, models.Event{
+						// Example name is: "CS2030S Lecture 11" (for the 11th week)
+						// If there are multiple lectures in the same week for the same module (they will have the same name!)
+						Name:  name + " " + strconv.Itoa(weekNumber+1),
+						Start: start,
+						End:   end,
+					})
+				}
+			case WeekRange:
+				// can't find any module that uses weekrange (might be deprecated?)
+				// thus, not supporting, at least until we manage to find a module that uses it
+			default:
+				// either nusmods data is bad, or this parser is bad (probably this parser, but the user shall not know!)
+				return []models.Event{}, errors.New("bad data from nusmods")
+			}
+		}
+	}
+
+	return events, nil
 }
 
 // Gets semester & list of modules & error (if invalid URL) from URL.
@@ -192,14 +263,19 @@ func GenerateEvents(url string) ([]models.Event, error) {
 		acadYear--
 	}
 
-	events := make([]models.Event, len(modules))
+	events := []models.Event{}
 
-	for i, module := range modules {
+	for _, module := range modules {
 		moduleInfo, err := GetModuleInfo(acadYear, module.Code)
 		if err != nil {
 			return nil, err
 		}
-		events[i] = ParseModuleInfo(startOfSemester, moduleInfo)
+		moduleEvents, err := ParseModuleInfo(startOfSemester, semester, moduleInfo, module.Classes)
+		if err != nil {
+			return nil, err
+		}
+		// golang ... to spread the slice because append is a variadic function
+		events = append(events, moduleEvents...)
 	}
 
 	return events, nil
