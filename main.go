@@ -17,7 +17,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
+func handleRoutes(router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -136,7 +136,7 @@ func main() {
 	eventController := controllers.NewE(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
-	handleRoutes(URL, router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
+	handleRoutes(router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
 
 	log.Print("Server booted up!")
 
