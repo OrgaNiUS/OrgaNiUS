@@ -470,13 +470,23 @@ func UserApplyProject(projectController controllers.ProjectController, jwtParser
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
-		projectid := ctx.DefaultQuery("projectid", "")
+
+		type q struct {
+			ProjectId   string `bson:"projectid" json:"projectid"`
+			Description string `bson:"description" json:"description"`
+		}
+		var query q
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, "bad request")
+		}
+
+		projectid := query.ProjectId
 		if projectid == "" {
 			DisplayError(ctx, "provide a projectid")
 			return
 		}
 
-		description := ctx.DefaultQuery("description", "")
+		description := query.Description
 		projectController.ProjectAddAppl(ctx, projectid, userid, description)
 		ctx.JSON(http.StatusOK, gin.H{})
 	}

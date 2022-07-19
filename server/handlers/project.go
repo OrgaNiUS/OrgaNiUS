@@ -1,19 +1,22 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/OrgaNiUS/OrgaNiUS/server/socket"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Input parameters "projectid" : "projectid"
-func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+func ProjectGet(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
@@ -56,7 +59,7 @@ func ProjectGet(userController controllers.UserController, projectController con
 				"members":      userArr,
 				"tasks":        taskController.TaskMapToArray(ctx, project.Tasks),
 				"isPublic":     project.IsPublic,
-				"events":       struct{}{}, // to be implemented
+				"events":       eventController.EventMapToArray(ctx, project.Events),
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
 		}
@@ -474,4 +477,69 @@ func ProjectLeave(userController controllers.UserController, projectController c
 
 		ctx.JSON(http.StatusOK, gin.H{})
 	}
+}
+
+// autocomplete for searching for users to invite
+func ProjectInviteSearch(userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type q struct {
+			ProjectId string `json:"projectid"`
+			Query     string `json:"query"`
+		}
+		type r struct {
+			Users []bson.M `json:"users"`
+		}
+
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		var query q
+		json.Unmarshal(message, &query)
+		results, err := userController.ProjectInviteSearch(ctx, query.ProjectId, query.Query)
+		if err != nil {
+			return r{}, true
+		}
+
+		users := make([]bson.M, len(results))
+		for i, res := range results {
+			users[i] = res.Map()
+		}
+
+		return r{
+			Users: users,
+		}, false
+	})
+}
+
+func ProjectSearch(projectController controllers.ProjectController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
+		type r struct {
+			Projects []bson.M `json:"projects"`
+		}
+
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			// not logged in
+			return r{}, true
+		}
+
+		query := string(message)
+		results, err := projectController.ProjectSearch(ctx, id, query)
+
+		if err != nil {
+			return r{}, true
+		}
+
+		projects := make([]bson.M, len(results))
+		for i, res := range results {
+			projects[i] = res.Map()
+		}
+
+		return r{
+			Projects: projects,
+		}, false
+	})
 }

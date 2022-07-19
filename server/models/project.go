@@ -12,6 +12,7 @@ type Project struct {
 	Description  string                        `bson:"description" json:"description"`
 	Members      map[string]string             `bson:"members" json:"members"` // Key: UserID, Value: Role
 	Tasks        []string                      `bson:"tasks" json:"tasks"`
+	Events       []string                      `bson:"events" json:"events"`
 	CreationTime time.Time                     `bson:"creationTime" json:"creationTime"`
 	Settings     ProjectSettings               `bson:"settings" json:"settings"`
 	Applications map[string]ProjectApplication `bson:"applications" json:"applications"` // userid -> appliication
