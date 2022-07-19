@@ -203,7 +203,7 @@ func EventDelete(userController controllers.UserController, projectController co
 
 func EventNusmods(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, _, ok := jwtParser.GetFromJWT(ctx)
+		id, _, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
@@ -218,15 +218,23 @@ func EventNusmods(userController controllers.UserController, eventController con
 			return
 		}
 
+		// generate events by getting data from nusmods API
 		events, err := nusmods.GenerateEvents(query.Url)
 		if err != nil {
 			DisplayError(ctx, err.Error())
 			return
 		}
 
-		eventController.EventCreateMany(ctx, events)
+		// create events in database
+		eventids, err := eventController.EventCreateMany(ctx, events)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
 
-		// TODO: actually add to user's event
+		// add the events to the user
+		userController.UserAddEvents(ctx, id, eventids)
+
 		ctx.JSON(http.StatusOK, gin.H{
 			"events": events,
 		})
