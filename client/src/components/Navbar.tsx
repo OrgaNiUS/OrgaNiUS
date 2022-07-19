@@ -8,7 +8,6 @@ const Navbar = (): JSX.Element => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
     const username = auth.auth.user;
-    const linkToUser: string = "/user/" + username;
 
     const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
         UserLogout(
