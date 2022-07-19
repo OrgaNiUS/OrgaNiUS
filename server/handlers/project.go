@@ -55,6 +55,7 @@ func ProjectGet(userController controllers.UserController, projectController con
 				"creationTime": project.CreationTime,
 				"members":      userArr,
 				"tasks":        taskController.TaskMapToArray(ctx, project.Tasks),
+				"isPublic":     project.IsPublic,
 				"events":       struct{}{}, // to be implemented
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
@@ -423,7 +424,7 @@ func ProjectLeave(userController controllers.UserController, projectController c
 			return
 		}
 		type Query struct {
-			Id  string `bson:"projectid" json:"projectid"`
+			Id string `bson:"projectid" json:"projectid"`
 		}
 		var query Query
 		if err := ctx.BindJSON(&query); err != nil {

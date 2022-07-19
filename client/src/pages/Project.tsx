@@ -328,7 +328,6 @@ const Project = (): JSX.Element => {
             <h1 className="mb-1 text-2xl underline underline-offset-auto">Project Settings</h1>
 
             <div className="w-full flex-col">
-                {/* <h1>Change Name</h1> */}
                 <div className="flex w-full justify-start">
                     <input
                         className="w-80 border-2 border-gray-200 rounded"
@@ -340,7 +339,6 @@ const Project = (): JSX.Element => {
                         Change
                     </Button>
                 </div>
-                {/* <label>Change Description</label> */}
                 <div className="flex-col w-full">
                     <input
                         className="w-80 border-2 border-gray-200 rounded"

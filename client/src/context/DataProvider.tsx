@@ -292,7 +292,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     events: [],
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
-                    isPublic: false
+                    isPublic: data.isPublic,
                 };
 
                 setProjects((p) => {
