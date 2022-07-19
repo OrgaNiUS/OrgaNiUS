@@ -163,8 +163,8 @@ func convertTime(t string) time.Duration {
 	return time.Duration(hourDuration*60+minuteDuration) * time.Minute
 }
 
-func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleInfo, classes map[string]string) ([]models.Event, error) {
-	var events []models.Event
+func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleInfo, classes map[string]string) ([]*models.Event, error) {
+	var events []*models.Event
 
 	foundSemester := false
 	var lessons []Lesson
@@ -197,7 +197,7 @@ func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleI
 					date := startOfSemester.AddDate(0, 0, weekOffset+weekNumber*7)
 					start := date.Add(startOffset)
 					end := date.Add(endOffset)
-					events = append(events, models.Event{
+					events = append(events, &models.Event{
 						// Example name is: "CS2030S Lecture 11" (for the 11th week)
 						// If there are multiple lectures in the same week for the same module (they will have the same name!)
 						Name:  name + " " + strconv.Itoa(weekNumber+1),
@@ -210,7 +210,7 @@ func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleI
 				// thus, not supporting, at least until we manage to find a module that uses it
 			default:
 				// either nusmods data is bad, or this parser is bad (probably this parser, but the user shall not know!)
-				return []models.Event{}, errors.New("bad data from nusmods")
+				return []*models.Event{}, errors.New("bad data from nusmods")
 			}
 		}
 	}
@@ -243,7 +243,7 @@ func ParseURL(url string) (int, []Module, error) {
 }
 
 // This is the entrypoint used by EventsNusmods handler.
-func GenerateEvents(url string) ([]models.Event, error) {
+func GenerateEvents(url string) ([]*models.Event, error) {
 	semester, modules, err := ParseURL(url)
 	if err != nil {
 		return nil, err
@@ -263,7 +263,7 @@ func GenerateEvents(url string) ([]models.Event, error) {
 		acadYear--
 	}
 
-	events := []models.Event{}
+	events := []*models.Event{}
 
 	for _, module := range modules {
 		moduleInfo, err := GetModuleInfo(acadYear, module.Code)
