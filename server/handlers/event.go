@@ -7,6 +7,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
+	"github.com/OrgaNiUS/OrgaNiUS/server/nusmods"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -202,6 +203,32 @@ func EventDelete(userController controllers.UserController, projectController co
 
 func EventNusmods(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		_, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
 
+		type q struct {
+			Url string `bson:"url" json:"url"`
+		}
+		var query q
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		events, err := nusmods.GenerateEvents(query.Url)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		eventController.EventCreateMany(ctx, events)
+
+		// TODO: actually add to user's event
+		ctx.JSON(http.StatusOK, gin.H{
+			"events": events,
+		})
 	}
 }
