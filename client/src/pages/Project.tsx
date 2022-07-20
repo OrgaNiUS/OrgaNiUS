@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
+import EventEdit from "../components/Event/EventEdit";
+import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
 import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
@@ -189,6 +191,13 @@ const Project = (): JSX.Element => {
             }}
         >
             <Container>
+                <Modal
+                    {...{
+                        active: data.editingEvent !== undefined,
+                        body: <EventEdit />,
+                        callback: () => data.setEditingEvent(undefined),
+                    }}
+                />
                 {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                 <Row className="my-2">
                     <Link to="/projects">⬅️ Back to Projects</Link>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { EventGetAll, EventPatch, EventPatchParams } from "../api/EventAPI";
+import { EventDelete, EventGetAll, EventPatch, EventPatchParams } from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { convertMaybeISO } from "../functions/dates";
@@ -37,6 +37,7 @@ interface IDataContext {
     editingEvent: IEvent | undefined;
     setEditingEvent: React.Dispatch<React.SetStateAction<IEvent | undefined>>;
     patchEvent: (event: patchEventData) => void;
+    removeEvent: (eventid: string, projectid?: string) => void;
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
     addProject: (project: IProject) => Promise<string>;
@@ -55,6 +56,7 @@ const defaultDataContext: IDataContext = {
     editingEvent: undefined,
     setEditingEvent: (_) => {},
     patchEvent: (_) => {},
+    removeEvent: (_) => {},
     projects: [],
     getProject: (_) => Promise.resolve([undefined, [], []]),
     addProject: (_) => Promise.resolve(""),
@@ -295,6 +297,17 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
+    const removeEvent = (eventid: string, projectid?: string) => {
+        setEvents((e) => e.filter((e) => e.id !== eventid));
+
+        EventDelete(
+            auth.axiosInstance,
+            { eventid, projectid },
+            () => {},
+            () => {}
+        );
+    };
+
     const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         return ProjectGet(
             auth.axiosInstance,
@@ -394,6 +407,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 editingEvent,
                 setEditingEvent,
                 patchEvent,
+                removeEvent,
                 projects,
                 getProject,
                 addProject,

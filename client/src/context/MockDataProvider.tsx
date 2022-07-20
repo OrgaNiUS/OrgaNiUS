@@ -80,6 +80,10 @@ const MockDataProvider = ({
         });
     };
 
+    const removeEvent = (eventid: string, projectid?: string) => {
+        setEvents((e) => e.filter((e) => e.id !== eventid));
+    };
+
     const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         const condensedProject: IProjectCondensed | undefined = projects.find((project) => project.id === id);
         if (condensedProject === undefined) {
@@ -113,6 +117,7 @@ const MockDataProvider = ({
                 editingEvent,
                 setEditingEvent,
                 patchEvent,
+                removeEvent,
                 projects,
                 getProject,
                 addProject,

@@ -56,12 +56,14 @@ const EventCard = ({ event, view }: { event: IEvent; view: "scheduler" | "timeli
     };
 
     const performEdit: React.MouseEventHandler<HTMLDivElement> = () => {
+        // TODO: modify state properly for project events
         data.setEditingEvent(event);
         data.setSelectedEvent(undefined);
     };
 
     const performTrash: React.MouseEventHandler<HTMLDivElement> = () => {
-        // TODO: delete event
+        // TODO: modify state properly for project events
+        data.removeEvent(event.id);
         data.setSelectedEvent(undefined);
     };
 
