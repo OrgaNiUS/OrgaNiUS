@@ -19,13 +19,7 @@ const Name = styled.p`
     white-space: nowrap;
 `;
 
-const EventCard = ({
-    event,
-    position = css``,
-}: {
-    event: IEvent;
-    position?: FlattenSimpleInterpolation;
-}): JSX.Element => {
+const EventCard = ({ event, view }: { event: IEvent; view: "scheduler" | "timeline" }): JSX.Element => {
     const options: Intl.DateTimeFormatOptions = {
         day: "numeric",
         month: "short",
@@ -35,8 +29,19 @@ const EventCard = ({
     const end: string = event.end.toLocaleDateString("en-SG", options);
     const period: string = start === end ? start : `${start} - ${end}`;
 
+    const position = {
+        scheduler: css`
+            right: 2rem;
+            top: 5rem;
+            z-index: 5;
+        `,
+        timeline: css`
+            top: -30%;
+        `,
+    };
+
     return (
-        <CardContainer custom={position}>
+        <CardContainer custom={position[view]}>
             <Name>{event.name}</Name>
             <p>{period}</p>
         </CardContainer>

@@ -2,7 +2,7 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calendar's css file
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
 import { IEvent } from "../types";
 import EventCard from "./EventCard";
@@ -45,18 +45,7 @@ const Scheduler = (): JSX.Element => {
 
     return (
         <Container>
-            {eventCard !== null && (
-                <EventCard
-                    {...{
-                        event: eventCard,
-                        position: css`
-                            right: 2rem;
-                            top: 5rem;
-                            z-index: 5;
-                        `,
-                    }}
-                />
-            )}
+            {eventCard !== null && <EventCard {...{ event: eventCard, view: "scheduler" }} />}
             <Calendar
                 localizer={localizer}
                 events={data.mergedEvents}

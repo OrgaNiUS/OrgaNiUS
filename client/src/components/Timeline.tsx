@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
 import { IEvent } from "../types";
@@ -53,16 +53,7 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
 
     return (
         <ItemContainer>
-            {showCard && (
-                <EventCard
-                    {...{
-                        event,
-                        position: css`
-                            top: -30%;
-                        `,
-                    }}
-                />
-            )}
+            {showCard && <EventCard {...{ event, view: "timeline" }} />}
             <Name>{event.name}</Name>
             <Circle height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={regular} onClick={handleClick} />
