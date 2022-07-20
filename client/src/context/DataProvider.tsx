@@ -1,40 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { EventGetAll } from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
+import { convertMaybeISO } from "../functions/dates";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
-
-// TODO: This is only for testing purposes because actual events integration are to be implemented later on.
-// const initialEvents: IEvent[] = [
-//     {
-//         name: "event 1",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 4),
-//     },
-//     {
-//         name: "event 2",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 1),
-//     },
-//     {
-//         name: "very loooooooooooooooooooooooooooooooooooong name",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 1),
-//     },
-//     {
-//         name: "All day event!",
-//         start: new Date(2022, 5, 14),
-//         end: new Date(2022, 5, 14),
-//         allDay: true,
-//     },
-//     {
-//         name: "Starts yesterday, ends tomorrow.",
-//         start: new Date(Date.now() - 1000 * 60 * 60 * 24),
-//         end: new Date(Date.now() + 1000 * 60 * 60 * 24),
-//         allDay: true,
-//     },
-// ];
 
 export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
     id: string;
@@ -83,12 +54,9 @@ export const DataContext = createContext<IDataContext>(defaultDataContext);
 export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
-    // TODO: get initialEvents from server
     const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
     const [tasks, setTasks] = useState<ITask[]>([]);
     const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
-    // until events CRUD is implemented
-    // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
@@ -102,8 +70,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined =
-                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                    const deadline: Date | undefined = convertMaybeISO(task.deadline);
                     // assignedTo doesn't matter for personal tasks
                     const assignedTo: IUser[] = [];
                     return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
@@ -126,8 +93,22 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             () => {}
         );
 
-        // put this in the callback later
-        setIsEventsLoading(false);
+        EventGetAll(
+            auth.axiosInstance,
+            { projectid: "" },
+            (response) => {
+                const data = response.data;
+                const events: IEvent[] = data.events.map((event: any) => {
+                    const start: Date | undefined = convertMaybeISO(event.start);
+                    const end: Date | undefined = convertMaybeISO(event.end);
+                    return { ...event, start, end };
+                });
+
+                setIsEventsLoading(false);
+                setEvents(events);
+            },
+            () => {}
+        );
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
@@ -275,8 +256,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 // convert server tasks to client tasks
                 const tasks: ITask[] = data.tasks.map((task: any) => {
                     // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined =
-                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                    const deadline: Date | undefined = convertMaybeISO(task.deadline);
 
                     const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
                         members.find((u: IUser) => u.id === id)

@@ -70,3 +70,15 @@ export const isLessThan = (date: Date, period: number, type: typeof types[number
             return diff < period;
     }
 };
+
+/**
+ * Converts Maybe ISO from the server into a maybe Javascript Date object.
+ * @param maybeISO Maybe ISO string returned from the server.
+ * @returns Maybe Javascript Date object.
+ */
+export const convertMaybeISO = (maybeISO: string): Date | undefined => {
+    if (maybeISO === "1970-01-01T00:00:00Z") {
+        return undefined;
+    }
+    return new Date(maybeISO);
+};
