@@ -17,7 +17,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
+func handleRoutes(router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -76,6 +76,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/event_get_all", handlers.EventGetAll(userController, projectController, eventController, jwtParser))
 	v1.PATCH("/event_modify", handlers.EventModify(eventController, jwtParser))
 	v1.DELETE("/event_delete", handlers.EventDelete(userController, projectController, eventController, jwtParser))
+	v1.POST("/event_nusmods", handlers.EventNusmods(userController, eventController, jwtParser))
 
 	// web socket handlers here
 	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))
@@ -135,7 +136,7 @@ func main() {
 	eventController := controllers.NewE(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
-	handleRoutes(URL, router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
+	handleRoutes(router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
 
 	log.Print("Server booted up!")
 

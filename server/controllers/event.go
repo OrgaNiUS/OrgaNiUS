@@ -24,6 +24,22 @@ func (c *EventController) EventCreate(ctx context.Context, event *models.Event) 
 	return nil
 }
 
+// Returns a string slice of eventids & error.
+func (c *EventController) EventCreateMany(ctx context.Context, events []*models.Event) ([]string, error) {
+	result, err := c.Collection(eventCollection).InsertMany(ctx, events)
+	if err != nil {
+		return []string{}, err
+	}
+	eventids := make([]string, len(result.InsertedIDs))
+	for i, id := range result.InsertedIDs {
+		// populate events with objectid
+		objectid := id.(primitive.ObjectID)
+		events[i].Id = objectid
+		eventids[i] = objectid.Hex()
+	}
+	return eventids, nil
+}
+
 func (c *EventController) EventGet(ctx context.Context, eventid string) (*models.Event, error) {
 	if eventid == "" {
 		return nil, errors.New("cannot leave id empty")
