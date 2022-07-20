@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import EventCreate from "../components/Event/EventCreate";
 import EventEdit from "../components/Event/EventEdit";
 import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
@@ -77,6 +78,7 @@ const Homepage = (): JSX.Element => {
     const pageRatioMin: number = 2;
     const pageRatioMax: number = 6;
     const [pageRatio, setPageRatio] = useState<number>(3);
+    const [creatingTask, setCreatingTask] = useState<boolean>(false);
 
     useEffect(() => {
         // on page load, load in the pageRatio from the cookies
@@ -137,6 +139,13 @@ const Homepage = (): JSX.Element => {
                     callback: () => data.setEditingEvent(undefined),
                 }}
             />
+            <Modal
+                {...{
+                    active: creatingTask,
+                    body: <EventCreate {...{ show: creatingTask, setShow: setCreatingTask }} />,
+                    callback: () => setCreatingTask(false),
+                }}
+            />
             <Message>Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
             <Container>
                 <Panel ratio={pageRatio}>
@@ -149,7 +158,7 @@ const Homepage = (): JSX.Element => {
                     <ButtonArray>
                         <ActionButton disabled>Import iCalendar (.ics) file</ActionButton>
                         <ActionButton>Import from nusmods.com</ActionButton>
-                        <ActionButton>Add Event</ActionButton>
+                        <ActionButton onClick={() => setCreatingTask(true)}>Add Event</ActionButton>
                     </ButtonArray>
                     <Scheduler />
                     <Timeline {...{ events: data.mergedEvents }} />

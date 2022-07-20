@@ -1,7 +1,7 @@
 import moment from "moment";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import styled from "styled-components";
-import { DataContext, patchEventData } from "../../context/DataProvider";
+import { DataContext } from "../../context/DataProvider";
 import { BaseButton, InputCSS } from "../../styles";
 import { IEvent } from "../../types";
 
@@ -41,7 +41,6 @@ const ButtonCancel = styled(BaseButton)`
 `;
 
 interface IFields {
-    id: string;
     name: string;
     start: string;
     end: string;
@@ -49,35 +48,23 @@ interface IFields {
 
 const momentFormat: string = "YYYY-MM-DD HH:mm";
 
-// A lot of code is reused from TodoEdit, but not worth creating a generic edit form to extend from.
-
-const EventEdit = (): JSX.Element => {
+const EventCreate = ({
+    show,
+    setShow,
+}: {
+    show: boolean;
+    setShow: React.Dispatch<React.SetStateAction<boolean>>;
+}): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>({
-        // this fake values are because Modal will force all values here to be evaluated, thus need to provide *some* value (will be changed when user actually clicks on edit).
-        id: "",
         name: "",
-        start: "",
-        end: "",
+        start: new Date().toISOString(),
+        end: new Date().toISOString(),
     });
 
-    useEffect(() => {
-        // force fields to change when editingEvent changes
-        // workaround to having to create this early for modal animation
-        if (data.editingEvent === undefined) {
-            return;
-        }
-
-        setFields({
-            ...data.editingEvent,
-            start: moment(data.editingEvent.start).format(momentFormat),
-            end: moment(data.editingEvent.end).format(momentFormat),
-        });
-    }, [data.editingEvent]);
-
     const hideForm = () => {
-        data.setEditingEvent(undefined);
+        setShow(false);
     };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
@@ -107,38 +94,20 @@ const EventEdit = (): JSX.Element => {
             return;
         }
 
-        if (data.editingEvent === undefined) {
-            // done for TS compiler
-            return;
-        }
-
-        const editingEvent: IEvent = data.editingEvent;
-
-        const event: patchEventData = {
-            id: editingEvent.id,
+        const event: IEvent = {
+            id: "",
+            name: fields.name,
+            start: moment(fields.start).toDate(),
+            end: moment(fields.end).toDate(),
         };
 
-        // Add to partial event if not the same.
-        if (fields.name !== editingEvent.name) {
-            event.name = fields.name;
-        }
-
-        const start: Date | undefined = fields.start === undefined ? undefined : moment(fields.start).toDate();
-        if (start !== editingEvent.start) {
-            event.start = start;
-        }
-        const end: Date | undefined = fields.end === undefined ? undefined : moment(fields.end).toDate();
-        if (end !== editingEvent.end) {
-            event.end = end;
-        }
-
-        data.patchEvent(event);
+        data.addEvent(event);
         hideForm();
     };
 
     return (
         <Form onSubmit={handleSubmit}>
-            <Title>Editing Event</Title>
+            <Title>New Event</Title>
             <Label>Name</Label>
             <Input type="text" name="name" placeholder="Name" onChange={handleChange} value={fields.name} required />
             <Label>Start</Label>
@@ -151,4 +120,4 @@ const EventEdit = (): JSX.Element => {
     );
 };
 
-export default EventEdit;
+export default EventCreate;

@@ -60,6 +60,12 @@ const MockDataProvider = ({
         });
     };
 
+    const addEvent = (event: IEvent, projectid?: string) => {
+        const newEvent: IEvent = { ...event, id: "" };
+
+        setEvents((e) => [...e, newEvent]);
+    };
+
     const patchEvent = (event: patchEventData) => {
         setEvents((e) => {
             const eventsCopy: IEvent[] = [...e];
@@ -116,6 +122,7 @@ const MockDataProvider = ({
                 setSelectedEvent,
                 editingEvent,
                 setEditingEvent,
+                addEvent,
                 patchEvent,
                 removeEvent,
                 projects,

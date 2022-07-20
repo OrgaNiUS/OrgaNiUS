@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { EventDelete, EventGetAll, EventPatch, EventPatchParams } from "../api/EventAPI";
+import { EventCreate, EventDelete, EventGetAll, EventPatch, EventPatchParams } from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { convertMaybeISO } from "../functions/dates";
@@ -36,6 +36,7 @@ interface IDataContext {
     setSelectedEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
     editingEvent: IEvent | undefined;
     setEditingEvent: React.Dispatch<React.SetStateAction<IEvent | undefined>>;
+    addEvent: (event: IEvent, projectid?: string) => void;
     patchEvent: (event: patchEventData) => void;
     removeEvent: (eventid: string, projectid?: string) => void;
     projects: IProjectCondensed[];
@@ -55,6 +56,7 @@ const defaultDataContext: IDataContext = {
     setSelectedEvent: (_) => {},
     editingEvent: undefined,
     setEditingEvent: (_) => {},
+    addEvent: (_) => {},
     patchEvent: (_) => {},
     removeEvent: (_) => {},
     projects: [],
@@ -258,6 +260,29 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
+    const addEvent = (event: IEvent, projectid?: string) => {
+        EventCreate(
+            auth.axiosInstance,
+            {
+                name: event.name,
+                start: event.start.toISOString(),
+                end: event.end.toISOString(),
+                projectid: projectid,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (response) => {
+                const data = response.data;
+                const newEvent: IEvent = { ...event, id: data.eventid };
+
+                setEvents((e) => [...e, newEvent]);
+            },
+            () => {}
+        );
+    };
+
     const patchEvent = (event: patchEventData) => {
         setEvents((e) => {
             const eventsCopy: IEvent[] = [...e];
@@ -406,6 +431,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 setSelectedEvent,
                 editingEvent,
                 setEditingEvent,
+                addEvent,
                 patchEvent,
                 removeEvent,
                 projects,
