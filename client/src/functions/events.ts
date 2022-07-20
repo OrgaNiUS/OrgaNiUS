@@ -21,6 +21,7 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
             return;
         }
         result.push({
+            id: t.id,
             name: t.name,
             start: t.deadline,
             end: t.deadline,

@@ -29,7 +29,7 @@ interface IDataContext {
     events: IEvent[];
     mergedEvents: IEvent[];
     projects: IProjectCondensed[];
-    getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
+    getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
     addProject: (project: IProject) => Promise<string>;
 }
 
@@ -42,7 +42,7 @@ const defaultDataContext: IDataContext = {
     events: [],
     mergedEvents: [],
     projects: [],
-    getProject: (_) => Promise.resolve([undefined, []]),
+    getProject: (_) => Promise.resolve([undefined, [], []]),
     addProject: (_) => Promise.resolve(""),
 };
 
@@ -245,7 +245,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const getProject = (id: string): Promise<[MaybeProject, ITask[]]> => {
+    const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         return ProjectGet(
             auth.axiosInstance,
             { projectid: id },
@@ -264,12 +264,18 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
                 });
 
+                const events: IEvent[] = data.events.map((event: any) => {
+                    const start: Date | undefined = convertMaybeISO(event.start);
+                    const end: Date | undefined = convertMaybeISO(event.end);
+                    return { ...event, start, end };
+                });
+
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
                     members,
-                    events: [],
+                    events: events.map((e: IEvent) => e.id),
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
                 };
@@ -286,10 +292,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     return projectsCopy;
                 });
 
-                return [project, tasks];
+                return [project, tasks, events];
             },
             () => {
-                return [undefined, []];
+                return [undefined, [], []];
             }
         );
     };

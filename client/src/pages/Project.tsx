@@ -61,6 +61,7 @@ const Project = (): JSX.Element => {
     const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [events, setEvents] = useState<IEvent[]>([]);
     const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
     const isAdmin: boolean = project?.members.find((u) => u.name === auth.auth.user)?.role === "admin";
 
@@ -144,17 +145,17 @@ const Project = (): JSX.Element => {
         });
     };
 
-    // TODO: get events from event ids
-    const mergedEvents: IEvent[] = mergeEventArrays([], tasks);
+    const mergedEvents: IEvent[] = mergeEventArrays(events, tasks);
 
     useEffect(() => {
         if (projectid === undefined) {
             return;
         }
 
-        data.getProject(projectid).then(([project, tasks]) => {
+        data.getProject(projectid).then(([project, tasks, events]) => {
             setProject(project);
             setTasks(tasks);
+            setEvents(events);
             setLoading(false);
         });
 
