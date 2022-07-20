@@ -34,8 +34,8 @@ interface IDataContext {
     mergedEvents: IEvent[];
     selectedEvent: string | undefined;
     setSelectedEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
-    editingEvent: string | undefined;
-    setEditingEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
+    editingEvent: IEvent | undefined;
+    setEditingEvent: React.Dispatch<React.SetStateAction<IEvent | undefined>>;
     patchEvent: (event: patchEventData) => void;
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
@@ -74,7 +74,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [selectedEvent, setSelectedEvent] = useState<string | undefined>(undefined);
-    const [editingEvent, setEditingEvent] = useState<string | undefined>(undefined);
+    const [editingEvent, setEditingEvent] = useState<IEvent | undefined>(undefined);
     const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 

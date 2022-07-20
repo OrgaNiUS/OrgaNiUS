@@ -18,7 +18,7 @@ const MockDataProvider = ({
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
     const [selectedEvent, setSelectedEvent] = useState<string | undefined>(undefined);
-    const [editingEvent, setEditingEvent] = useState<string | undefined>(undefined);
+    const [editingEvent, setEditingEvent] = useState<IEvent | undefined>(undefined);
     const [projects, setProjects] = useState<IProjectCondensed[]>(initialProjects);
 
     const addTask = (task: ITask, _: string = ""): Promise<ITask | undefined> => {

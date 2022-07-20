@@ -56,7 +56,7 @@ const EventCard = ({ event, view }: { event: IEvent; view: "scheduler" | "timeli
     };
 
     const performEdit: React.MouseEventHandler<HTMLDivElement> = () => {
-        data.setEditingEvent(event.id);
+        data.setEditingEvent(event);
         data.setSelectedEvent(undefined);
     };
 
