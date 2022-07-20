@@ -14,48 +14,50 @@ func TestNthDayOfMonth(t *testing.T) {
 		expected time.Time
 	}
 
+	location, _ := time.LoadLocation("Asia/Singapore")
+
 	tests := []testShape{
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(1, time.Monday, time.July, 2022)
 			},
-			expected: time.Date(2022, time.July, 4, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2022, time.July, 4, 0, 0, 0, 0, location),
 		},
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(2, time.Monday, time.July, 2022)
 			},
-			expected: time.Date(2022, time.July, 11, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2022, time.July, 11, 0, 0, 0, 0, location),
 		},
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(3, time.Sunday, time.July, 2022)
 			},
-			expected: time.Date(2022, time.July, 17, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2022, time.July, 17, 0, 0, 0, 0, location),
 		},
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(5, time.Saturday, time.October, 2022)
 			},
-			expected: time.Date(2022, time.October, 29, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2022, time.October, 29, 0, 0, 0, 0, location),
 		},
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(5, time.Sunday, time.December, 2023)
 			},
-			expected: time.Date(2023, time.December, 31, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2023, time.December, 31, 0, 0, 0, 0, location),
 		},
 		{
 			callback: func() time.Time {
 				return nusmods.NthDayofMonth(1, time.Monday, time.January, 2024)
 			},
-			expected: time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, time.January, 1, 0, 0, 0, 0, location),
 		},
 	}
 
 	for _, test := range tests {
 		actual := test.callback()
-		if actual != test.expected {
+		if !actual.Equal(test.expected) {
 			t.Errorf("expected %v but got %v", test.expected, actual)
 		}
 	}
@@ -68,19 +70,21 @@ func TestStartOfSemester(t *testing.T) {
 		expectError  bool
 	}
 
+	location, _ := time.LoadLocation("Asia/Singapore")
+
 	tests := []testShape{
 		{
 			callback: func() (time.Time, error) {
 				return nusmods.StartOfSemester(2022, 1)
 			},
-			expectedTime: time.Date(2022, time.August, 8, 0, 0, 0, 0, time.UTC),
+			expectedTime: time.Date(2022, time.August, 8, 0, 0, 0, 0, location),
 			expectError:  false,
 		},
 		{
 			callback: func() (time.Time, error) {
 				return nusmods.StartOfSemester(2023, 2)
 			},
-			expectedTime: time.Date(2023, time.January, 9, 0, 0, 0, 0, time.UTC),
+			expectedTime: time.Date(2023, time.January, 9, 0, 0, 0, 0, location),
 			expectError:  false,
 		},
 		{
@@ -95,7 +99,7 @@ func TestStartOfSemester(t *testing.T) {
 
 	for _, test := range tests {
 		time, err := test.callback()
-		if time != test.expectedTime {
+		if !time.Equal(test.expectedTime) {
 			t.Errorf("expected %v but got %v", test.expectedTime, time)
 		}
 		if (err == nil) == test.expectError {

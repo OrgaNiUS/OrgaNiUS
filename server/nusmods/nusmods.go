@@ -25,8 +25,10 @@ type Module struct {
 // Example: 2nd Monday of July 2022 - NthDayofMonth(2, time.Monday, time.July, 2022)
 // Note that if N exceeds the month, then the date returned might be from the next month.
 func NthDayofMonth(n int, weekday time.Weekday, month time.Month, year int) time.Time {
+	// if you're using nusmods, just assume you're in Singapore :D
+	location, _ := time.LoadLocation("Asia/Singapore")
 	// use first day of the month as reference
-	t := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	t := time.Date(year, month, 1, 0, 0, 0, 0, location)
 	// number of days to reach correct day (in the first week)
 	deltaDays := (int(weekday) - int(t.Weekday()) + 7) % 7
 	// increment by number of weeks
