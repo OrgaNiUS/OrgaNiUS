@@ -66,6 +66,8 @@ const MockDataProvider = ({
         setEvents((e) => [...e, newEvent]);
     };
 
+    const nusmodsEvent = (url: string) => {};
+
     const patchEvent = (event: patchEventData) => {
         setEvents((e) => {
             const eventsCopy: IEvent[] = [...e];
@@ -123,6 +125,7 @@ const MockDataProvider = ({
                 editingEvent,
                 setEditingEvent,
                 addEvent,
+                nusmodsEvent,
                 patchEvent,
                 removeEvent,
                 projects,

@@ -109,7 +109,15 @@ const EventCreate = ({
         <Form onSubmit={handleSubmit}>
             <Title>New Event</Title>
             <Label>Name</Label>
-            <Input type="text" name="name" placeholder="Name" onChange={handleChange} value={fields.name} required />
+            <Input
+                type="text"
+                name="name"
+                placeholder="Name"
+                onChange={handleChange}
+                value={fields.name}
+                autoFocus
+                required
+            />
             <Label>Start</Label>
             <Input type="datetime-local" name="start" onChange={handleChange} value={fields.start} required />
             <Label>End</Label>
