@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, MaybeProject } from "../types";
-import { DataContext, patchTaskData } from "./DataProvider";
+import { DataContext, patchEventData, patchTaskData } from "./DataProvider";
 
 const MockDataProvider = ({
     initialTasks,
@@ -58,6 +58,26 @@ const MockDataProvider = ({
         });
     };
 
+    const patchEvent = (event: patchEventData) => {
+        setEvents((e) => {
+            const eventsCopy: IEvent[] = [...e];
+            for (let i = 0; i < eventsCopy.length; i++) {
+                const e: IEvent = { ...eventsCopy[i] };
+                if (e.id !== event.id) {
+                    continue;
+                }
+                eventsCopy[i] = {
+                    id: e.id,
+                    name: event.name ?? e.name,
+                    start: event.start ?? e.start,
+                    end: event.end ?? e.end,
+                };
+                break;
+            }
+            return eventsCopy;
+        });
+    };
+
     const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         const condensedProject: IProjectCondensed | undefined = projects.find((project) => project.id === id);
         if (condensedProject === undefined) {
@@ -86,6 +106,7 @@ const MockDataProvider = ({
                 removeTasks,
                 events,
                 mergedEvents,
+                patchEvent,
                 projects,
                 getProject,
                 addProject,

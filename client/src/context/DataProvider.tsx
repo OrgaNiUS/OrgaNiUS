@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { EventGetAll } from "../api/EventAPI";
+import { EventGetAll, EventPatch, EventPatchParams } from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { convertMaybeISO } from "../functions/dates";
@@ -16,6 +16,10 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
     removeTags?: string[];
 }
 
+export interface patchEventData extends Omit<Partial<IEvent>, "id"> {
+    id: string;
+}
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
@@ -28,6 +32,7 @@ interface IDataContext {
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
+    patchEvent: (event: patchEventData) => void;
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
     addProject: (project: IProject) => Promise<string>;
@@ -41,6 +46,7 @@ const defaultDataContext: IDataContext = {
     removeTasks: (_) => {},
     events: [],
     mergedEvents: [],
+    patchEvent: (_) => {},
     projects: [],
     getProject: (_) => Promise.resolve([undefined, [], []]),
     addProject: (_) => Promise.resolve(""),
@@ -147,9 +153,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    /**
-     * Do not use `assignedTo` field
-     */
     const patchTask = (task: patchTaskData, fullTask: ITask) => {
         // undefined checks + check if included in add/remove array
         const shouldRemoveFromOwnUser: boolean =
@@ -194,9 +197,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             return tasksCopy;
         });
 
-        const payload: TaskPatchData = {
-            taskid: task.id ?? "",
-        };
+        const payload: TaskPatchData = { taskid: task.id };
 
         if (task.name !== undefined) {
             payload.name = task.name;
@@ -242,6 +243,45 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid, tasks: ids },
             (_) => {},
             (_) => {}
+        );
+    };
+
+    const patchEvent = (event: patchEventData) => {
+        setEvents((e) => {
+            const eventsCopy: IEvent[] = [...e];
+            for (let i = 0; i < eventsCopy.length; i++) {
+                const e: IEvent = { ...eventsCopy[i] };
+                if (e.id !== event.id) {
+                    continue;
+                }
+                eventsCopy[i] = {
+                    id: e.id,
+                    name: event.name ?? e.name,
+                    start: event.start ?? e.start,
+                    end: event.end ?? e.end,
+                };
+                break;
+            }
+            return eventsCopy;
+        });
+
+        const payload: EventPatchParams = { eventid: event.id };
+
+        if (event.name !== undefined) {
+            payload.name = event.name;
+        }
+        if (event.start !== undefined) {
+            payload.start = event.start.toISOString();
+        }
+        if (event.end !== undefined) {
+            payload.end = event.end.toISOString();
+        }
+
+        EventPatch(
+            auth.axiosInstance,
+            payload,
+            () => {},
+            () => {}
         );
     };
 
@@ -339,6 +379,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 removeTasks,
                 events,
                 mergedEvents,
+                patchEvent,
                 projects,
                 getProject,
                 addProject,

@@ -25,7 +25,7 @@ type EventGetAllParams = {
 };
 export const EventGetAll = CreateGetFunctionWithParams<EventGetAllParams>("/event_get_all");
 
-type EventPatchParams = {
+export type EventPatchParams = {
     eventid: string;
     name?: string;
     start?: string; // ISO 8601 format
