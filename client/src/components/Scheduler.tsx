@@ -5,7 +5,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calenda
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
 import { IEvent } from "../types";
-import EventCard from "./EventCard";
+import EventCard from "./Event/EventCard";
 
 // moment is required for react-big-calendar
 const localizer = momentLocalizer(moment);

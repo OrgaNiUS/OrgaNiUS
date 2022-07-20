@@ -32,6 +32,10 @@ interface IDataContext {
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
     mergedEvents: IEvent[];
+    selectedEvent: string | undefined;
+    setSelectedEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
+    editingEvent: string | undefined;
+    setEditingEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
     patchEvent: (event: patchEventData) => void;
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
@@ -46,6 +50,10 @@ const defaultDataContext: IDataContext = {
     removeTasks: (_) => {},
     events: [],
     mergedEvents: [],
+    selectedEvent: undefined,
+    setSelectedEvent: (_) => {},
+    editingEvent: undefined,
+    setEditingEvent: (_) => {},
     patchEvent: (_) => {},
     projects: [],
     getProject: (_) => Promise.resolve([undefined, [], []]),
@@ -65,6 +73,8 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [selectedEvent, setSelectedEvent] = useState<string | undefined>(undefined);
+    const [editingEvent, setEditingEvent] = useState<string | undefined>(undefined);
     const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
@@ -379,6 +389,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 removeTasks,
                 events,
                 mergedEvents,
+                selectedEvent,
+                setSelectedEvent,
+                editingEvent,
+                setEditingEvent,
                 patchEvent,
                 projects,
                 getProject,

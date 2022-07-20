@@ -1,5 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import EventEdit from "../components/Event/EventEdit";
+import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
 import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
@@ -119,6 +121,13 @@ const Homepage = (): JSX.Element => {
 
     return (
         <>
+            <Modal
+                {...{
+                    active: data.editingEvent !== undefined,
+                    body: <EventEdit />,
+                    callback: () => data.setEditingEvent(undefined),
+                }}
+            />
             <Message>Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
             <Container>
                 <Panel ratio={pageRatio}>

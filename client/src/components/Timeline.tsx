@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
 import { IEvent } from "../types";
-import EventCard from "./EventCard";
+import EventCard from "./Event/EventCard";
 
 const Name = styled.p`
     ${truncate}
