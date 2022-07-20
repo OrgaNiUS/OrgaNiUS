@@ -2,7 +2,6 @@ export interface IEvent {
     name: string;
     start: Date;
     end: Date;
-    allDay?: boolean;
 }
 
 // update IFields in TodoEdit and TodoCreate as well (if needed)

@@ -64,7 +64,6 @@ describe("filterEvents", () => {
                 name: "Ends yesterday.",
                 start: new Date(Date.now() - 1000 * 60 * 60 * 24),
                 end: new Date(Date.now() - 1000 * 60 * 60 * 24),
-                allDay: true,
             },
         ];
         expect(filterEvents(events, { over: true })).toStrictEqual([]);
@@ -92,7 +91,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -117,7 +115,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -142,7 +139,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
         expect(
@@ -152,7 +148,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
         expect(
@@ -162,7 +157,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
         expect(
@@ -172,7 +166,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -197,7 +190,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "name",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });
@@ -222,7 +214,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "desc",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });
@@ -247,7 +238,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "tag",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });
