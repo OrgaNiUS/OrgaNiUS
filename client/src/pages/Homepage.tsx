@@ -9,6 +9,7 @@ import Todo from "../components/Todo/Todo";
 import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { getCookie, setCookie } from "../functions/cookies";
+import { BaseButton } from "../styles";
 
 const Message = styled.h1`
     font-size: 2rem;
@@ -56,6 +57,14 @@ const RButton = styled.button`
     &:hover {
         transform: scale(1.6);
     }
+`;
+
+const ButtonArray = styled.div`
+    text-align: right;
+`;
+
+const ActionButton = styled(BaseButton)`
+    background-color: rgb(59, 130, 246);
 `;
 
 // This is the component for the homepage (user dashboard).
@@ -137,6 +146,11 @@ const Homepage = (): JSX.Element => {
                     <Resizer />
                 </div>
                 <Panel ratio={10 - pageRatio}>
+                    <ButtonArray>
+                        <ActionButton disabled>Import iCalendar (.ics) file</ActionButton>
+                        <ActionButton>Import from nusmods.com</ActionButton>
+                        <ActionButton>Add Event</ActionButton>
+                    </ButtonArray>
                     <Scheduler />
                     <Timeline {...{ events: data.mergedEvents }} />
                 </Panel>
