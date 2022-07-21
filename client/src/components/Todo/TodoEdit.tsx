@@ -328,7 +328,6 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
                         className="w-full"
                         onChange={handleDateChange("deadline")}
                         value={fields.deadline}
-                        required
                     />
                 </div>
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
