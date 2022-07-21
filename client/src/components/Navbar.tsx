@@ -7,8 +7,7 @@ import { deleteCookie } from "../functions/cookies";
 const Navbar = (): JSX.Element => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
-    const username = auth.auth.user;
-
+    
     const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
         UserLogout(
             auth.axiosInstance,
