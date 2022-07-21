@@ -807,6 +807,18 @@ type output = {
 };
 ```
 
+### Event Parse iCalendar (.ics) file
+
+POST "/event_ics" with multipart-form data.
+
+Input: Key of "ics_file" with value being the actual iCalendar file.
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
 ## Definitions
 
 ```typescript

@@ -6,6 +6,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/auth"
 	"github.com/OrgaNiUS/OrgaNiUS/server/controllers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/functions"
+	"github.com/OrgaNiUS/OrgaNiUS/server/ics"
 	"github.com/OrgaNiUS/OrgaNiUS/server/models"
 	"github.com/OrgaNiUS/OrgaNiUS/server/nusmods"
 	"github.com/gin-gonic/gin"
@@ -235,7 +236,48 @@ func EventNusmods(userController controllers.UserController, eventController con
 		// add the events to the user
 		userController.UserAddEvents(ctx, id, eventids)
 
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusCreated, gin.H{
+			"events": events,
+		})
+	}
+}
+
+func EventIcs(userController controllers.UserController, eventController controllers.EventController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		formFile, err := ctx.FormFile("ics_file")
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		openedFile, err := formFile.Open()
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		events, err := ics.Parse(openedFile)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		// create events in database
+		eventids, err := eventController.EventCreateMany(ctx, events)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+
+		// add the events to the user
+		userController.UserAddEvents(ctx, id, eventids)
+
+		ctx.JSON(http.StatusCreated, gin.H{
 			"events": events,
 		})
 	}
