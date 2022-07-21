@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
+import { openInNewTab } from "../../functions/links";
 import { BaseButton, InputCSS } from "../../styles";
 
 const Container = styled.div`
@@ -25,6 +26,11 @@ const Title = styled.h1`
 const Input = styled.input`
     width: 100%;
     ${InputCSS}
+`;
+
+const Link = styled.span`
+    cursor: pointer;
+    text-decoration: underline;
 `;
 
 const ButtonSubmit = styled(BaseButton)`
@@ -64,6 +70,11 @@ const EventNusmodsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element =
     return (
         <Container>
             <Title>Import timetable from nusmods.com</Title>
+            <p>
+                1. Navigate to <Link onClick={openInNewTab("https://nusmods.com/")}>https://nusmods.com/</Link>.
+            </p>
+            <p>2. Click on Share/Sync & copy the link and paste it below.</p>
+            <p>3. Click "Import!".</p>
             <Input
                 onChange={handleChange}
                 value={field}

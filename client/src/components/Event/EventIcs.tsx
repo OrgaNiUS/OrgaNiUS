@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
-import { InputCSS, BaseButton } from "../../styles";
+import { BaseButton } from "../../styles";
 
 const Container = styled.div`
     background-color: white;
@@ -61,6 +61,12 @@ const EventIcsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element => {
     return (
         <Container>
             <Title>Import iCalendar File</Title>
+            <p>1. Upload your iCalendar (.ics) file.</p>
+            <p>2. Click "Import!".</p>
+            <p>
+                Note: Repeating events are not supported, if you intend to import nusmods schedule, use the "Import from
+                nusmods.com" option instead.
+            </p>
             <input type="file" onChange={handleChange} accept="text/calendar" />
             <ButtonSubmit type="button" onClick={handleSubmit}>
                 Import!
