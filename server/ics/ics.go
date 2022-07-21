@@ -33,6 +33,10 @@ func Parse(fileReader multipart.File) ([]*models.Event, error) {
 			// just skip events that have problems
 			continue
 		}
+		if start.After(end) {
+			// just skip events that have problems
+			continue
+		}
 		event := &models.Event{
 			Name:  name,
 			Start: start,

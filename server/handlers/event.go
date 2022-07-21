@@ -45,6 +45,10 @@ func EventCreate(userController controllers.UserController, projectController co
 			DisplayError(ctx, "bad end time")
 			return
 		}
+		if start.After(end) {
+			DisplayError(ctx, "start cannot be after end")
+			return
+		}
 		event := models.Event{
 			Name:  query.Name,
 			Start: start,

@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext, patchEventData } from "../../context/DataProvider";
+import { dateDiff } from "../../functions/dates";
 import { BaseButton, InputCSS } from "../../styles";
 import { IEvent } from "../../types";
 
@@ -59,6 +60,7 @@ const EventEdit = (): JSX.Element => {
         start: undefined,
         end: undefined,
     });
+    const [message, setMessage] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         // force fields to change when editingEvent changes
@@ -111,6 +113,11 @@ const EventEdit = (): JSX.Element => {
 
         const editingEvent: IEvent = data.editingEvent;
 
+        if (dateDiff(fields.start ?? editingEvent.start, fields.end ?? editingEvent.end) < 0) {
+            setMessage("Event must start before it ends!");
+            return;
+        }
+
         const event: patchEventData = {
             id: editingEvent.id,
         };
@@ -128,6 +135,7 @@ const EventEdit = (): JSX.Element => {
         }
 
         data.patchEvent(event);
+        setMessage("");
         hideForm();
     };
 
@@ -144,6 +152,7 @@ const EventEdit = (): JSX.Element => {
             <div>
                 <DateTimePicker onChange={handleDateChange("end")} value={fields.end} required />
             </div>
+            {message !== undefined && <div>{message}</div>}
             <ButtonSubmit type="submit">Submit</ButtonSubmit>
             <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
         </Form>

@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
+import { dateDiff } from "../../functions/dates";
 import { BaseButton, InputCSS } from "../../styles";
 import { IEvent } from "../../types";
 
@@ -49,11 +50,16 @@ interface IFields {
 const EventCreate = ({ setShow }: { setShow: React.Dispatch<React.SetStateAction<boolean>> }): JSX.Element => {
     const data = useContext(DataContext);
 
+    const initialDate = new Date();
+    // set the seconds and milliseconds to 0
+    initialDate.setSeconds(0, 0);
+
     const [fields, setFields] = useState<IFields>({
         name: "",
-        start: new Date(),
-        end: new Date(),
+        start: initialDate,
+        end: initialDate,
     });
+    const [message, setMessage] = useState<string | undefined>(undefined);
 
     const hideForm = () => {
         setShow(false);
@@ -90,6 +96,11 @@ const EventCreate = ({ setShow }: { setShow: React.Dispatch<React.SetStateAction
             return;
         }
 
+        if (dateDiff(fields.start, fields.end) < 0) {
+            setMessage("Event must start before it ends!");
+            return;
+        }
+
         const event: IEvent = {
             id: "", // id is irrelevant now
             name: fields.name,
@@ -98,6 +109,7 @@ const EventCreate = ({ setShow }: { setShow: React.Dispatch<React.SetStateAction
         };
 
         data.addEvent(event);
+        setMessage("");
         hideForm();
     };
 
@@ -122,6 +134,7 @@ const EventCreate = ({ setShow }: { setShow: React.Dispatch<React.SetStateAction
             <div>
                 <DateTimePicker onChange={handleDateChange("end")} value={fields.end} required />
             </div>
+            {message !== undefined && <div>{message}</div>}
             <ButtonSubmit type="submit">Submit</ButtonSubmit>
             <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
         </Form>
