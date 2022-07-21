@@ -468,10 +468,11 @@ func ProjectLeave(userController controllers.UserController, projectController c
 		// Delete all project tasks from user.Tasks
 		for _, taskid := range project.Tasks {
 			delete(user.Tasks, taskid)
-			primTaskId, _ := primitive.ObjectIDFromHex(taskid)
-			// Remove User from all project.Tasks.assignedTo
-			taskController.TaskModify(ctx, primTaskId, nil, nil, nil, nil, nil, &useridArr, nil, nil)
+			// primTaskId, _ := primitive.ObjectIDFromHex(taskid)
+			// taskController.TaskModify(ctx, primTaskId, nil, nil, nil, nil, nil, &useridArr, nil, nil)
 		}
+		// Remove User from all project.Tasks.assignedTo
+		taskController.TasksDeleteUser(ctx, project.Tasks, id)
 		userController.UserModifyTask(ctx, &user)
 
 		// delete projectid from user.projects

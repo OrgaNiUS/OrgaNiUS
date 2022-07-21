@@ -127,3 +127,13 @@ func (c *TaskController) TaskMapToArray(ctx context.Context, Tasks []string) []m
 	c.Collection(taskCollection).FindAll(ctx, taskPrimitiveIdArr, &tasksArray)
 	return tasksArray
 }
+
+func (c *TaskController) TasksDeleteUser(ctx context.Context, Tasks []string, userId string) {
+	primitiveArr := []primitive.ObjectID{}
+	for _, taskid := range Tasks {
+		id, _ := primitive.ObjectIDFromHex(taskid)
+		primitiveArr = append(primitiveArr, id)
+	}
+	params := bson.D{{Key: "$pull", Value: bson.D{{Key: "assignedTo", Value: userId}}}}
+	c.Collection(taskCollection).UpdateManyByID(ctx, primitiveArr, params)
+}

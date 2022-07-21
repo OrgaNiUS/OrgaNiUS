@@ -25,6 +25,9 @@ type TaskCollectionInterface interface {
 	// Modifies a task by ID
 	UpdateByID(ctx context.Context, id primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
 
+	// Modifies many tasks by ID
+	UpdateManyByID(ctx context.Context, taskIdArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error)
+
 	// Deletes a task by ID
 	DeleteByID(ctx context.Context, id string) (int64, error)
 
@@ -79,6 +82,18 @@ func (c *TaskCollection) UpdateByID(ctx context.Context, id primitive.ObjectID, 
 		return nil, err
 	}
 	return result, err
+}
+
+func (c *TaskCollection) UpdateManyByField(ctx context.Context, field string, arr interface{}, params bson.D) (*mongo.UpdateResult, error) {
+	result, err := c.taskCollection.UpdateMany(ctx, bson.D{{Key: field, Value: bson.D{{Key: "$in", Value: arr}}}}, params)
+	if err != nil {
+		return nil, err
+	}
+	return result, err
+}
+
+func (c *TaskCollection) UpdateManyByID(ctx context.Context, taskidArr []primitive.ObjectID, params bson.D) (*mongo.UpdateResult, error) {
+	return c.UpdateManyByField(ctx, "_id", taskidArr, params)
 }
 
 func (c *TaskCollection) DeleteByID(ctx context.Context, id string) (int64, error) {
