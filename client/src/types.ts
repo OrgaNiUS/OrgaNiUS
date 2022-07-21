@@ -48,6 +48,7 @@ export interface IProject {
     events: string[]; // storing only ids
     tasks: string[]; // storing only ids
     creationTime: Date;
+    isPublic: boolean;
 }
 
 export interface IProjectSettings {

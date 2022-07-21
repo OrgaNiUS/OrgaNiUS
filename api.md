@@ -391,6 +391,7 @@ type output = {
     members: member[];
     name: string;
     tasks: Task[];
+    isPublic: boolean;
 };
 
 type member = {
@@ -532,6 +533,22 @@ Input: A JSON body with the following parameters. projectid is only **required**
 type input = {
     projectid: string;
     userids: string[]; // string[] of userid
+};
+```
+
+Status Code: 200 or 400
+
+### Project Leave
+
+PATCH "/project_leave"
+
+User will leave the project / Project will remove current User.
+
+Input: A JSON body with the following **required** parameters.
+
+```typescript
+type input = {
+    projectid: string;
 };
 ```
 

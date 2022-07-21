@@ -1,4 +1,4 @@
-import { CreateGetFunction, CreateGetFunctionWithParams, CreatePatchFunction, CreatePostFunction } from "./API";
+import { CreateDeleteFunctionWithParams, CreateGetFunction, CreateGetFunctionWithParams, CreatePatchFunction, CreatePostFunction } from "./API";
 
 type ProjectGetParams = {
     projectid: string;
@@ -19,10 +19,11 @@ type ProjectInviteData = {
 };
 export const ProjectInvite = CreatePatchFunction<ProjectInviteData>("/project_invite");
 
-type ProjectGetApplicationsParams = {
-    projectid: string;
-};
+type ProjectLeaveData = ProjectGetParams;
+export const ProjectLeave = CreatePatchFunction<ProjectLeaveData>("/project_leave");
+
 // only for admin use
+type ProjectGetApplicationsParams = ProjectGetParams;
 export const ProjectGetApplications =
     CreateGetFunctionWithParams<ProjectGetApplicationsParams>("/project_get_applications");
 
@@ -32,3 +33,20 @@ type ProjectChooseData = {
     rejectedUsers: string[];
 };
 export const ProjectChoose = CreatePatchFunction<ProjectChooseData>("/project_choose");
+
+type ProjectModifyData = {
+    name?: string;
+    projectid: string;
+    description?: string;
+    isPublic?: boolean;
+};
+export const ProjectModify = CreatePatchFunction<ProjectModifyData>("/project_modify");
+
+type ProjectRemoveUserData = {
+    projectid: string;
+    userids: string[];
+};
+export const ProjectRemoveUser = CreatePatchFunction<ProjectRemoveUserData>("/project_remove_user");
+
+type ProjectDeleteParams = ProjectGetParams;
+export const ProjectDelete = CreateDeleteFunctionWithParams<ProjectDeleteParams>("/project_delete")

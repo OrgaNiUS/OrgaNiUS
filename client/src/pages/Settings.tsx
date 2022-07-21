@@ -274,7 +274,7 @@ const Settings = (): JSX.Element => {
             />
             <Container>
                 <Left>
-                    <H1>Setings</H1>
+                    <H1>Settings</H1>
                     {keys.map((key, i) => {
                         return (
                             <div key={i}>

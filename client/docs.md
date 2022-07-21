@@ -92,6 +92,18 @@ They can work with the tasks, similarly to the user dashboard, and other feature
 
 Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen, with autocomplete. Admins can also manage user applications from this screen.
 
+The user can choose to leave the project at any time. Admin's if chose to leave, will automatically transfer admin rights to next earliest member to join project.
+
+# Project Settings
+
+Only accessible to admins of project to prevent abuse.
+
+Admin can change Name, Description, Public status, and Edit current members(currently only Remove a User). They can also choose to delete the project.
+
+If an admin deletes the project, project will be permanently deleted and all associated tasks will be deleted as well. All users involved in the project will also be removed from the project as a result.
+
+Admin can navigate to the application page from here toe manage applications to join the project.
+
 ### Task Assignment
 
 However, a small difference between Project tasks and Personal tasks is that Project tasks can be assigned to users.
