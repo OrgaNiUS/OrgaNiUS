@@ -1,5 +1,5 @@
-import moment from "moment";
 import { useContext, useEffect, useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext, patchEventData } from "../../context/DataProvider";
 import { BaseButton, InputCSS } from "../../styles";
@@ -43,11 +43,9 @@ const ButtonCancel = styled(BaseButton)`
 interface IFields {
     id: string;
     name: string;
-    start: string;
-    end: string;
+    start: Date | undefined;
+    end: Date | undefined;
 }
-
-const momentFormat: string = "YYYY-MM-DD HH:mm";
 
 // A lot of code is reused from TodoEdit, but not worth creating a generic edit form to extend from.
 
@@ -58,8 +56,8 @@ const EventEdit = (): JSX.Element => {
         // this fake values are because Modal will force all values here to be evaluated, thus need to provide *some* value (will be changed when user actually clicks on edit).
         id: "",
         name: "",
-        start: "",
-        end: "",
+        start: undefined,
+        end: undefined,
     });
 
     useEffect(() => {
@@ -71,8 +69,8 @@ const EventEdit = (): JSX.Element => {
 
         setFields({
             ...data.editingEvent,
-            start: moment(data.editingEvent.start).format(momentFormat),
-            end: moment(data.editingEvent.end).format(momentFormat),
+            start: data.editingEvent.start,
+            end: data.editingEvent.end,
         });
     }, [data.editingEvent]);
 
@@ -84,18 +82,17 @@ const EventEdit = (): JSX.Element => {
         // using "e" to prevent confusion with "event"
         e.preventDefault();
 
-        if (e.target.name === "start" || e.target.name === "end") {
-            const date: string | undefined =
-                e.target.value === "" ? undefined : moment(e.target.value).format(momentFormat);
+        setFields((f) => {
+            return { ...f, [e.target.name]: e.target.value };
+        });
+    };
 
+    const handleDateChange = (field: string) => {
+        return (value: Date) => {
             setFields((f) => {
-                return { ...f, [e.target.name]: date };
+                return { ...f, [field]: value };
             });
-        } else {
-            setFields((f) => {
-                return { ...f, [e.target.name]: e.target.value };
-            });
-        }
+        };
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -123,13 +120,11 @@ const EventEdit = (): JSX.Element => {
             event.name = fields.name;
         }
 
-        const start: Date | undefined = fields.start === undefined ? undefined : moment(fields.start).toDate();
-        if (start !== editingEvent.start) {
-            event.start = start;
+        if (fields.start !== editingEvent.start) {
+            event.start = fields.start;
         }
-        const end: Date | undefined = fields.end === undefined ? undefined : moment(fields.end).toDate();
-        if (end !== editingEvent.end) {
-            event.end = end;
+        if (fields.end !== editingEvent.end) {
+            event.end = fields.end;
         }
 
         data.patchEvent(event);
@@ -142,9 +137,13 @@ const EventEdit = (): JSX.Element => {
             <Label>Name</Label>
             <Input type="text" name="name" placeholder="Name" onChange={handleChange} value={fields.name} required />
             <Label>Start</Label>
-            <Input type="datetime-local" name="start" onChange={handleChange} value={fields.start} required />
+            <div>
+                <DateTimePicker onChange={handleDateChange("start")} value={fields.start} required />
+            </div>
             <Label>End</Label>
-            <Input type="datetime-local" name="end" onChange={handleChange} value={fields.end} required />
+            <div>
+                <DateTimePicker onChange={handleDateChange("end")} value={fields.end} required />
+            </div>
             <ButtonSubmit type="submit">Submit</ButtonSubmit>
             <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
         </Form>

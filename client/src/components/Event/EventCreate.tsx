@@ -1,5 +1,5 @@
-import moment from "moment";
 import { useContext, useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { BaseButton, InputCSS } from "../../styles";
@@ -42,11 +42,9 @@ const ButtonCancel = styled(BaseButton)`
 
 interface IFields {
     name: string;
-    start: string;
-    end: string;
+    start: Date | undefined;
+    end: Date | undefined;
 }
-
-const momentFormat: string = "YYYY-MM-DD HH:mm";
 
 const EventCreate = ({
     show,
@@ -59,8 +57,8 @@ const EventCreate = ({
 
     const [fields, setFields] = useState<IFields>({
         name: "",
-        start: new Date().toISOString(),
-        end: new Date().toISOString(),
+        start: new Date(),
+        end: new Date(),
     });
 
     const hideForm = () => {
@@ -71,18 +69,17 @@ const EventCreate = ({
         // using "e" to prevent confusion with "event"
         e.preventDefault();
 
-        if (e.target.name === "start" || e.target.name === "end") {
-            const date: string | undefined =
-                e.target.value === "" ? undefined : moment(e.target.value).format(momentFormat);
+        setFields((f) => {
+            return { ...f, [e.target.name]: e.target.value };
+        });
+    };
 
+    const handleDateChange = (field: string) => {
+        return (value: Date) => {
             setFields((f) => {
-                return { ...f, [e.target.name]: date };
+                return { ...f, [field]: value };
             });
-        } else {
-            setFields((f) => {
-                return { ...f, [e.target.name]: e.target.value };
-            });
-        }
+        };
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -90,15 +87,20 @@ const EventCreate = ({
         e.preventDefault();
 
         if (fields.name === "") {
-            // Double check that name is not empty.
+            // Should not happen because required field is used.
+            return;
+        }
+
+        if (fields.start === undefined || fields.end === undefined) {
+            // Should not happen because required field is used.
             return;
         }
 
         const event: IEvent = {
-            id: "",
+            id: "", // id is irrelevant now
             name: fields.name,
-            start: moment(fields.start).toDate(),
-            end: moment(fields.end).toDate(),
+            start: fields.start,
+            end: fields.end,
         };
 
         data.addEvent(event);
@@ -119,9 +121,13 @@ const EventCreate = ({
                 required
             />
             <Label>Start</Label>
-            <Input type="datetime-local" name="start" onChange={handleChange} value={fields.start} required />
+            <div>
+                <DateTimePicker onChange={handleDateChange("start")} value={fields.start} required />
+            </div>
             <Label>End</Label>
-            <Input type="datetime-local" name="end" onChange={handleChange} value={fields.end} required />
+            <div>
+                <DateTimePicker onChange={handleDateChange("end")} value={fields.end} required />
+            </div>
             <ButtonSubmit type="submit">Submit</ButtonSubmit>
             <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
         </Form>
