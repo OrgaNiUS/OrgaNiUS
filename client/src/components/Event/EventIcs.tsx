@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
-import { BaseButton, InputCSS } from "../../styles";
+import { InputCSS, BaseButton } from "../../styles";
 
 const Container = styled.div`
     background-color: white;
@@ -22,11 +22,6 @@ const Title = styled.h1`
     margin-bottom: 0.3rem;
 `;
 
-const Input = styled.input`
-    width: 100%;
-    ${InputCSS}
-`;
-
 const ButtonSubmit = styled(BaseButton)`
     background-color: rgb(59, 130, 246);
     float: right;
@@ -39,37 +34,32 @@ const ButtonCancel = styled(BaseButton)`
     float: right;
 `;
 
-const EventNusmodsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element => {
+const EventIcsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element => {
     const data = useContext(DataContext);
 
-    const [field, setField] = useState<string>("");
+    const [file, setFile] = useState<File | null>(null);
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-        event.preventDefault();
-
-        setField(event.target.value);
+        if (event.currentTarget.files === null) {
+            setFile(null);
+        } else {
+            // only take the first file
+            const file: File = event.currentTarget.files[0];
+            setFile(file);
+        }
     };
 
     const handleSubmit = () => {
-        // stole regex from nusmods.go (& tweaked to Javascript flavour)
-        if (!field.match(/https?:\/\/nusmods\.com\/timetable\/sem-[12]\/share\?.*/)) {
-            console.log("BAD INPUT!!!!");
+        if (file === null) {
             return;
         }
-
-        data.nusmodsEvent(field);
-        hideForm();
+        // TODO: call dataprovider's function
     };
 
     return (
         <Container>
-            <Title>Import timetable from nusmods.com</Title>
-            <Input
-                onChange={handleChange}
-                value={field}
-                placeholder="https://nusmods.com/timetable/sem-1/share?..."
-                autoFocus
-            />
+            <Title>Import iCalendar File</Title>
+            <input type="file" onChange={handleChange} accept="text/calendar" />
             <ButtonSubmit type="button" onClick={handleSubmit}>
                 Import!
             </ButtonSubmit>
@@ -80,4 +70,4 @@ const EventNusmodsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element =
     );
 };
 
-export default EventNusmodsForm;
+export default EventIcsForm;

@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
 import EventCreate from "../components/Event/EventCreate";
 import EventEdit from "../components/Event/EventEdit";
+import EventIcsForm from "../components/Event/EventIcs";
 import EventNusmodsForm from "../components/Event/EventNusmods";
 import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
@@ -81,6 +82,7 @@ const Homepage = (): JSX.Element => {
     const [pageRatio, setPageRatio] = useState<number>(3);
     const [creatingTask, setCreatingTask] = useState<boolean>(false);
     const [showNusmods, setShowNusmods] = useState<boolean>(false);
+    const [showIcs, setShowIcs] = useState<boolean>(false);
 
     useEffect(() => {
         // on page load, load in the pageRatio from the cookies
@@ -158,8 +160,9 @@ const Homepage = (): JSX.Element => {
                 </div>
                 <Panel ratio={10 - pageRatio}>
                     {showNusmods && <EventNusmodsForm {...{ hideForm: () => setShowNusmods(false) }} />}
+                    {showIcs && <EventIcsForm {...{ hideForm: () => setShowIcs(false) }} />}
                     <ButtonArray>
-                        <ActionButton disabled>Import iCalendar (.ics) file</ActionButton>
+                        <ActionButton onClick={() => setShowIcs(true)}>Import iCalendar (.ics) file</ActionButton>
                         <ActionButton onClick={() => setShowNusmods(true)}>Import from nusmods.com</ActionButton>
                         <ActionButton onClick={() => setCreatingTask(true)}>Add Event</ActionButton>
                     </ButtonArray>
