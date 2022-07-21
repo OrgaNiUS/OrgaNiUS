@@ -84,6 +84,22 @@ const Homepage = (): JSX.Element => {
     const [showNusmods, setShowNusmods] = useState<boolean>(false);
     const [showIcs, setShowIcs] = useState<boolean>(false);
 
+    const handleClickNusmods = () => {
+        setShowNusmods((x) => !x);
+        setShowIcs(false);
+    };
+
+    const handleClickIcs = () => {
+        setShowIcs((x) => !x);
+        setShowNusmods(false);
+    };
+
+    const handleClickCreateEvent = () => {
+        setCreatingTask(true);
+        setShowIcs(false);
+        setShowNusmods(false);
+    };
+
     useEffect(() => {
         // on page load, load in the pageRatio from the cookies
         const ratio: string | undefined = getCookie(pageRatioCookie);
@@ -162,9 +178,9 @@ const Homepage = (): JSX.Element => {
                     {showNusmods && <EventNusmodsForm {...{ hideForm: () => setShowNusmods(false) }} />}
                     {showIcs && <EventIcsForm {...{ hideForm: () => setShowIcs(false) }} />}
                     <ButtonArray>
-                        <ActionButton onClick={() => setShowIcs(true)}>Import iCalendar (.ics) file</ActionButton>
-                        <ActionButton onClick={() => setShowNusmods(true)}>Import from nusmods.com</ActionButton>
-                        <ActionButton onClick={() => setCreatingTask(true)}>Add Event</ActionButton>
+                        <ActionButton onClick={handleClickIcs}>Import iCalendar (.ics) file</ActionButton>
+                        <ActionButton onClick={handleClickNusmods}>Import from nusmods.com</ActionButton>
+                        <ActionButton onClick={handleClickCreateEvent}>Add Event</ActionButton>
                     </ButtonArray>
                     <Scheduler />
                     <Timeline {...{ events: data.mergedEvents }} />
