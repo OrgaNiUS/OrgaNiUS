@@ -53,7 +53,9 @@ const EventIcsForm = ({ hideForm }: { hideForm: () => void }): JSX.Element => {
         if (file === null) {
             return;
         }
-        // TODO: call dataprovider's function
+
+        data.icsEvent(file);
+        hideForm();
     };
 
     return (

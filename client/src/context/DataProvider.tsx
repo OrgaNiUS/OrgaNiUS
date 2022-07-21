@@ -1,5 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { EventCreate, EventDelete, EventGetAll, EventNusmods, EventPatch, EventPatchParams } from "../api/EventAPI";
+import {
+    EventCreate,
+    EventDelete,
+    EventGetAll,
+    EventIcs,
+    EventNusmods,
+    EventPatch,
+    EventPatchParams,
+} from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { convertMaybeISO } from "../functions/dates";
@@ -38,6 +46,7 @@ interface IDataContext {
     setEditingEvent: React.Dispatch<React.SetStateAction<IEvent | undefined>>;
     addEvent: (event: IEvent, projectid?: string) => void;
     nusmodsEvent: (url: string) => void;
+    icsEvent: (file: File) => void;
     patchEvent: (event: patchEventData) => void;
     removeEvent: (eventid: string, projectid?: string) => void;
     projects: IProjectCondensed[];
@@ -59,6 +68,7 @@ const defaultDataContext: IDataContext = {
     setEditingEvent: (_) => {},
     addEvent: (_) => {},
     nusmodsEvent: (_) => {},
+    icsEvent: (_) => {},
     patchEvent: (_) => {},
     removeEvent: (_) => {},
     projects: [],
@@ -306,6 +316,26 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
+    const icsEvent = (file: File) => {
+        const formData: FormData = new FormData();
+        formData.append("ics_file", file);
+
+        EventIcs(
+            auth.axiosInstance,
+            formData,
+            (response) => {
+                const data = response.data;
+                const newEvents: IEvent[] = data.events.map((event: any) => {
+                    const start: Date | undefined = convertMaybeISO(event.start);
+                    const end: Date | undefined = convertMaybeISO(event.end);
+                    return { ...event, start, end };
+                });
+                setEvents((e) => [...e, ...newEvents]);
+            },
+            () => {}
+        );
+    };
+
     const patchEvent = (event: patchEventData) => {
         setEvents((e) => {
             const eventsCopy: IEvent[] = [...e];
@@ -458,6 +488,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 nusmodsEvent,
                 patchEvent,
                 removeEvent,
+                icsEvent,
                 projects,
                 getProject,
                 addProject,

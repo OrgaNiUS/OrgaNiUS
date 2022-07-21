@@ -3,6 +3,7 @@ import {
     CreateGetFunctionWithParams,
     CreatePatchFunction,
     CreatePostFunction,
+    CreatePostFunctionWithFormData,
 } from "./API";
 
 type EventCreateParams = {
@@ -43,3 +44,5 @@ type EventNusmodsParams = {
     url: string;
 };
 export const EventNusmods = CreatePostFunction<EventNusmodsParams>("/event_nusmods");
+
+export const EventIcs = CreatePostFunctionWithFormData("/event_ics");

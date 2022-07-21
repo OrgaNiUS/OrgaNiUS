@@ -68,6 +68,8 @@ const MockDataProvider = ({
 
     const nusmodsEvent = (url: string) => {};
 
+    const icsEvent = (file: File) => {};
+
     const patchEvent = (event: patchEventData) => {
         setEvents((e) => {
             const eventsCopy: IEvent[] = [...e];
@@ -126,6 +128,7 @@ const MockDataProvider = ({
                 setEditingEvent,
                 addEvent,
                 nusmodsEvent,
+                icsEvent,
                 patchEvent,
                 removeEvent,
                 projects,
