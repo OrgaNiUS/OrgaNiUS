@@ -46,13 +46,7 @@ interface IFields {
     end: Date | undefined;
 }
 
-const EventCreate = ({
-    show,
-    setShow,
-}: {
-    show: boolean;
-    setShow: React.Dispatch<React.SetStateAction<boolean>>;
-}): JSX.Element => {
+const EventCreate = ({ setShow }: { setShow: React.Dispatch<React.SetStateAction<boolean>> }): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>({
