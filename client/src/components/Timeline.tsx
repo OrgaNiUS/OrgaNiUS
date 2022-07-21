@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import styled from "styled-components";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
-import { IEvent } from "../types";
+import { DateItem } from "../types";
 import EventCard from "./Event/EventCard";
 
 const Name = styled.p`
@@ -40,7 +40,7 @@ const Circle = styled.svg`
     }
 `;
 
-const Item = ({ event }: { event: IEvent }): JSX.Element => {
+const Item = ({ event }: { event: DateItem }): JSX.Element => {
     const [showCard, setShowCard] = useState<boolean>(false);
 
     const handleClick = () => {
@@ -118,7 +118,7 @@ const Line = styled.hr`
     border: 2px solid black;
 `;
 
-const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
+const Timeline = ({ events }: { events: DateItem[] }): JSX.Element => {
     const filteredEvents = filterEvents(events, { over: true });
 
     const rowRef = useRef<HTMLDivElement>(null);

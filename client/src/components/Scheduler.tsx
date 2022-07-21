@@ -4,7 +4,7 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calendar's css file
 import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { IEvent } from "../types";
+import { DateItem } from "../types";
 import EventCard from "./Event/EventCard";
 
 // moment is required for react-big-calendar
@@ -25,9 +25,9 @@ const Scheduler = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const [currentInterval, setCurrentInterval] = useState<NodeJS.Timer | null>(null);
-    const [eventCard, setEventCard] = useState<IEvent | null>(null);
+    const [eventCard, setEventCard] = useState<DateItem | null>(null);
 
-    const handleSelectEvent = (event: IEvent) => {
+    const handleSelectEvent = (event: DateItem) => {
         setEventCard(event);
 
         if (currentInterval !== null) {

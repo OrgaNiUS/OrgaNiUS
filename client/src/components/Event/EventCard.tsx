@@ -2,7 +2,7 @@ import { useContext } from "react";
 import styled, { css, FlattenSimpleInterpolation } from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { BaseButton, truncate } from "../../styles";
-import { IEvent } from "../../types";
+import { DateItem } from "../../types";
 
 const CardContainer = styled.div<{ custom: FlattenSimpleInterpolation }>`
     ${(props) => props.custom}
@@ -43,7 +43,7 @@ const Action = styled.div`
     cursor: pointer;
 `;
 
-const EventCard = ({ event, view }: { event: IEvent; view: "scheduler" | "timeline" }): JSX.Element => {
+const EventCard = ({ event, view }: { event: DateItem; view: "scheduler" | "timeline" }): JSX.Element => {
     const data = useContext(DataContext);
 
     const toggleMenu = () => {
@@ -90,15 +90,18 @@ const EventCard = ({ event, view }: { event: IEvent; view: "scheduler" | "timeli
     return (
         <CardContainer custom={position[view]}>
             <Name>{event.name}</Name>
-            <ThreeDots>
-                <div onClick={toggleMenu}>...</div>
-                {event.id === data.selectedEvent && (
-                    <ActionArray>
-                        <Action onClick={performEdit}>Edit</Action>
-                        <Action onClick={performTrash}>Trash</Action>
-                    </ActionArray>
-                )}
-            </ThreeDots>
+            {/* only allow edit/trash from here if its an event */}
+            {event.isEvent && (
+                <ThreeDots>
+                    <div onClick={toggleMenu}>...</div>
+                    {event.id === data.selectedEvent && (
+                        <ActionArray>
+                            <Action onClick={performEdit}>Edit</Action>
+                            <Action onClick={performTrash}>Trash</Action>
+                        </ActionArray>
+                    )}
+                </ThreeDots>
+            )}
             <p>{period}</p>
         </CardContainer>
     );

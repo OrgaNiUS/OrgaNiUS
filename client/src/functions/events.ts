@@ -1,4 +1,4 @@
-import { IEvent, ITask } from "../types";
+import { DateItem, IEvent, ITask } from "../types";
 import { isLessThan } from "./dates";
 
 // Collection of useful helper functions for manipulating events and tasks.
@@ -11,10 +11,10 @@ import { isLessThan } from "./dates";
  *
  * @returns The events/tasks merged into a single sorted array.
  */
-export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IEvent[] => {
-    const result: IEvent[] = [];
+export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): DateItem[] => {
+    const result: DateItem[] = [];
 
-    events.forEach((e) => result.push({ ...e }));
+    events.forEach((e) => result.push({ ...e, isEvent: true }));
     tasks.forEach((t) => {
         // Skip task if there is no deadline defined.
         if (t.deadline === undefined) {
@@ -25,6 +25,7 @@ export const mergeEventArrays = (events: IEvent[] = [], tasks: ITask[] = []): IE
             name: t.name,
             start: t.deadline,
             end: t.deadline,
+            isEvent: false,
         });
     });
 
@@ -58,7 +59,7 @@ export interface filterEventOptions {
  *
  * @returns Filtered events.
  */
-export const filterEvents = (events: IEvent[], options: filterEventOptions): IEvent[] => {
+export const filterEvents = (events: DateItem[], options: filterEventOptions): DateItem[] => {
     return events.filter((e) => {
         if (options.over && isLessThan(e.end, 0, "")) {
             return false;

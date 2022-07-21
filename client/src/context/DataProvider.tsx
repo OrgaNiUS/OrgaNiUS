@@ -4,7 +4,7 @@ import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
 import { convertMaybeISO } from "../functions/dates";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
+import { DateItem, IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
 
 export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
@@ -31,7 +31,7 @@ interface IDataContext {
     patchTask: (task: patchTaskData, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
-    mergedEvents: IEvent[];
+    mergedEvents: DateItem[];
     selectedEvent: string | undefined;
     setSelectedEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
     editingEvent: IEvent | undefined;

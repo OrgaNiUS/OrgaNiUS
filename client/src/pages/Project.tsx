@@ -12,7 +12,7 @@ import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton } from "../styles";
-import { IEvent, IProject, ITask } from "../types";
+import { DateItem, IEvent, IProject, ITask } from "../types";
 
 const Title = styled.h1`
     font-size: 2rem;
@@ -147,7 +147,7 @@ const Project = (): JSX.Element => {
         });
     };
 
-    const mergedEvents: IEvent[] = mergeEventArrays(events, tasks);
+    const mergedEvents: DateItem[] = mergeEventArrays(events, tasks);
 
     useEffect(() => {
         if (projectid === undefined) {

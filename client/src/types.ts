@@ -18,6 +18,15 @@ export interface ITask {
     isPersonal: boolean;
 }
 
+// result of merging of Event & Task
+export interface DateItem {
+    id: string;
+    name: string;
+    start: Date;
+    end: Date;
+    isEvent: boolean;
+}
+
 // only storing other users data
 // own user data is stored in DataContext
 export interface IUser {
