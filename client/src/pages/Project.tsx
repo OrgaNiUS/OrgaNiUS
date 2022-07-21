@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { ProjectDelete, ProjectLeave, ProjectModify, ProjectRemoveUser } from "../api/ProjectAPI";
 import Modal from "../components/Modal";
+import AltModal from "../components/AltModal";
 import PreLoader from "../components/PreLoader";
 import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
@@ -96,7 +97,6 @@ const Project = (): JSX.Element => {
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
     const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
-    const isAdmin: boolean = project?.members.find((u) => u.name === auth.auth.user)?.role === "admin";
     const [newName, setNewName] = useState<string>();
     const [newDesc, setNewDesc] = useState<string>();
     const [isPublic, setPublic] = useState<boolean>();
@@ -107,6 +107,11 @@ const Project = (): JSX.Element => {
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [showRemModal, setShowRemModal] = useState<boolean>(false);
     const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
+
+    type states = "empty" | "loading" | "success" | "error";
+    const [state, setState] = useState<states>("empty");
+
+    const isAdmin: boolean = project?.members.find((u) => u.name === auth.auth.user)?.role === "admin";
 
     const doneTrigger = (task: ITask) => {
         data.patchTask(
@@ -202,22 +207,6 @@ const Project = (): JSX.Element => {
             setLoading(false);
         });
 
-        // Debugging purposes
-        // setProject({
-        //     id: "5215321",
-        //     name: "Trial Project",
-        //     description: "testsfasfasafsa description",
-        //     members: [
-        //         { id: "123111", name: "USER1", role: "admin" },
-        //         { id: "123222", name: "USER2", role: "member" },
-        //         { id: "123333", name: "USER3", role: "member" },
-        //     ],
-        //     events: [],
-        //     tasks: [],
-        //     creationTime: new Date(),
-        //     isPublic: false,
-        // });
-        // setLoading(false);
         // including data.getProject and id will cause this to continuously fire
         // eslint-disable-next-line
     }, []);
@@ -226,8 +215,10 @@ const Project = (): JSX.Element => {
         if (project) {
             setCurrUsers(project.members.filter((user) => user.id !== auth.auth.id));
             setPublic(project.isPublic);
+            setNewName(project.name);
+            setNewDesc(project.description);
         }
-    }, [project]);
+    }, [project, auth.auth]);
 
     if (project === undefined || projectid === undefined) {
         return (
@@ -242,41 +233,49 @@ const Project = (): JSX.Element => {
 
     const handleChangeName: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
+        setState("loading");
         ProjectModify(
             auth.axiosInstance,
             { name: newName, projectid: projectid },
             () => {
                 project.name = newName ?? project.name;
+                setState("success");
             },
             () => {
-                setNewName(undefined);
+                setState("error");
             }
         );
     };
 
     const handleChangeDesc: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
+        setState("loading");
         ProjectModify(
             auth.axiosInstance,
             { description: newDesc, projectid: projectid },
             () => {
                 project.description = newDesc ?? project.description;
+                setState("success");
             },
             () => {
-                setNewDesc(undefined);
+                setState("error");
             }
         );
     };
 
     const handleChangePublic: React.MouseEventHandler<HTMLButtonElement> = (event) => {
         event.preventDefault();
+        setState("loading");
         ProjectModify(
             auth.axiosInstance,
             { isPublic: !isPublic, projectid: projectid },
             () => {
                 setPublic(!isPublic);
+                setState("success");
             },
-            () => {}
+            () => {
+                setState("error");
+            }
         );
     };
 
@@ -289,23 +288,28 @@ const Project = (): JSX.Element => {
                 navigate("/projects");
                 window.location.reload();
             },
-            () => {}
+            () => {
+                setState("error");
+            }
         );
     };
 
     const handleRemoveUsers: React.MouseEventHandler<HTMLButtonElement> = (e) => {
         e.preventDefault();
+        setState("loading");
         ProjectRemoveUser(
             auth.axiosInstance,
             { projectid: projectid, userids: removedUsers.map((user) => user.id) },
             () => {
                 setShowRemModal(false);
                 setShowSettingsModal(true);
+                setState("success");
                 window.location.reload();
             },
             () => {
                 setShowRemModal(false);
                 setShowSettingsModal(true);
+                setState("error");
             }
         );
     };
@@ -323,30 +327,79 @@ const Project = (): JSX.Element => {
         );
     };
 
+    const userSort = (a: IUser, b: IUser): number => {
+        return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+    };
+
+    const updateStatusSwitch = {
+        empty: <></>,
+        error: (
+            <h1 className="text-left w-full italic text-red-800 font-semibold">
+                Error: Update failed, please try again.
+            </h1>
+        ),
+        loading: (
+            <h1 className="text-left w-full text-blue-800 font-medium italic rounded-lg inline-flex items-center">
+                <svg
+                    role="status"
+                    className="inline mr-3 w-3.5 h-3.5 animate-spin"
+                    viewBox="0 0 100 101"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                    />
+                    <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                    />
+                </svg>
+                <span className="inline">Updating Project...</span>
+            </h1>
+        ),
+        success: <h1 className="text-left w-full italic text-green-800 font-semibold">Project updated successfully</h1>,
+    };
+
     const SettingsModal = (
         <>
-            <h1 className="mb-1 text-2xl underline underline-offset-auto">Project Settings</h1>
+            <h1 className="mb-1 text-2xl underline underline-offset-auto text-left font-semibold">Project Settings</h1>
+        
+            {updateStatusSwitch[state]}
 
-            <div className="w-full flex-col">
+            <div className="w-full flex-col mt-1">
                 <div className="flex w-full justify-start">
                     <input
-                        className="w-80 border-2 border-gray-200 rounded"
+                        className="w-80 border-2 border-gray-300 rounded indent-1 text-slate-400 hover:border-gray-400 focus:text-black"
                         type="text"
                         placeholder="New Project Name"
+                        value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                     ></input>
-                    <Button type="submit" onClick={handleChangeName}>
+                    <Button
+                        type="submit"
+                        disabled={state === "loading"}
+                        className="disabled:bg-slate-500 disabled:hover:shadow-none"
+                        onClick={handleChangeName}
+                    >
                         Change
                     </Button>
                 </div>
-                <div className="flex-col w-full">
+                <div className="flex w-full justify-start mt-2">
                     <input
-                        className="w-80 border-2 border-gray-200 rounded"
+                        className="w-80 border-2 border-gray-300 rounded indent-1 text-slate-400 hover:border-gray-400 focus:text-black"
                         type="text"
                         placeholder="New Description"
+                        value={newDesc}
                         onChange={(e) => setNewDesc(e.target.value)}
                     ></input>
-                    <Button type="submit" onClick={handleChangeDesc}>
+                    <Button
+                        type="submit"
+                        disabled={state === "loading"}
+                        className="disabled:bg-slate-500 disabled:hover:shadow-none"
+                        onClick={handleChangeDesc}
+                    >
                         Change
                     </Button>
                 </div>
@@ -356,20 +409,35 @@ const Project = (): JSX.Element => {
                             setShowRemModal(true);
                             setShowSettingsModal(false);
                         }}
+                        disabled={state === "loading"}
+                        className="disabled:bg-slate-500 disabled:hover:shadow-none"
                     >
                         Edit Users
                     </Button2>
-                    <Button2>
+                    <Button2
+                        disabled={state === "loading"}
+                        className="disabled:bg-slate-500 disabled:hover:shadow-none"
+                    >
                         <Link to={`/project_applications/${projectid}`}>User Join Requests</Link>
                     </Button2>
                 </div>
                 <div className="mt-2">
                     {isPublic ? (
-                        <Button2 type="submit" onClick={handleChangePublic}>
+                        <Button2
+                            type="submit"
+                            disabled={state === "loading"}
+                            className="disabled:bg-slate-500 disabled:hover:shadow-none"
+                            onClick={handleChangePublic}
+                        >
                             Make Private
                         </Button2>
                     ) : (
-                        <Button2 type="submit" onClick={handleChangePublic}>
+                        <Button2
+                            type="submit"
+                            disabled={state === "loading"}
+                            className="disabled:bg-slate-500 disabled:hover:shadow-none"
+                            onClick={handleChangePublic}
+                        >
                             Make Public
                         </Button2>
                     )}
@@ -388,24 +456,29 @@ const Project = (): JSX.Element => {
 
     const RemoveUsersModal = (
         <>
-            <h1 className="mb-1 text-2xl underline underline-offset-auto">Edit Users</h1>
+            <h1 className="mb-1 text-2xl underline underline-offset-auto font-semibold">Edit Users</h1>
             <div className="w-full flex-col" key={currUsers.length}>
-                <div className="w-full ">
+                <div className="w-full text-left font-medium">
                     Current Users:
-                    <div className="w-80">
+                    <div className="w-80 font-normal indent-2">
                         {currUsers.map((User) => {
                             return (
                                 <>
-                                    <li className="flex flex-row mt-1 border-2 items-center rounded" key={User.id}>
+                                    <li
+                                        className="flex flex-row mt-1 border-2 border-green-500 items-center rounded"
+                                        key={User.id}
+                                    >
                                         <div className="flex justify-items-start flex-grow">{User.name}</div>
                                         <Button
                                             className="flex justify-end"
                                             onClick={() => {
-                                                let tempRemovedUsers = removedUsers;
+                                                let tempRemovedUsers = [...removedUsers];
+                                                let tempCurrUsers = [...currUsers];
                                                 tempRemovedUsers.push(User);
-                                                setRemovedUsers(tempRemovedUsers);
-                                                let tempCurrUsers = currUsers;
                                                 tempCurrUsers = removeFromArray(tempCurrUsers, User);
+                                                tempRemovedUsers.sort(userSort);
+                                                tempCurrUsers.sort(userSort);
+                                                setRemovedUsers(tempRemovedUsers);
                                                 setCurrUsers(tempCurrUsers);
                                             }}
                                         >
@@ -417,21 +490,26 @@ const Project = (): JSX.Element => {
                         })}
                     </div>
                 </div>
-                <div className="w-full flex-col">
+                <div className="w-full flex-col text-left font-medium">
                     Users to be Removed:
-                    <div className="w-80">
+                    <div className="w-80 font-normal indent-2">
                         {removedUsers.map((User) => {
                             return (
                                 <>
-                                    <li className="flex flex-row mt-1 border-2 items-center rounded" key={User.id}>
+                                    <li
+                                        className="flex flex-row mt-1 border-2 border-red-500 items-center rounded"
+                                        key={User.id}
+                                    >
                                         <div className="flex justify-items-start flex-grow">{User.name}</div>
                                         <Button
                                             onClick={() => {
-                                                let tempRemovedUsers = removedUsers;
-                                                let tempCurrUsers = currUsers;
+                                                let tempRemovedUsers = [...removedUsers];
+                                                let tempCurrUsers = [...currUsers];
                                                 tempCurrUsers.push(User);
-                                                setCurrUsers(tempCurrUsers);
                                                 tempRemovedUsers = removeFromArray(tempRemovedUsers, User);
+                                                tempRemovedUsers.sort(userSort);
+                                                tempCurrUsers.sort(userSort);
+                                                setCurrUsers(tempCurrUsers);
                                                 setRemovedUsers(tempRemovedUsers);
                                             }}
                                         >
@@ -450,6 +528,7 @@ const Project = (): JSX.Element => {
                             setShowSettingsModal(true);
                             setCurrUsers(project.members.filter((user) => user.id !== auth.auth.id));
                             setRemovedUsers([]);
+                            setState("empty");
                         }}
                     >
                         Cancel
@@ -549,16 +628,19 @@ const Project = (): JSX.Element => {
                         },
                     }}
                 />
-                <Modal
+                <AltModal
                     {...{
                         active: showSettingsModal,
                         body: SettingsModal,
                         callback: () => {
                             setShowSettingsModal(false);
+                            setState("empty");
+                            setNewName(project.name);
+                            setNewDesc(project.description);
                         },
                     }}
                 />
-                <Modal
+                <AltModal
                     {...{
                         active: showRemModal,
                         body: RemoveUsersModal,
@@ -582,7 +664,7 @@ const Project = (): JSX.Element => {
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">
                         <Link to="/projects">⬅️ Back to Projects</Link>
-                        <ButtonArray className="border-2 rounded border-orange-300 bg-orange-200">
+                        <ButtonArray className="border-2 border-orange-300">
                             {isAdmin ? (
                                 <Button onClick={() => setShowSettingsModal(true)}>Settings</Button>
                             ) : (
@@ -590,12 +672,22 @@ const Project = (): JSX.Element => {
                                     Settings
                                 </NoEffectButton>
                             )}
-                            <Button onClick={() => setShowInviteWindow(true)} disabled={!isAdmin}>
-                                Invite
-                            </Button>
-                            <ButtonLeaveProject onClick={() => {
-                                setShowLeaveModal(true);
-                            }}>Leave Project</ButtonLeaveProject>
+                            {isAdmin ? (
+                                <Button onClick={() => setShowInviteWindow(true)} disabled={!isAdmin}>
+                                    Invite
+                                </Button>
+                            ) : (
+                                <NoEffectButton disabled className="bg-slate-400">
+                                    Invite
+                                </NoEffectButton>
+                            )}
+                            <ButtonLeaveProject
+                                onClick={() => {
+                                    setShowLeaveModal(true);
+                                }}
+                            >
+                                Leave Project
+                            </ButtonLeaveProject>
                         </ButtonArray>
                     </Row>
                     <Row>

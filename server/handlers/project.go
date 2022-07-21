@@ -442,8 +442,10 @@ func ProjectLeave(userController controllers.UserController, projectController c
 		user, err := userController.UserRetrieve(ctx, id, "")
 		if err == mongo.ErrNoDocuments {
 			DisplayError(ctx, "user does not exist")
+			return
 		} else if err != nil {
 			DisplayError(ctx, err.Error())
+			return
 		}
 		useridArr := []string{id}
 
