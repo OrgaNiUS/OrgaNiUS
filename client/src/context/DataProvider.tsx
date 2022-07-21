@@ -28,6 +28,29 @@ export interface patchEventData extends Omit<Partial<IEvent>, "id"> {
     id: string;
 }
 
+// Maps server events to client events.
+const mapServerEvents = (serverEvents: any): IEvent[] => {
+    const events: IEvent[] = serverEvents.map((event: any) => {
+        const start: Date | undefined = convertMaybeISO(event.start);
+        const end: Date | undefined = convertMaybeISO(event.end);
+        return { ...event, start, end };
+    });
+
+    return events;
+};
+
+// Maps server tasks to client tasks.
+const mapServerTasks = (serverTasks: any, assignedToMapper: (assignedTo: any) => IUser[]): ITask[] => {
+    const tasks: ITask[] = serverTasks.map((task: any) => {
+        // if 0 seconds since epoch time, treat as no deadline
+        const deadline: Date | undefined = convertMaybeISO(task.deadline);
+        const assignedTo: IUser[] = task.assignedTo.map(assignedToMapper);
+        return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
+    });
+
+    return tasks;
+};
+
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
  * removeTask: provide the "id" of the task to be removed.
@@ -100,13 +123,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: "" },
             (response) => {
                 const data = response.data;
-                const tasks: ITask[] = data.tasks.map((task: any) => {
-                    // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined = convertMaybeISO(task.deadline);
-                    // assignedTo doesn't matter for personal tasks
-                    const assignedTo: IUser[] = [];
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
-                });
+
+                // assignedTo doesn't matter for personal tasks
+                const tasks: ITask[] = mapServerTasks(data.tasks, (_) => []);
 
                 setIsTasksLoading(false);
                 setTasks(tasks);
@@ -130,11 +149,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: "" },
             (response) => {
                 const data = response.data;
-                const events: IEvent[] = data.events.map((event: any) => {
-                    const start: Date | undefined = convertMaybeISO(event.start);
-                    const end: Date | undefined = convertMaybeISO(event.end);
-                    return { ...event, start, end };
-                });
+                const events: IEvent[] = mapServerEvents(data.events);
 
                 setIsEventsLoading(false);
                 setEvents(events);
@@ -305,11 +320,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             },
             (response) => {
                 const data = response.data;
-                const newEvents: IEvent[] = data.events.map((event: any) => {
-                    const start: Date | undefined = convertMaybeISO(event.start);
-                    const end: Date | undefined = convertMaybeISO(event.end);
-                    return { ...event, start, end };
-                });
+                const newEvents: IEvent[] = mapServerEvents(data.events);
                 setEvents((e) => [...e, ...newEvents]);
             },
             () => {}
@@ -325,11 +336,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             formData,
             (response) => {
                 const data = response.data;
-                const newEvents: IEvent[] = data.events.map((event: any) => {
-                    const start: Date | undefined = convertMaybeISO(event.start);
-                    const end: Date | undefined = convertMaybeISO(event.end);
-                    return { ...event, start, end };
-                });
+                const newEvents: IEvent[] = mapServerEvents(data.events);
                 setEvents((e) => [...e, ...newEvents]);
             },
             () => {}
@@ -394,22 +401,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const members = data.members;
 
-                // convert server tasks to client tasks
-                const tasks: ITask[] = data.tasks.map((task: any) => {
-                    // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined = convertMaybeISO(task.deadline);
+                const tasks: ITask[] = mapServerTasks(data.tasks, (id) => members.find((u: IUser) => u.id === id));
 
-                    const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
-                        members.find((u: IUser) => u.id === id)
-                    );
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
-                });
-
-                const events: IEvent[] = data.events.map((event: any) => {
-                    const start: Date | undefined = convertMaybeISO(event.start);
-                    const end: Date | undefined = convertMaybeISO(event.end);
-                    return { ...event, start, end };
-                });
+                const events: IEvent[] = mapServerEvents(data.events);
 
                 const project: IProject = {
                     id,
