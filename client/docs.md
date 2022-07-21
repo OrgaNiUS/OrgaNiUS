@@ -76,7 +76,7 @@ The user can click on these tasks and events to toggle a [popup card](#events) t
 
 ## Events
 
-In the event popup card, the user can click on the "3 dots" menu to reveal some actions.
+In the event popup card, the user can click on the "3 dots" menu to reveal some actions on Events. For tasks (which also appear in the timeline/scheduler), the menu will not appear on the popup card.
 
 The user can edit/trash an event from here.
 
