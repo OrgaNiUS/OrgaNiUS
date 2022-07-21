@@ -449,13 +449,25 @@ func ProjectLeave(userController controllers.UserController, projectController c
 		}
 		useridArr := []string{id}
 
-		// If user is admin, assign someone else admin role
+		// If user is admin & there are no other admins in the project, assign someone else admin role.
 		if len(project.Members) > 1 {
 			if project.Settings.Roles[project.Members[id]].IsAdmin {
+				onlyAdmin := true
 				for nextUserId := range project.Members {
-					if nextUserId != id {
-						project.Members[nextUserId] = "admin"
+					if nextUserId == id {
+						continue
+					}
+					if project.Members[nextUserId] == "admin" {
+						onlyAdmin = false
 						break
+					}
+				}
+				if onlyAdmin {
+					for nextUserId := range project.Members {
+						if nextUserId != id {
+							project.Members[nextUserId] = "admin"
+							break
+						}
 					}
 				}
 			}
