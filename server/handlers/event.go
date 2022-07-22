@@ -411,8 +411,8 @@ func EventCommonSlots(userController controllers.UserController, projectControll
 		*/
 
 		type s struct {
-			Start time.Time
-			End   time.Time
+			Start time.Time `json:"start"`
+			End   time.Time `json:"end"`
 		}
 
 		intervals := []s{}

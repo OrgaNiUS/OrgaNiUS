@@ -677,7 +677,7 @@ const Project = (): JSX.Element => {
                         },
                     }}
                 />
-                <ArrangeMeeting {...{ showArrangeMeeting, setShowArrangeMeeting }} />
+                <ArrangeMeeting {...{ project, showArrangeMeeting, setShowArrangeMeeting }} />
                 <Container>
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">

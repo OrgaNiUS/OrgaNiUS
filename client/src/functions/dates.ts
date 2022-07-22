@@ -82,3 +82,20 @@ export const convertMaybeISO = (maybeISO: string): Date | undefined => {
     }
     return new Date(maybeISO);
 };
+
+/**
+ * Gets last day of month.
+ * @param month from 1 to 12
+ * @returns The last day of the month.
+ */
+export const lastDayOfMonth = (month: number): number => {
+    if (month < 1 || month > 12) {
+        return -1;
+    }
+
+    const now: Date = new Date();
+    // javascript quirk: setting day to 0 gets the last day of previous month
+    const lastDay: Date = new Date(now.getFullYear(), month, 0);
+
+    return lastDay.getDate();
+};
