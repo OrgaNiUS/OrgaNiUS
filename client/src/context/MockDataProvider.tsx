@@ -99,7 +99,14 @@ const MockDataProvider = ({
         if (condensedProject === undefined) {
             return Promise.resolve([undefined, [], []]);
         }
-        const project: IProject = { ...condensedProject, members: [], events: [], tasks: [], creationTime: new Date() };
+        const project: IProject = {
+            ...condensedProject,
+            members: [],
+            events: [],
+            tasks: [],
+            creationTime: new Date(),
+            isPublic: false,
+        };
         return Promise.resolve([project, [], []]);
     };
 

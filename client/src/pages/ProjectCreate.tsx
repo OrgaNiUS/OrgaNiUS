@@ -121,6 +121,7 @@ const ProjectCreate = (): JSX.Element => {
             events: [],
             tasks: [],
             creationTime: new Date(),
+            isPublic: false,
         };
 
         setState("loading");

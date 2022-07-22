@@ -36,7 +36,7 @@ func (c *ProjectController) ProjectCreate(ctx context.Context, project *models.P
 	project.Events = []string{}
 	project.Settings = models.DefaultSettings()
 	project.Applications = make(map[string]models.ProjectApplication)
-	project.IsPublic = true
+	project.IsPublic = false
 
 	id, err := c.Collection(projectCollection).InsertOne(ctx, project)
 
