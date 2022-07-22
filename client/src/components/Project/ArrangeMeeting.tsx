@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { EventFindCommonSlots } from "../../api/EventAPI";
 import AuthContext from "../../context/AuthProvider";
@@ -79,6 +79,17 @@ const ButtonCancel = styled(BaseButton)`
     color: black;
     float: right;
     margin-top: 1rem;
+`;
+
+const Panel = styled.div`
+    width: 50%;
+`;
+
+const SlotContainer = styled.div`
+    border-radius: 6px;
+    border: 1px solid rgb(249, 115, 22);
+    margin: 0.5rem 0;
+    padding: 1rem;
 `;
 
 type states = "search" | "loading" | "create";
@@ -262,6 +273,8 @@ const Search = ({
         const timeEnd: string = `${padNumber(fields.timeEndHour)}:${padNumber(fields.timeEndMinute)}`;
         const duration: number = (fields.durationHour as number) * 60 + (fields.durationMinute as number);
 
+        // TODO: validate start < end
+
         if (duration < 5) {
             setMessage("Minimum duration of 5 minutes.");
             return;
@@ -297,7 +310,11 @@ const Search = ({
                 setSlots(slots);
                 setState("create");
             },
-            () => {}
+            () => {
+                setMessage("Something went wrong!");
+                setState("search");
+                // message won't actually be shown because state not preserved
+            }
         );
     };
 
@@ -463,9 +480,64 @@ const Loading = (): JSX.Element => {
     );
 };
 
-const Create = (): JSX.Element => {
-    // TODO: make Create (with Selector & CreateForm)
-    return <div>i am here to make this compile</div>;
+const formatDate = (slot: slotShape): string => {
+    // renders like this
+    // Monday, 8 August 2022, 10:00 to 14:00
+    const dateOptions: Intl.DateTimeFormatOptions = {
+        dateStyle: "full",
+    };
+
+    const timeOptions: Intl.DateTimeFormatOptions = {
+        timeStyle: "short",
+        hour12: false,
+    };
+
+    const date: string = slot.start.toLocaleDateString("en-SG", dateOptions);
+    const startTime: string = slot.start.toLocaleTimeString("en-SG", timeOptions);
+    const endTime: string = slot.end.toLocaleTimeString("en-SG", timeOptions);
+
+    return `${date}, ${startTime} to ${endTime}`;
+};
+
+const Selector = ({
+    slots,
+    setSelection,
+}: {
+    slots: slotShape[];
+    setSelection: React.Dispatch<React.SetStateAction<slotShape | undefined>>;
+}): JSX.Element => {
+    return (
+        <Panel>
+            <Title>Select a Slot</Title>
+            <p>Select something, then edit on the right.</p>
+            {slots.map((s, key) => {
+                return (
+                    <SlotContainer key={key} onClick={() => setSelection(s)}>
+                        {formatDate(s)}
+                    </SlotContainer>
+                );
+            })}
+        </Panel>
+    );
+};
+
+const CreateForm = ({ selection }: { selection: slotShape | undefined }): JSX.Element => {
+    useEffect(() => {
+        // when selection changes, update the details in the form
+    }, [selection]);
+
+    return <Panel>I am the create form.</Panel>;
+};
+
+const Create = ({ slots }: { slots: slotShape[] }): JSX.Element => {
+    const [selection, setSelection] = useState<slotShape | undefined>(undefined);
+
+    return (
+        <Container>
+            <Selector {...{ slots, setSelection }} />
+            <CreateForm {...{ selection }} />
+        </Container>
+    );
 };
 
 const ArrangeMeeting = ({
@@ -486,7 +558,7 @@ const ArrangeMeeting = ({
 
     const stateSwitch = {
         search: <Search {...{ project, hideForm, setState, setSlots }} />,
-        create: <Create />,
+        create: <Create {...{ slots }} />,
         loading: <Loading />,
     };
 
