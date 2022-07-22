@@ -1,9 +1,10 @@
 import { useContext, useEffect, useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { EventFindCommonSlots } from "../../api/EventAPI";
 import AuthContext from "../../context/AuthProvider";
 import { convertMaybeISO, lastDayOfMonth } from "../../functions/dates";
-import { BaseButton } from "../../styles";
+import { BaseButton, InputCSS } from "../../styles";
 import { IProject, IUser } from "../../types";
 import Modal from "../Modal";
 
@@ -18,7 +19,6 @@ const Container = styled.div`
 const Form = styled.form`
     display: inline-block;
     text-align: left;
-    width: 50%;
 `;
 
 const FormDiv = styled.div`
@@ -85,11 +85,28 @@ const Panel = styled.div`
     width: 50%;
 `;
 
+const SlotsWrapper = styled.div`
+    height: 80%;
+    overflow-y: auto;
+`;
+
 const SlotContainer = styled.div`
     border-radius: 6px;
     border: 1px solid rgb(249, 115, 22);
+    cursor: pointer;
     margin: 0.5rem 0;
     padding: 1rem;
+`;
+
+const Input = styled.input`
+    ${InputCSS}
+    width: 100%;
+`;
+
+const Label = styled.label`
+    float: left;
+    margin-top: 0.3rem;
+    width: 100%;
 `;
 
 type states = "search" | "loading" | "create";
@@ -320,7 +337,7 @@ const Search = ({
 
     return (
         <Container>
-            <Form onSubmit={handleSubmit}>
+            <Form className="w-2/4" onSubmit={handleSubmit}>
                 <Title>Arrange Meeting</Title>
                 <ButtonToggleInstructions type="button" onClick={() => setShowInstructions((x) => !x)}>
                     {showInstructions ? "Hide" : "Show"} Instructions
@@ -507,35 +524,127 @@ const Selector = ({
     setSelection: React.Dispatch<React.SetStateAction<slotShape | undefined>>;
 }): JSX.Element => {
     return (
-        <Panel>
+        <Panel className="h-full">
             <Title>Select a Slot</Title>
             <p>Select something, then edit on the right.</p>
-            {slots.map((s, key) => {
-                return (
-                    <SlotContainer key={key} onClick={() => setSelection(s)}>
-                        {formatDate(s)}
-                    </SlotContainer>
-                );
-            })}
+            <SlotsWrapper>
+                {slots.map((s, key) => {
+                    return (
+                        <SlotContainer key={key} onClick={() => setSelection(s)}>
+                            {formatDate(s)}
+                        </SlotContainer>
+                    );
+                })}
+            </SlotsWrapper>
         </Panel>
     );
 };
 
-const CreateForm = ({ selection }: { selection: slotShape | undefined }): JSX.Element => {
+interface createFields {
+    name: string;
+    start: Date | undefined;
+    end: Date | undefined;
+}
+
+const CreateForm = ({
+    hideForm,
+    selection,
+    setState,
+}: {
+    hideForm: () => void;
+    selection: slotShape | undefined;
+    setState: React.Dispatch<React.SetStateAction<states>>;
+}): JSX.Element => {
+    const [fields, setFields] = useState<createFields>({
+        name: "",
+        start: undefined,
+        end: undefined,
+    });
+
     useEffect(() => {
         // when selection changes, update the details in the form
+
+        if (selection === undefined) {
+            // initial page load, don't do anything
+            return;
+        }
+
+        setFields((f) => {
+            return { ...f, start: selection.start, end: selection.end };
+        });
     }, [selection]);
 
-    return <Panel>I am the create form.</Panel>;
+    const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (e) => {
+        e.preventDefault();
+
+        setFields((f) => {
+            return { ...f, [e.target.name]: e.target.value };
+        });
+    };
+
+    const handleDateChange = (field: string) => {
+        return (value: Date) => {
+            setFields((f) => {
+                return { ...f, [field]: value };
+            });
+        };
+    };
+
+    const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+        e.preventDefault();
+
+        // TODO: submit to server & update project state
+    };
+
+    return (
+        <Panel>
+            <Form onSubmit={handleSubmit}>
+                <Label>Name</Label>
+                <Input
+                    type="text"
+                    name="name"
+                    placeholder="Name"
+                    onChange={handleChange}
+                    value={fields.name}
+                    autoFocus
+                    required
+                />
+                <Label>Start</Label>
+                <div>
+                    <DateTimePicker
+                        className="w-full"
+                        onChange={handleDateChange("start")}
+                        value={fields.start}
+                        required
+                    />
+                </div>
+                <Label>End</Label>
+                <div>
+                    <DateTimePicker className="w-full" onChange={handleDateChange("end")} value={fields.end} required />
+                </div>
+                <ButtonSubmit type="submit">Submit</ButtonSubmit>
+                <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
+                <ButtonCancel onClick={() => setState("search")}>Back</ButtonCancel>
+            </Form>
+        </Panel>
+    );
 };
 
-const Create = ({ slots }: { slots: slotShape[] }): JSX.Element => {
+const Create = ({
+    hideForm,
+    slots,
+    setState,
+}: {
+    hideForm: () => void;
+    slots: slotShape[];
+    setState: React.Dispatch<React.SetStateAction<states>>;
+}): JSX.Element => {
     const [selection, setSelection] = useState<slotShape | undefined>(undefined);
 
     return (
         <Container>
             <Selector {...{ slots, setSelection }} />
-            <CreateForm {...{ selection }} />
+            <CreateForm {...{ hideForm, selection, setState }} />
         </Container>
     );
 };
@@ -558,7 +667,7 @@ const ArrangeMeeting = ({
 
     const stateSwitch = {
         search: <Search {...{ project, hideForm, setState, setSlots }} />,
-        create: <Create {...{ slots }} />,
+        create: <Create {...{ hideForm, slots, setState }} />,
         loading: <Loading />,
     };
 
