@@ -704,6 +704,7 @@ const Project = (): JSX.Element => {
                             <Title className="underline underline-offset-auto">{project.name}</Title>
                             <ProjectContent>{project.description}</ProjectContent>
                             <ProjectContent>Members: {project.members.map((m) => m.name).join(", ")}</ProjectContent>
+                            <ProjectContent>Public: {project.isPublic ? "true" : "false"}</ProjectContent>
                         </LeftBox>
                         <RightBox>
                             <TodoGrid {...{ view: "project" }} />
