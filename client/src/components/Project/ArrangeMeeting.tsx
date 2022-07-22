@@ -182,37 +182,25 @@ const coerceRange = (stringValue: string, field: keyof searchFields): number | u
 const Search = ({
     project,
     hideForm,
+    fields,
+    setFields,
+    message,
+    setMessage,
     setState,
     setSlots,
 }: {
     project: IProject;
     hideForm: () => void;
+    fields: searchFields;
+    setFields: React.Dispatch<React.SetStateAction<searchFields>>;
+    message: string | undefined;
+    setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
     setState: React.Dispatch<React.SetStateAction<states>>;
     setSlots: React.Dispatch<React.SetStateAction<slotShape[]>>;
 }): JSX.Element => {
     const auth = useContext(AuthContext);
 
-    const userid: string = auth.auth.id ?? "";
-    const user: IUser | undefined = project.members.find((u) => u.id === userid);
-    const initialInMeeting: IUser[] = user === undefined ? [] : [user];
-
-    const [fields, setFields] = useState<searchFields>({
-        inMeeting: initialInMeeting,
-        dateStartYear: undefined,
-        dateStartMonth: undefined,
-        dateStartDay: undefined,
-        dateEndYear: undefined,
-        dateEndMonth: undefined,
-        dateEndDay: undefined,
-        timeStartHour: undefined,
-        timeStartMinute: undefined,
-        timeEndHour: undefined,
-        timeEndMinute: undefined,
-        durationHour: undefined,
-        durationMinute: undefined,
-    });
     const [showInstructions, setShowInstructions] = useState<boolean>(false);
-    const [message, setMessage] = useState<string | undefined>(undefined);
 
     const addToMeeting = (user: IUser) => {
         return () => {
@@ -352,11 +340,11 @@ const Search = ({
 
                 setSlots(slots);
                 setState("create");
+                setMessage(undefined);
             },
             () => {
                 setMessage("Something went wrong!");
                 setState("search");
-                // message won't actually be shown because state not preserved
             }
         );
     };
@@ -649,8 +637,8 @@ const CreateForm = ({
                     <DateTimePicker className="w-full" onChange={handleDateChange("end")} value={fields.end} required />
                 </div>
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
-                <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
-                <ButtonCancel onClick={() => setState("search")}>Back</ButtonCancel>
+                <ButtonCancel onClick={hideForm}>Close</ButtonCancel>
+                <ButtonCancel onClick={() => setState("search")}>Back to Search</ButtonCancel>
             </Form>
         </Panel>
     );
@@ -684,7 +672,29 @@ const ArrangeMeeting = ({
     showArrangeMeeting: boolean;
     setShowArrangeMeeting: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element => {
-    // TODO: move search state management here so that it is not lost when going from create -> search
+    const auth = useContext(AuthContext);
+
+    const userid: string = auth.auth.id ?? "";
+    const user: IUser | undefined = project.members.find((u) => u.id === userid);
+    const initialInMeeting: IUser[] = user === undefined ? [] : [user];
+
+    // moved search field & message here so that it is preserved across states
+    const [fields, setFields] = useState<searchFields>({
+        inMeeting: initialInMeeting,
+        dateStartYear: undefined,
+        dateStartMonth: undefined,
+        dateStartDay: undefined,
+        dateEndYear: undefined,
+        dateEndMonth: undefined,
+        dateEndDay: undefined,
+        timeStartHour: undefined,
+        timeStartMinute: undefined,
+        timeEndHour: undefined,
+        timeEndMinute: undefined,
+        durationHour: undefined,
+        durationMinute: undefined,
+    });
+    const [message, setMessage] = useState<string | undefined>(undefined);
 
     const [state, setState] = useState<states>("search");
     const [slots, setSlots] = useState<slotShape[]>([]);
@@ -694,9 +704,9 @@ const ArrangeMeeting = ({
     };
 
     const stateSwitch = {
-        search: <Search {...{ project, hideForm, setState, setSlots }} />,
-        create: <Create {...{ hideForm, slots, setState }} />,
+        search: <Search {...{ project, hideForm, fields, setFields, message, setMessage, setState, setSlots }} />,
         loading: <Loading />,
+        create: <Create {...{ hideForm, slots, setState }} />,
     };
 
     return (
