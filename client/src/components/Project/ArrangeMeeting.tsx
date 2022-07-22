@@ -8,7 +8,10 @@ import { IProject, IUser } from "../../types";
 import Modal from "../Modal";
 
 const Container = styled.div`
-    text-align: center;
+    align-items: center;
+    display: flex;
+    height: 50vh;
+    justify-content: center;
     width: 50vw;
 `;
 
@@ -25,6 +28,11 @@ const FormDiv = styled.div`
 const Title = styled.h1`
     font-size: 1.5rem;
     margin-bottom: 0.3rem;
+`;
+
+const LoadingText = styled.h1`
+    font-size: 1.5rem;
+    line-height: 50vh; /* same as Container's height */
 `;
 
 const NameButton = styled.span`
@@ -72,6 +80,8 @@ const ButtonCancel = styled(BaseButton)`
     float: right;
     margin-top: 1rem;
 `;
+
+type states = "search" | "loading" | "create";
 
 interface searchFields {
     inMeeting: IUser[];
@@ -141,7 +151,17 @@ const coerceRange = (stringValue: string, field: keyof searchFields): number | u
     return value;
 };
 
-const Search = ({ project, hideForm }: { project: IProject; hideForm: () => void }): JSX.Element => {
+const Search = ({
+    project,
+    hideForm,
+    setState,
+    setSlots,
+}: {
+    project: IProject;
+    hideForm: () => void;
+    setState: React.Dispatch<React.SetStateAction<states>>;
+    setSlots: React.Dispatch<React.SetStateAction<slotShape[]>>;
+}): JSX.Element => {
     const auth = useContext(AuthContext);
 
     const userid: string = auth.auth.id ?? "";
@@ -248,6 +268,7 @@ const Search = ({ project, hideForm }: { project: IProject; hideForm: () => void
         }
 
         setMessage(undefined);
+        setState("loading");
 
         EventFindCommonSlots(
             auth.axiosInstance,
@@ -266,15 +287,15 @@ const Search = ({ project, hideForm }: { project: IProject; hideForm: () => void
             },
             (response) => {
                 const data = response.data;
-                const slots: slotShape = data.slots.map((slot: any) => {
+                const slots: slotShape[] = data.slots.map((slot: any) => {
                     return {
                         start: convertMaybeISO(slot.start) as Date,
                         end: convertMaybeISO(slot.end) as Date,
                     };
                 });
 
-                // TODO: put this in a state
-                console.log(slots);
+                setSlots(slots);
+                setState("create");
             },
             () => {}
         );
@@ -434,6 +455,14 @@ const Search = ({ project, hideForm }: { project: IProject; hideForm: () => void
     );
 };
 
+const Loading = (): JSX.Element => {
+    return (
+        <Container>
+            <LoadingText>Loading!</LoadingText>
+        </Container>
+    );
+};
+
 const Create = (): JSX.Element => {
     // TODO: make Create (with Selector & CreateForm)
     return <div>i am here to make this compile</div>;
@@ -448,18 +477,17 @@ const ArrangeMeeting = ({
     showArrangeMeeting: boolean;
     setShowArrangeMeeting: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element => {
-    // TODO: might need a loading state?
-
-    // eslint-disable-next-line
-    const [state, setState] = useState<"search" | "create">("search");
+    const [state, setState] = useState<states>("search");
+    const [slots, setSlots] = useState<slotShape[]>([]);
 
     const hideForm = () => {
         setShowArrangeMeeting(false);
     };
 
     const stateSwitch = {
-        search: <Search {...{ project, hideForm }} />,
+        search: <Search {...{ project, hideForm, setState, setSlots }} />,
         create: <Create />,
+        loading: <Loading />,
     };
 
     return (
