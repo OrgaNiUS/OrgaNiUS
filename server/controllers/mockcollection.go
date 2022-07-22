@@ -53,6 +53,10 @@ func (c *MockCollection) FindAllByName(ctx context.Context, usernames []string, 
 	return nil
 }
 
+func (c *MockCollection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (cur *mongo.Cursor, err error) {
+	return nil, nil
+}
+
 func (c *MockCollection) UpdateManyByName(ctx context.Context, usernames []string, params bson.D) (*mongo.UpdateResult, error) {
 	return nil, nil
 }
