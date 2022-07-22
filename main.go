@@ -78,6 +78,7 @@ func handleRoutes(router *gin.Engine, userController controllers.UserController,
 	v1.DELETE("/event_delete", handlers.EventDelete(userController, projectController, eventController, jwtParser))
 	v1.POST("/event_nusmods", handlers.EventNusmods(userController, eventController, jwtParser))
 	v1.POST("/event_ics", handlers.EventIcs(userController, eventController, jwtParser))
+	v1.POST("/event_find_common", handlers.EventCommonSlots(userController, projectController, eventController, jwtParser))
 
 	// web socket handlers here
 	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))

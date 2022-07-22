@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -251,6 +252,36 @@ func (c *UserController) UserRemoveEvents(ctx context.Context, userid primitive.
 		}},
 	}
 	c.Collection(userCollection).UpdateByID(ctx, userid, update)
+}
+
+// Get all eventids from multiple users.
+func (c *UserController) UsersGetEventIds(ctx context.Context, userids []primitive.ObjectID) ([]string, error) {
+	filter := bson.D{
+		{Key: "_id", Value: bson.D{{Key: "$in", Value: userids}}},
+		{Key: ""},
+	}
+	opts := options.Find().SetProjection(bson.D{
+		{Key: "_id", Value: 0},
+		{Key: "events", Value: 1},
+	})
+	cursor, err := c.Collection(userCollection).Find(ctx, filter, opts)
+	if err != nil {
+		return []string{}, err
+	}
+
+	type r struct {
+		Events []string `bson:"events"`
+	}
+	var result []r
+	if err := cursor.All(ctx, &result); err != nil {
+		return []string{}, err
+	}
+	eventids := []string{}
+	for _, each := range result {
+		eventids = append(eventids, each.Events...)
+	}
+
+	return eventids, err
 }
 
 /*
