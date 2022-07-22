@@ -6,6 +6,7 @@ import AltModal from "../components/AltModal";
 import EventEdit from "../components/Event/EventEdit";
 import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
+import ArrangeMeeting from "../components/Project/ArrangeMeeting";
 import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
@@ -62,6 +63,12 @@ const Button2 = styled(Button)`
     width: 45%;
 `;
 
+const ButtonMeetingSlot = styled(Button)`
+    /* override margin of button */
+    margin-left: 0;
+    margin-top: 1rem;
+`;
+
 const ButtonDeleteProject = styled(BaseButton)`
     background-color: rgb(255, 0, 90);
     width: 45%;
@@ -109,6 +116,7 @@ const Project = (): JSX.Element => {
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [showRemModal, setShowRemModal] = useState<boolean>(false);
     const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
+    const [showArrangeMeeting, setShowArrangeMeeting] = useState<boolean>(false);
 
     type states = "empty" | "loading" | "success" | "error";
     const [state, setState] = useState<states>("empty");
@@ -669,6 +677,7 @@ const Project = (): JSX.Element => {
                         },
                     }}
                 />
+                <ArrangeMeeting {...{ showArrangeMeeting, setShowArrangeMeeting }} />
                 <Container>
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">
@@ -705,6 +714,10 @@ const Project = (): JSX.Element => {
                             <ProjectContent>{project.description}</ProjectContent>
                             <ProjectContent>Members: {project.members.map((m) => m.name).join(", ")}</ProjectContent>
                             <ProjectContent>Public: {project.isPublic ? "true" : "false"}</ProjectContent>
+
+                            <ButtonMeetingSlot type="button" onClick={() => setShowArrangeMeeting(true)}>
+                                Arrange Meeting
+                            </ButtonMeetingSlot>
                         </LeftBox>
                         <RightBox>
                             <TodoGrid {...{ view: "project" }} />
