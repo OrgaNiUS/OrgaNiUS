@@ -46,3 +46,14 @@ type EventNusmodsParams = {
 export const EventNusmods = CreatePostFunction<EventNusmodsParams>("/event_nusmods");
 
 export const EventIcs = CreatePostFunctionWithFormData("/event_ics");
+
+type EventFindCommonSlotsParams = {
+    projectid: string; // projectid of project
+    userids: string[]; // userid of users to search with
+    dateStart: string; // YY-MM-DD
+    dateEnd: string; // YY-MM-DD
+    timeStart: string; // HH:mm (24 hour)
+    timeEnd: string; // HH:mm (24 hour)
+    duration: number; // minimum duration in minutes
+};
+export const EventFindCommonSlots = CreatePostFunction<EventFindCommonSlotsParams>("/event_find_common");
