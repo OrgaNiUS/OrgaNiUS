@@ -258,15 +258,43 @@ const Search = ({
             return;
         }
 
+        // validate for wrong day like 31 Feb
         const maximumStartDay = lastDayOfMonth(fields.dateStartMonth as number);
         if ((fields.dateStartDay as number) > maximumStartDay) {
             setMessage("Invalid starting day.");
             return;
         }
 
+        // validate for wrong day like 31 Feb
         const maximumEndDay = lastDayOfMonth(fields.dateEndMonth as number);
         if ((fields.dateEndDay as number) > maximumEndDay) {
             setMessage("Invalid ending day.");
+            return;
+        }
+
+        const parseToDate = (year: number | undefined, month: number | undefined, day: number | undefined): Date => {
+            if (year === undefined || month === undefined || day === undefined) {
+                // for type checker
+                return new Date();
+            }
+
+            // hardcode for 21st century
+            return new Date(2000 + year, month, day);
+        };
+
+        // validate start <= end
+        const startDate: Date = parseToDate(fields.dateStartYear, fields.dateStartMonth, fields.dateStartDay);
+        const endDate: Date = parseToDate(fields.dateEndYear, fields.dateEndMonth, fields.dateEndDay);
+
+        if (startDate > endDate) {
+            setMessage("Date cannot end before it starts.");
+            return;
+        }
+
+        const startTime: number = (fields.timeStartHour as number) * 60 + (fields.timeStartMinute as number);
+        const endTime: number = (fields.timeEndHour as number) * 60 + (fields.timeEndMinute as number);
+        if (startTime > endTime) {
+            setMessage("Time cannot end before it starts.");
             return;
         }
 
@@ -289,8 +317,6 @@ const Search = ({
         const timeStart: string = `${padNumber(fields.timeStartHour)}:${padNumber(fields.timeStartMinute)}`;
         const timeEnd: string = `${padNumber(fields.timeEndHour)}:${padNumber(fields.timeEndMinute)}`;
         const duration: number = (fields.durationHour as number) * 60 + (fields.durationMinute as number);
-
-        // TODO: validate start < end
 
         if (duration < 5) {
             setMessage("Minimum duration of 5 minutes.");
@@ -658,6 +684,8 @@ const ArrangeMeeting = ({
     showArrangeMeeting: boolean;
     setShowArrangeMeeting: React.Dispatch<React.SetStateAction<boolean>>;
 }): JSX.Element => {
+    // TODO: move search state management here so that it is not lost when going from create -> search
+
     const [state, setState] = useState<states>("search");
     const [slots, setSlots] = useState<slotShape[]>([]);
 
