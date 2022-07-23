@@ -1,40 +1,19 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+    EventCreate,
+    EventDelete,
+    EventGetAll,
+    EventIcs,
+    EventNusmods,
+    EventPatch,
+    EventPatchParams,
+} from "../api/EventAPI";
 import { ProjectCreate, ProjectGet, ProjectGetAll } from "../api/ProjectAPI";
 import { TaskCreate, TaskDelete, TaskGetAll, TaskPatch, TaskPatchData } from "../api/TaskAPI";
+import { convertMaybeISO } from "../functions/dates";
 import { mergeEventArrays } from "../functions/events";
-import { IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
+import { DateItem, IEvent, IProject, IProjectCondensed, ITask, IUser, MaybeProject } from "../types";
 import AuthContext from "./AuthProvider";
-
-// TODO: This is only for testing purposes because actual events integration are to be implemented later on.
-// const initialEvents: IEvent[] = [
-//     {
-//         name: "event 1",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 4),
-//     },
-//     {
-//         name: "event 2",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 1),
-//     },
-//     {
-//         name: "very loooooooooooooooooooooooooooooooooooong name",
-//         start: new Date(2022, 5, 1),
-//         end: new Date(2022, 5, 1),
-//     },
-//     {
-//         name: "All day event!",
-//         start: new Date(2022, 5, 14),
-//         end: new Date(2022, 5, 14),
-//         allDay: true,
-//     },
-//     {
-//         name: "Starts yesterday, ends tomorrow.",
-//         start: new Date(Date.now() - 1000 * 60 * 60 * 24),
-//         end: new Date(Date.now() + 1000 * 60 * 60 * 24),
-//         allDay: true,
-//     },
-// ];
 
 export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo"> {
     id: string;
@@ -44,6 +23,33 @@ export interface patchTaskData extends Omit<Partial<ITask>, "id" | "assignedTo">
     addTags?: string[];
     removeTags?: string[];
 }
+
+export interface patchEventData extends Omit<Partial<IEvent>, "id"> {
+    id: string;
+}
+
+// Maps server events to client events.
+const mapServerEvents = (serverEvents: any): IEvent[] => {
+    const events: IEvent[] = serverEvents.map((event: any) => {
+        const start: Date | undefined = convertMaybeISO(event.start);
+        const end: Date | undefined = convertMaybeISO(event.end);
+        return { ...event, start, end };
+    });
+
+    return events;
+};
+
+// Maps server tasks to client tasks.
+const mapServerTasks = (serverTasks: any, assignedToMapper: (assignedTo: any) => IUser[]): ITask[] => {
+    const tasks: ITask[] = serverTasks.map((task: any) => {
+        // if 0 seconds since epoch time, treat as no deadline
+        const deadline: Date | undefined = convertMaybeISO(task.deadline);
+        const assignedTo: IUser[] = task.assignedTo.map(assignedToMapper);
+        return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
+    });
+
+    return tasks;
+};
 
 /**
  * addTask: the "id" field will be overridden so you can leave it blank.
@@ -56,9 +62,18 @@ interface IDataContext {
     patchTask: (task: patchTaskData, fullTask: ITask) => void;
     removeTasks: (ids: string[], projectid?: string) => void;
     events: IEvent[];
-    mergedEvents: IEvent[];
+    mergedEvents: DateItem[];
+    selectedEvent: string | undefined;
+    setSelectedEvent: React.Dispatch<React.SetStateAction<string | undefined>>;
+    editingEvent: IEvent | undefined;
+    setEditingEvent: React.Dispatch<React.SetStateAction<IEvent | undefined>>;
+    addEvent: (event: IEvent, projectid?: string) => void;
+    nusmodsEvent: (url: string) => void;
+    icsEvent: (file: File) => void;
+    patchEvent: (event: patchEventData) => void;
+    removeEvent: (eventid: string) => void;
     projects: IProjectCondensed[];
-    getProject: (id: string) => Promise<[MaybeProject, ITask[]]>;
+    getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
     addProject: (project: IProject) => Promise<string>;
 }
 
@@ -70,8 +85,17 @@ const defaultDataContext: IDataContext = {
     removeTasks: (_) => {},
     events: [],
     mergedEvents: [],
+    selectedEvent: undefined,
+    setSelectedEvent: (_) => {},
+    editingEvent: undefined,
+    setEditingEvent: (_) => {},
+    addEvent: (_) => {},
+    nusmodsEvent: (_) => {},
+    icsEvent: (_) => {},
+    patchEvent: (_) => {},
+    removeEvent: (_) => {},
     projects: [],
-    getProject: (_) => Promise.resolve([undefined, []]),
+    getProject: (_) => Promise.resolve([undefined, [], []]),
     addProject: (_) => Promise.resolve(""),
 };
 
@@ -83,14 +107,13 @@ export const DataContext = createContext<IDataContext>(defaultDataContext);
 export const DataProvider = ({ children }: { children: JSX.Element }) => {
     const auth = useContext(AuthContext);
 
-    // TODO: get initialEvents from server
     const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
     const [tasks, setTasks] = useState<ITask[]>([]);
     const [isEventsLoading, setIsEventsLoading] = useState<boolean>(true);
-    // until events CRUD is implemented
-    // eslint-disable-next-line
     const [events, setEvents] = useState<IEvent[]>([]);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [selectedEvent, setSelectedEvent] = useState<string | undefined>(undefined);
+    const [editingEvent, setEditingEvent] = useState<IEvent | undefined>(undefined);
     const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(true);
     const [projects, setProjects] = useState<IProjectCondensed[]>([]);
 
@@ -100,14 +123,9 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             { projectid: "" },
             (response) => {
                 const data = response.data;
-                const tasks: ITask[] = data.tasks.map((task: any) => {
-                    // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined =
-                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
-                    // assignedTo doesn't matter for personal tasks
-                    const assignedTo: IUser[] = [];
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
-                });
+
+                // assignedTo doesn't matter for personal tasks
+                const tasks: ITask[] = mapServerTasks(data.tasks, (_) => []);
 
                 setIsTasksLoading(false);
                 setTasks(tasks);
@@ -126,8 +144,18 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             () => {}
         );
 
-        // put this in the callback later
-        setIsEventsLoading(false);
+        EventGetAll(
+            auth.axiosInstance,
+            { projectid: "" },
+            (response) => {
+                const data = response.data;
+                const events: IEvent[] = mapServerEvents(data.events);
+
+                setIsEventsLoading(false);
+                setEvents(events);
+            },
+            () => {}
+        );
     }, [auth.axiosInstance]);
 
     const addTask = (task: ITask, projectid: string = ""): Promise<ITask | undefined> => {
@@ -166,9 +194,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    /**
-     * Do not use `assignedTo` field
-     */
     const patchTask = (task: patchTaskData, fullTask: ITask) => {
         // undefined checks + check if included in add/remove array
         const shouldRemoveFromOwnUser: boolean =
@@ -213,9 +238,7 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
             return tasksCopy;
         });
 
-        const payload: TaskPatchData = {
-            taskid: task.id ?? "",
-        };
+        const payload: TaskPatchData = { taskid: task.id };
 
         if (task.name !== undefined) {
             payload.name = task.name;
@@ -264,7 +287,113 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         );
     };
 
-    const getProject = (id: string): Promise<[MaybeProject, ITask[]]> => {
+    const addEvent = (event: IEvent, projectid?: string) => {
+        EventCreate(
+            auth.axiosInstance,
+            {
+                name: event.name,
+                start: event.start.toISOString(),
+                end: event.end.toISOString(),
+                projectid: projectid,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (response) => {
+                const data = response.data;
+                const newEvent: IEvent = { ...event, id: data.eventid };
+
+                setEvents((e) => [...e, newEvent]);
+            },
+            () => {}
+        );
+    };
+
+    const nusmodsEvent = (url: string) => {
+        EventNusmods(
+            auth.axiosInstance,
+            { url },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (response) => {
+                const data = response.data;
+                const newEvents: IEvent[] = mapServerEvents(data.events);
+                setEvents((e) => [...e, ...newEvents]);
+            },
+            () => {}
+        );
+    };
+
+    const icsEvent = (file: File) => {
+        const formData: FormData = new FormData();
+        formData.append("ics_file", file);
+
+        EventIcs(
+            auth.axiosInstance,
+            formData,
+            (response) => {
+                const data = response.data;
+                const newEvents: IEvent[] = mapServerEvents(data.events);
+                setEvents((e) => [...e, ...newEvents]);
+            },
+            () => {}
+        );
+    };
+
+    const patchEvent = (event: patchEventData) => {
+        const payload: EventPatchParams = { eventid: event.id };
+
+        if (event.name !== undefined) {
+            payload.name = event.name;
+        }
+        if (event.start !== undefined) {
+            payload.start = event.start.toISOString();
+        }
+        if (event.end !== undefined) {
+            payload.end = event.end.toISOString();
+        }
+
+        EventPatch(
+            auth.axiosInstance,
+            payload,
+            (_) => {
+                setEvents((e) => {
+                    const eventsCopy: IEvent[] = [...e];
+                    for (let i = 0; i < eventsCopy.length; i++) {
+                        const e: IEvent = { ...eventsCopy[i] };
+                        if (e.id !== event.id) {
+                            continue;
+                        }
+                        eventsCopy[i] = {
+                            id: e.id,
+                            name: event.name ?? e.name,
+                            start: event.start ?? e.start,
+                            end: event.end ?? e.end,
+                        };
+                        break;
+                    }
+                    return eventsCopy;
+                });
+            },
+            () => {}
+        );
+    };
+
+    const removeEvent = (eventid: string) => {
+        EventDelete(
+            auth.axiosInstance,
+            { eventid },
+            (_) => {
+                setEvents((e) => e.filter((e) => e.id !== eventid));
+            },
+            () => {}
+        );
+    };
+
+    const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         return ProjectGet(
             auth.axiosInstance,
             { projectid: id },
@@ -272,24 +401,16 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 const data = response.data;
                 const members = data.members;
 
-                // convert server tasks to client tasks
-                const tasks: ITask[] = data.tasks.map((task: any) => {
-                    // if 0 seconds since epoch time, treat as no deadline
-                    const deadline: Date | undefined =
-                        task.deadline === "1970-01-01T00:00:00Z" ? undefined : new Date(task.deadline);
+                const tasks: ITask[] = mapServerTasks(data.tasks, (id) => members.find((u: IUser) => u.id === id));
 
-                    const assignedTo: IUser[] = task.assignedTo.map((id: string) =>
-                        members.find((u: IUser) => u.id === id)
-                    );
-                    return { ...task, creationTime: new Date(task.creationTime), deadline, assignedTo };
-                });
+                const events: IEvent[] = mapServerEvents(data.events);
 
                 const project: IProject = {
                     id,
                     name: data.name,
                     description: data.description,
                     members,
-                    events: [],
+                    events: events.map((e: IEvent) => e.id),
                     tasks: tasks.map((t: ITask) => t.id),
                     creationTime: data.creationTime,
                     isPublic: data.isPublic,
@@ -307,10 +428,10 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                     return projectsCopy;
                 });
 
-                return [project, tasks];
+                return [project, tasks, events];
             },
             () => {
-                return [undefined, []];
+                return [undefined, [], []];
             }
         );
     };
@@ -354,6 +475,15 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
                 removeTasks,
                 events,
                 mergedEvents,
+                selectedEvent,
+                setSelectedEvent,
+                editingEvent,
+                setEditingEvent,
+                addEvent,
+                nusmodsEvent,
+                patchEvent,
+                removeEvent,
+                icsEvent,
                 projects,
                 getProject,
                 addProject,

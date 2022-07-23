@@ -824,6 +824,57 @@ type output = {
 };
 ```
 
+### Event Parse iCalendar (.ics) file
+
+POST "/event_ics" with multipart-form data.
+
+Input: Key of "ics_file" with value being the actual iCalendar file.
+
+```typescript
+type output = {
+    events: Event[];
+};
+```
+
+### Event Find Common Meeting Slots
+
+POST "/event_find_common"
+
+Based on a few parameters, the server will find common time slots that the users listed are all available on, based on personal & project events.
+
+Note that this will _not_ create any events. Thus, it functions more like a GET request than a POST request in actuality.
+
+-   `dateStart` & `dateEnd` is the date range to search for
+-   `timeStart` & `timeEnd` is the time range to search for within each day
+-   `duration` is the minimum duration of the meeting in minutes
+
+Starts must be less than Ends. We don't support slots past midnight (probably not hard to find slots manually if you want to work till that late)!
+
+```typescript
+type input = {
+    projectid: string; // projectid of project
+    userids: string[]; // userid of users to search with
+    dateStart: string; // YY-MM-DD
+    dateEnd: string; // YY-MM-DD
+    timeStart: string; // HH:mm (24 hour)
+    timeEnd: string; // HH:mm (24 hour)
+    duration: number; // minimum duration in minutes
+};
+```
+
+```typescript
+type output = {
+    // if no slots found, an empty array will be returned
+    slots: Slot[];
+};
+
+// note that duration of slots can be longer than the duration listed in input (but never shorter!)
+type Slot = {
+    start: string;
+    end: string;
+};
+```
+
 ## Definitions
 
 ```typescript

@@ -1,5 +1,10 @@
 import { useContext, useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import EventCreate from "../components/Event/EventCreate";
+import EventEdit from "../components/Event/EventEdit";
+import EventIcsForm from "../components/Event/EventIcs";
+import EventNusmodsForm from "../components/Event/EventNusmods";
+import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
 import Scheduler from "../components/Scheduler";
 import Timeline from "../components/Timeline";
@@ -7,6 +12,7 @@ import Todo from "../components/Todo/Todo";
 import AuthContext from "../context/AuthProvider";
 import { DataContext } from "../context/DataProvider";
 import { getCookie, setCookie } from "../functions/cookies";
+import { BaseButton } from "../styles";
 
 const Message = styled.h1`
     font-size: 2rem;
@@ -56,6 +62,14 @@ const RButton = styled.button`
     }
 `;
 
+const ButtonArray = styled.div`
+    text-align: right;
+`;
+
+const ActionButton = styled(BaseButton)`
+    background-color: rgb(59, 130, 246);
+`;
+
 // This is the component for the homepage (user dashboard).
 const Homepage = (): JSX.Element => {
     const auth = useContext(AuthContext);
@@ -66,6 +80,25 @@ const Homepage = (): JSX.Element => {
     const pageRatioMin: number = 2;
     const pageRatioMax: number = 6;
     const [pageRatio, setPageRatio] = useState<number>(3);
+    const [creatingTask, setCreatingTask] = useState<boolean>(false);
+    const [showNusmods, setShowNusmods] = useState<boolean>(false);
+    const [showIcs, setShowIcs] = useState<boolean>(false);
+
+    const handleClickNusmods = () => {
+        setShowNusmods((x) => !x);
+        setShowIcs(false);
+    };
+
+    const handleClickIcs = () => {
+        setShowIcs((x) => !x);
+        setShowNusmods(false);
+    };
+
+    const handleClickCreateEvent = () => {
+        setCreatingTask(true);
+        setShowIcs(false);
+        setShowNusmods(false);
+    };
 
     useEffect(() => {
         // on page load, load in the pageRatio from the cookies
@@ -119,6 +152,20 @@ const Homepage = (): JSX.Element => {
 
     return (
         <>
+            <Modal
+                {...{
+                    active: data.editingEvent !== undefined,
+                    body: <EventEdit />,
+                    callback: () => data.setEditingEvent(undefined),
+                }}
+            />
+            <Modal
+                {...{
+                    active: creatingTask,
+                    body: <EventCreate {...{ show: creatingTask, setShow: setCreatingTask }} />,
+                    callback: () => setCreatingTask(false),
+                }}
+            />
             <Message>Hey {auth.auth.user ? auth.auth.user : "user"}!</Message>
             <Container>
                 <Panel ratio={pageRatio}>
@@ -128,6 +175,13 @@ const Homepage = (): JSX.Element => {
                     <Resizer />
                 </div>
                 <Panel ratio={10 - pageRatio}>
+                    {showNusmods && <EventNusmodsForm {...{ hideForm: () => setShowNusmods(false) }} />}
+                    {showIcs && <EventIcsForm {...{ hideForm: () => setShowIcs(false) }} />}
+                    <ButtonArray>
+                        <ActionButton onClick={handleClickIcs}>Import iCalendar (.ics) file</ActionButton>
+                        <ActionButton onClick={handleClickNusmods}>Import from nusmods.com</ActionButton>
+                        <ActionButton onClick={handleClickCreateEvent}>Add Event</ActionButton>
+                    </ButtonArray>
                     <Scheduler />
                     <Timeline {...{ events: data.mergedEvents }} />
                 </Panel>

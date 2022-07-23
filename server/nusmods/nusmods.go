@@ -25,8 +25,10 @@ type Module struct {
 // Example: 2nd Monday of July 2022 - NthDayofMonth(2, time.Monday, time.July, 2022)
 // Note that if N exceeds the month, then the date returned might be from the next month.
 func NthDayofMonth(n int, weekday time.Weekday, month time.Month, year int) time.Time {
+	// if you're using nusmods, just assume you're in Singapore :D
+	location, _ := time.LoadLocation("Asia/Singapore")
 	// use first day of the month as reference
-	t := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	t := time.Date(year, month, 1, 0, 0, 0, 0, location)
 	// number of days to reach correct day (in the first week)
 	deltaDays := (int(weekday) - int(t.Weekday()) + 7) % 7
 	// increment by number of weeks
@@ -193,14 +195,19 @@ func ParseModuleInfo(startOfSemester time.Time, semester int, moduleInfo ModuleI
 				startOffset := convertTime(lesson.StartTime)
 				endOffset := convertTime(lesson.EndTime)
 				for _, week := range weekRange {
-					weekNumber := int(week.(float64)) - 1
-					date := startOfSemester.AddDate(0, 0, weekOffset+weekNumber*7)
+					weekNumber := int(week.(float64))
+
+					weekMultiplier := weekNumber - 1
+					if weekNumber >= 7 {
+						weekMultiplier++
+					}
+					date := startOfSemester.AddDate(0, 0, weekOffset+weekMultiplier*7)
 					start := date.Add(startOffset)
 					end := date.Add(endOffset)
 					events = append(events, &models.Event{
 						// Example name is: "CS2030S Lecture 11" (for the 11th week)
 						// If there are multiple lectures in the same week for the same module (they will have the same name!)
-						Name:  name + " " + strconv.Itoa(weekNumber+1),
+						Name:  name + " " + strconv.Itoa(weekNumber),
 						Start: start,
 						End:   end,
 					})

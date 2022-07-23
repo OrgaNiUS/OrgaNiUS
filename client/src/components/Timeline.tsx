@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { filterEvents } from "../functions/events";
 import { truncate } from "../styles";
-import { IEvent } from "../types";
-import EventCard from "./EventCard";
+import { DateItem } from "../types";
+import EventCard from "./Event/EventCard";
 
 const Name = styled.p`
     ${truncate}
@@ -40,7 +40,13 @@ const Circle = styled.svg`
     }
 `;
 
-const Item = ({ event }: { event: IEvent }): JSX.Element => {
+const Item = ({
+    event,
+    removeEvent = undefined,
+}: {
+    event: DateItem;
+    removeEvent?: ((eventid: string) => void) | undefined;
+}): JSX.Element => {
     const [showCard, setShowCard] = useState<boolean>(false);
 
     const handleClick = () => {
@@ -53,16 +59,7 @@ const Item = ({ event }: { event: IEvent }): JSX.Element => {
 
     return (
         <ItemContainer>
-            {showCard && (
-                <EventCard
-                    {...{
-                        event,
-                        position: css`
-                            top: -30%;
-                        `,
-                    }}
-                />
-            )}
+            {showCard && <EventCard {...{ event, view: "timeline", removeEvent }} />}
             <Name>{event.name}</Name>
             <Circle height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={regular} onClick={handleClick} />
@@ -85,7 +82,7 @@ const Row = styled.div`
     column-gap: 1rem; /* column gap specifies the minimum gap between items in the row */
     display: flex;
     height: 100%;
-    justify-content: space-between;
+    justify-content: space-around;
     overflow-x: scroll;
     overflow-y: hidden;
     padding-bottom: 0.5rem;
@@ -127,7 +124,13 @@ const Line = styled.hr`
     border: 2px solid black;
 `;
 
-const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
+const Timeline = ({
+    events,
+    removeEvent = undefined,
+}: {
+    events: DateItem[];
+    removeEvent?: ((eventid: string) => void) | undefined;
+}): JSX.Element => {
     const filteredEvents = filterEvents(events, { over: true });
 
     const rowRef = useRef<HTMLDivElement>(null);
@@ -150,7 +153,7 @@ const Timeline = ({ events }: { events: IEvent[] }): JSX.Element => {
             <RowScrollerLeft onClick={() => handleScroll(true)}>{"<"}</RowScrollerLeft>
             <Row ref={rowRef}>
                 {filteredEvents.map((event, i) => (
-                    <Item key={i} {...{ event }} />
+                    <Item key={i} {...{ event, removeEvent }} />
                 ))}
             </Row>
             <RowScrollerRight onClick={() => handleScroll(false)}>{">"}</RowScrollerRight>

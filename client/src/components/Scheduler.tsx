@@ -2,10 +2,10 @@ import moment from "moment";
 import { useContext, useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css"; // react-big-calendar's css file
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { DataContext } from "../context/DataProvider";
-import { IEvent } from "../types";
-import EventCard from "./EventCard";
+import { DateItem } from "../types";
+import EventCard from "./Event/EventCard";
 
 // moment is required for react-big-calendar
 const localizer = momentLocalizer(moment);
@@ -15,7 +15,7 @@ const Container = styled.div`
     border: 1px solid rgb(59, 130, 246);
     /* 5rem from navbar, 3rem from welcome message */
     /* a further 3rem for timeline below */
-    height: calc(100vh - 2 * (5rem + 1rem) - 5rem);
+    height: calc(100vh - 18.5rem);
     position: relative;
 `;
 
@@ -25,9 +25,9 @@ const Scheduler = (): JSX.Element => {
     const data = useContext(DataContext);
 
     const [currentInterval, setCurrentInterval] = useState<NodeJS.Timer | null>(null);
-    const [eventCard, setEventCard] = useState<IEvent | null>(null);
+    const [eventCard, setEventCard] = useState<DateItem | null>(null);
 
-    const handleSelectEvent = (event: IEvent) => {
+    const handleSelectEvent = (event: DateItem) => {
         setEventCard(event);
 
         if (currentInterval !== null) {
@@ -45,18 +45,7 @@ const Scheduler = (): JSX.Element => {
 
     return (
         <Container>
-            {eventCard !== null && (
-                <EventCard
-                    {...{
-                        event: eventCard,
-                        position: css`
-                            right: 2rem;
-                            top: 5rem;
-                            z-index: 5;
-                        `,
-                    }}
-                />
-            )}
+            {eventCard !== null && <EventCard {...{ event: eventCard, view: "scheduler" }} />}
             <Calendar
                 localizer={localizer}
                 events={data.mergedEvents}

@@ -1,20 +1,23 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { EventCreate, EventDelete, EventPatch, EventPatchParams } from "../api/EventAPI";
 import { ProjectDelete, ProjectLeave, ProjectModify, ProjectRemoveUser } from "../api/ProjectAPI";
-import Modal from "../components/Modal";
 import AltModal from "../components/AltModal";
+import EventEdit from "../components/Event/EventEdit";
+import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
+import ArrangeMeeting from "../components/Project/ArrangeMeeting";
 import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
 import AuthContext from "../context/AuthProvider";
-import { DataContext } from "../context/DataProvider";
+import { DataContext, patchEventData } from "../context/DataProvider";
+import { removeFromArray } from "../functions/arrays";
 import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton, NoEffectButton } from "../styles";
-import { IEvent, IProject, ITask, IUser } from "../types";
-import { removeFromArray } from "../functions/arrays";
+import { DateItem, IEvent, IProject, ITask, IUser } from "../types";
 
 const Title = styled.h1`
     font-size: 2rem;
@@ -61,6 +64,12 @@ const Button2 = styled(Button)`
     width: 45%;
 `;
 
+const ButtonMeetingSlot = styled(Button)`
+    /* override margin of button */
+    margin-left: 0;
+    margin-top: 1rem;
+`;
+
 const ButtonDeleteProject = styled(BaseButton)`
     background-color: rgb(255, 0, 90);
     width: 45%;
@@ -96,6 +105,7 @@ const Project = (): JSX.Element => {
     const [loading, setLoading] = useState<boolean>(true);
     const [project, setProject] = useState<IProject | undefined>(undefined);
     const [tasks, setTasks] = useState<ITask[]>([]);
+    const [events, setEvents] = useState<IEvent[]>([]);
     const [showInviteWindow, setShowInviteWindow] = useState<boolean>(false);
     const [newName, setNewName] = useState<string>();
     const [newDesc, setNewDesc] = useState<string>();
@@ -107,6 +117,7 @@ const Project = (): JSX.Element => {
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [showRemModal, setShowRemModal] = useState<boolean>(false);
     const [showLeaveModal, setShowLeaveModal] = useState<boolean>(false);
+    const [showArrangeMeeting, setShowArrangeMeeting] = useState<boolean>(false);
 
     type states = "empty" | "loading" | "success" | "error";
     const [state, setState] = useState<states>("empty");
@@ -161,6 +172,8 @@ const Project = (): JSX.Element => {
         searchTerm: "",
     };
 
+    // might be worth moving all these functions into a context & provider (eventually) because there are many of them already, but then again, each inner component only uses a few of them
+
     const createCallback = (task: ITask | undefined) => {
         if (task === undefined) {
             return;
@@ -193,17 +206,118 @@ const Project = (): JSX.Element => {
         });
     };
 
-    // TODO: get events from event ids
-    const mergedEvents: IEvent[] = mergeEventArrays([], tasks);
+    // differs from createCallback above (for tasks) as this is responsible for actually calling the API as well
+    // project events are not stored in dataprovider
+    const createEvent = (event: IEvent | undefined) => {
+        if (event === undefined) {
+            return;
+        }
+
+        if (project === undefined) {
+            return;
+        }
+
+        EventCreate(
+            auth.axiosInstance,
+            {
+                name: event.name,
+                start: event.start.toISOString(),
+                end: event.end.toISOString(),
+                projectid: project.id,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (response) => {
+                const data = response.data;
+                const eventid: string = data.eventid;
+                const newEvent: IEvent = { ...event, id: eventid };
+
+                setProject((p) => {
+                    if (p === undefined) {
+                        return undefined;
+                    }
+
+                    const eventids: string[] = [...p.events, eventid];
+                    return { ...p, events: eventids };
+                });
+
+                setEvents((e) => {
+                    return [...e, newEvent];
+                });
+            },
+            () => {}
+        );
+    };
+
+    // essentially the same as the one in dataprovider but variables referenced are different
+    const editEvent = (event: patchEventData) => {
+        const payload: EventPatchParams = { eventid: event.id };
+
+        if (event.name !== undefined) {
+            payload.name = event.name;
+        }
+        if (event.start !== undefined) {
+            payload.start = event.start.toISOString();
+        }
+        if (event.end !== undefined) {
+            payload.end = event.end.toISOString();
+        }
+
+        EventPatch(
+            auth.axiosInstance,
+            payload,
+            (_) => {
+                setEvents((e) => {
+                    const eventsCopy: IEvent[] = [...e];
+                    for (let i = 0; i < eventsCopy.length; i++) {
+                        const e: IEvent = { ...eventsCopy[i] };
+                        if (e.id !== event.id) {
+                            continue;
+                        }
+                        eventsCopy[i] = {
+                            id: e.id,
+                            name: event.name ?? e.name,
+                            start: event.start ?? e.start,
+                            end: event.end ?? e.end,
+                        };
+                        break;
+                    }
+                    return eventsCopy;
+                });
+            },
+            () => {}
+        );
+    };
+
+    // essentially the same as the one in dataprovider but variables referenced are different
+    const removeEvent = (eventid: string) => {
+        if (project === undefined) {
+            return;
+        }
+
+        EventDelete(
+            auth.axiosInstance,
+            { eventid, projectid: project.id },
+            (_) => {
+                setEvents((e) => e.filter((e) => e.id !== eventid));
+            },
+            () => {}
+        );
+    };
+
+    const mergedEvents: DateItem[] = mergeEventArrays(events, tasks);
 
     useEffect(() => {
         if (projectid === undefined) {
             return;
         }
 
-        data.getProject(projectid).then(([project, tasks]) => {
+        data.getProject(projectid).then(([project, tasks, events]) => {
             setProject(project);
             setTasks(tasks);
+            setEvents(events);
             setLoading(false);
         });
 
@@ -365,7 +479,7 @@ const Project = (): JSX.Element => {
     const SettingsModal = (
         <>
             <h1 className="mb-1 text-2xl underline underline-offset-auto text-left font-semibold">Project Settings</h1>
-        
+
             {updateStatusSwitch[state]}
 
             <div className="w-full flex-col mt-1">
@@ -621,6 +735,13 @@ const Project = (): JSX.Element => {
             <>
                 <Modal
                     {...{
+                        active: data.editingEvent !== undefined,
+                        body: <EventEdit {...{ editEvent }} />,
+                        callback: () => data.setEditingEvent(undefined),
+                    }}
+                />
+                <Modal
+                    {...{
                         active: showDeleteModal,
                         body: DeleteModal,
                         callback: () => {
@@ -660,6 +781,7 @@ const Project = (): JSX.Element => {
                         },
                     }}
                 />
+                <ArrangeMeeting {...{ project, showArrangeMeeting, setShowArrangeMeeting, createEvent }} />
                 <Container>
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">
@@ -695,13 +817,18 @@ const Project = (): JSX.Element => {
                             <Title className="underline underline-offset-auto">{project.name}</Title>
                             <ProjectContent>{project.description}</ProjectContent>
                             <ProjectContent>Members: {project.members.map((m) => m.name).join(", ")}</ProjectContent>
+                            <ProjectContent>Public: {project.isPublic ? "true" : "false"}</ProjectContent>
+
+                            <ButtonMeetingSlot type="button" onClick={() => setShowArrangeMeeting(true)}>
+                                Arrange Meeting
+                            </ButtonMeetingSlot>
                         </LeftBox>
                         <RightBox>
                             <TodoGrid {...{ view: "project" }} />
                         </RightBox>
                     </Row>
                     <div className="h-4">
-                        <Timeline {...{ events: mergedEvents }} />
+                        <Timeline {...{ events: mergedEvents, editEvent, removeEvent }} />
                     </div>
                 </Container>
             </>

@@ -1,5 +1,5 @@
-import moment from "moment";
 import { useContext, useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext, patchTaskData } from "../../context/DataProvider";
 import { getDeltaOfArrays, isEqualArrays } from "../../functions/arrays";
@@ -81,13 +81,11 @@ interface IFields {
     currentAssign: string;
     description: string;
     creationTime: Date;
-    deadline?: string;
+    deadline?: Date;
     isDone: boolean;
     // essentially only tags is different
     tags: string;
 }
-
-const momentFormat: string = "YYYY-MM-DD HH:mm";
 
 const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
     const data = useContext(DataContext);
@@ -107,7 +105,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
 
     const [fields, setFields] = useState<IFields>({
         ...editingTask,
-        deadline: editingTask.deadline === undefined ? undefined : moment(editingTask.deadline).format(momentFormat),
+        deadline: editingTask.deadline,
         tags: editingTask.tags.join(", "),
         assignedTo,
         currentAssign: "",
@@ -120,18 +118,9 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
         event.preventDefault();
 
-        if (event.target.name === "deadline") {
-            const date: string | undefined =
-                event.target.value === "" ? undefined : moment(event.target.value).format(momentFormat);
-
-            setFields((f) => {
-                return { ...f, deadline: date };
-            });
-        } else {
-            setFields((f) => {
-                return { ...f, [event.target.name]: event.target.value };
-            });
-        }
+        setFields((f) => {
+            return { ...f, [event.target.name]: event.target.value };
+        });
     };
 
     const handleAddAssigned = (user: IUser) => {
@@ -158,6 +147,14 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
             const assignedTo: IUser[] = f.assignedTo.filter((x) => x.id !== user.id);
             return { ...f, assignedTo };
         });
+    };
+
+    const handleDateChange = (field: string) => {
+        return (value: Date) => {
+            setFields((f) => {
+                return { ...f, [field]: value };
+            });
+        };
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
@@ -205,9 +202,8 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
         if (fields.creationTime !== editingTask.creationTime) {
             task.creationTime = fields.creationTime;
         }
-        const deadline: Date | undefined = fields.deadline === undefined ? undefined : moment(fields.deadline).toDate();
-        if (deadline !== editingTask.deadline) {
-            task.deadline = deadline;
+        if (fields.deadline !== editingTask.deadline) {
+            task.deadline = fields.deadline;
         }
         if (fields.isDone !== editingTask.isDone) {
             task.isDone = fields.isDone;
@@ -224,7 +220,7 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
             }
         }
 
-        data.patchTask(task, { ...fields, deadline, tags, isPersonal: editingTask.isPersonal });
+        data.patchTask(task, { ...fields, tags, isPersonal: editingTask.isPersonal });
         props.editCallback({ ...editingTask, ...task });
         hideForm();
     };
@@ -327,7 +323,13 @@ const TodoEdit = ({ view }: { view: TodoView }): JSX.Element => {
                     </>
                 )}
                 <Label>Deadline</Label>
-                <Input type="datetime-local" name="deadline" onChange={handleChange} value={fields.deadline} />
+                <div>
+                    <DateTimePicker
+                        className="w-full"
+                        onChange={handleDateChange("deadline")}
+                        value={fields.deadline}
+                    />
+                </div>
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>

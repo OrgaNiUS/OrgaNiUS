@@ -1,8 +1,8 @@
 export interface IEvent {
+    id: string;
     name: string;
     start: Date;
     end: Date;
-    allDay?: boolean;
 }
 
 // update IFields in TodoEdit and TodoCreate as well (if needed)
@@ -16,6 +16,15 @@ export interface ITask {
     isDone: boolean;
     tags: string[];
     isPersonal: boolean;
+}
+
+// result of merging of Event & Task
+export interface DateItem {
+    id: string;
+    name: string;
+    start: Date;
+    end: Date;
+    isEvent: boolean;
 }
 
 // only storing other users data

@@ -1,4 +1,10 @@
-import { CreateDeleteFunctionWithParams, CreateGetFunction, CreateGetFunctionWithParams, CreatePatchFunction, CreatePostFunction } from "./API";
+import {
+    CreateDeleteFunctionWithParams,
+    CreateGetFunction,
+    CreateGetFunctionWithParams,
+    CreatePatchFunction,
+    CreatePostFunction,
+} from "./API";
 
 type ProjectGetParams = {
     projectid: string;
@@ -49,4 +55,4 @@ type ProjectRemoveUserData = {
 export const ProjectRemoveUser = CreatePatchFunction<ProjectRemoveUserData>("/project_remove_user");
 
 type ProjectDeleteParams = ProjectGetParams;
-export const ProjectDelete = CreateDeleteFunctionWithParams<ProjectDeleteParams>("/project_delete")
+export const ProjectDelete = CreateDeleteFunctionWithParams<ProjectDeleteParams>("/project_delete");

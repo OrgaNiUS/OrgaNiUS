@@ -55,6 +55,17 @@ export const CreatePostFunction = <T>(url: string) => {
 };
 
 /**
+ * Returns a post function with FormData.
+ * @param url URL for request.
+ * @returns Post Function with FormData.
+ */
+export const CreatePostFunctionWithFormData = (url: string) => {
+    return (axiosInstance: AxiosInstance, formData: FormData, success: APICallback, failure: APICallback) => {
+        return axiosInstance.post(url, formData).then(success).catch(failure);
+    };
+};
+
+/**
  * Returns a patch function.
  * @param url URL for request.
  * @returns Patch Function.
