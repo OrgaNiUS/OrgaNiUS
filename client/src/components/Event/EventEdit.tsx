@@ -50,7 +50,11 @@ interface IFields {
 
 // A lot of code is reused from TodoEdit, but not worth creating a generic edit form to extend from.
 
-const EventEdit = (): JSX.Element => {
+const EventEdit = ({
+    editEvent = undefined,
+}: {
+    editEvent?: ((event: patchEventData) => void) | undefined;
+}): JSX.Element => {
     const data = useContext(DataContext);
 
     const [fields, setFields] = useState<IFields>({
@@ -134,7 +138,11 @@ const EventEdit = (): JSX.Element => {
             event.end = fields.end;
         }
 
-        data.patchEvent(event);
+        if (editEvent === undefined) {
+            data.patchEvent(event);
+        } else {
+            editEvent(event);
+        }
         setMessage("");
         hideForm();
     };

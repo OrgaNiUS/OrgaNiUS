@@ -40,7 +40,13 @@ const Circle = styled.svg`
     }
 `;
 
-const Item = ({ event }: { event: DateItem }): JSX.Element => {
+const Item = ({
+    event,
+    removeEvent = undefined,
+}: {
+    event: DateItem;
+    removeEvent?: ((eventid: string) => void) | undefined;
+}): JSX.Element => {
     const [showCard, setShowCard] = useState<boolean>(false);
 
     const handleClick = () => {
@@ -53,7 +59,7 @@ const Item = ({ event }: { event: DateItem }): JSX.Element => {
 
     return (
         <ItemContainer>
-            {showCard && <EventCard {...{ event, view: "timeline" }} />}
+            {showCard && <EventCard {...{ event, view: "timeline", removeEvent }} />}
             <Name>{event.name}</Name>
             <Circle height="30" width="30">
                 <circle cx="15" cy="15" r="15" fill={regular} onClick={handleClick} />
@@ -118,7 +124,13 @@ const Line = styled.hr`
     border: 2px solid black;
 `;
 
-const Timeline = ({ events }: { events: DateItem[] }): JSX.Element => {
+const Timeline = ({
+    events,
+    removeEvent = undefined,
+}: {
+    events: DateItem[];
+    removeEvent?: ((eventid: string) => void) | undefined;
+}): JSX.Element => {
     const filteredEvents = filterEvents(events, { over: true });
 
     const rowRef = useRef<HTMLDivElement>(null);
@@ -141,7 +153,7 @@ const Timeline = ({ events }: { events: DateItem[] }): JSX.Element => {
             <RowScrollerLeft onClick={() => handleScroll(true)}>{"<"}</RowScrollerLeft>
             <Row ref={rowRef}>
                 {filteredEvents.map((event, i) => (
-                    <Item key={i} {...{ event }} />
+                    <Item key={i} {...{ event, removeEvent }} />
                 ))}
             </Row>
             <RowScrollerRight onClick={() => handleScroll(false)}>{">"}</RowScrollerRight>

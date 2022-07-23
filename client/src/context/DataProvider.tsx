@@ -71,7 +71,7 @@ interface IDataContext {
     nusmodsEvent: (url: string) => void;
     icsEvent: (file: File) => void;
     patchEvent: (event: patchEventData) => void;
-    removeEvent: (eventid: string, projectid?: string) => void;
+    removeEvent: (eventid: string) => void;
     projects: IProjectCondensed[];
     getProject: (id: string) => Promise<[MaybeProject, ITask[], IEvent[]]>;
     addProject: (project: IProject) => Promise<string>;
@@ -344,24 +344,6 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
     };
 
     const patchEvent = (event: patchEventData) => {
-        setEvents((e) => {
-            const eventsCopy: IEvent[] = [...e];
-            for (let i = 0; i < eventsCopy.length; i++) {
-                const e: IEvent = { ...eventsCopy[i] };
-                if (e.id !== event.id) {
-                    continue;
-                }
-                eventsCopy[i] = {
-                    id: e.id,
-                    name: event.name ?? e.name,
-                    start: event.start ?? e.start,
-                    end: event.end ?? e.end,
-                };
-                break;
-            }
-            return eventsCopy;
-        });
-
         const payload: EventPatchParams = { eventid: event.id };
 
         if (event.name !== undefined) {
@@ -377,18 +359,36 @@ export const DataProvider = ({ children }: { children: JSX.Element }) => {
         EventPatch(
             auth.axiosInstance,
             payload,
-            () => {},
+            (_) => {
+                setEvents((e) => {
+                    const eventsCopy: IEvent[] = [...e];
+                    for (let i = 0; i < eventsCopy.length; i++) {
+                        const e: IEvent = { ...eventsCopy[i] };
+                        if (e.id !== event.id) {
+                            continue;
+                        }
+                        eventsCopy[i] = {
+                            id: e.id,
+                            name: event.name ?? e.name,
+                            start: event.start ?? e.start,
+                            end: event.end ?? e.end,
+                        };
+                        break;
+                    }
+                    return eventsCopy;
+                });
+            },
             () => {}
         );
     };
 
-    const removeEvent = (eventid: string, projectid?: string) => {
-        setEvents((e) => e.filter((e) => e.id !== eventid));
-
+    const removeEvent = (eventid: string) => {
         EventDelete(
             auth.axiosInstance,
-            { eventid, projectid },
-            () => {},
+            { eventid },
+            (_) => {
+                setEvents((e) => e.filter((e) => e.id !== eventid));
+            },
             () => {}
         );
     };

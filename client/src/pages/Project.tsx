@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { EventCreate } from "../api/EventAPI";
+import { EventCreate, EventDelete, EventPatch, EventPatchParams } from "../api/EventAPI";
 import { ProjectDelete, ProjectLeave, ProjectModify, ProjectRemoveUser } from "../api/ProjectAPI";
 import AltModal from "../components/AltModal";
 import EventEdit from "../components/Event/EventEdit";
@@ -13,7 +13,7 @@ import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
 import { TodoProvider } from "../components/Todo/TodoProvider";
 import AuthContext from "../context/AuthProvider";
-import { DataContext } from "../context/DataProvider";
+import { DataContext, patchEventData } from "../context/DataProvider";
 import { removeFromArray } from "../functions/arrays";
 import { filterTaskOptions, mergeEventArrays } from "../functions/events";
 import { BaseButton, NoEffectButton } from "../styles";
@@ -246,6 +246,62 @@ const Project = (): JSX.Element => {
                 setEvents((e) => {
                     return [...e, newEvent];
                 });
+            },
+            () => {}
+        );
+    };
+
+    // essentially the same as the one in dataprovider but variables referenced are different
+    const editEvent = (event: patchEventData) => {
+        const payload: EventPatchParams = { eventid: event.id };
+
+        if (event.name !== undefined) {
+            payload.name = event.name;
+        }
+        if (event.start !== undefined) {
+            payload.start = event.start.toISOString();
+        }
+        if (event.end !== undefined) {
+            payload.end = event.end.toISOString();
+        }
+
+        EventPatch(
+            auth.axiosInstance,
+            payload,
+            (_) => {
+                setEvents((e) => {
+                    const eventsCopy: IEvent[] = [...e];
+                    for (let i = 0; i < eventsCopy.length; i++) {
+                        const e: IEvent = { ...eventsCopy[i] };
+                        if (e.id !== event.id) {
+                            continue;
+                        }
+                        eventsCopy[i] = {
+                            id: e.id,
+                            name: event.name ?? e.name,
+                            start: event.start ?? e.start,
+                            end: event.end ?? e.end,
+                        };
+                        break;
+                    }
+                    return eventsCopy;
+                });
+            },
+            () => {}
+        );
+    };
+
+    // essentially the same as the one in dataprovider but variables referenced are different
+    const removeEvent = (eventid: string) => {
+        if (project === undefined) {
+            return;
+        }
+
+        EventDelete(
+            auth.axiosInstance,
+            { eventid, projectid: project.id },
+            (_) => {
+                setEvents((e) => e.filter((e) => e.id !== eventid));
             },
             () => {}
         );
@@ -680,7 +736,7 @@ const Project = (): JSX.Element => {
                 <Modal
                     {...{
                         active: data.editingEvent !== undefined,
-                        body: <EventEdit />,
+                        body: <EventEdit {...{ editEvent }} />,
                         callback: () => data.setEditingEvent(undefined),
                     }}
                 />
@@ -772,7 +828,7 @@ const Project = (): JSX.Element => {
                         </RightBox>
                     </Row>
                     <div className="h-4">
-                        <Timeline {...{ events: mergedEvents }} />
+                        <Timeline {...{ events: mergedEvents, editEvent, removeEvent }} />
                     </div>
                 </Container>
             </>

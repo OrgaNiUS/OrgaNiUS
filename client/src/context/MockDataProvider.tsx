@@ -90,7 +90,7 @@ const MockDataProvider = ({
         });
     };
 
-    const removeEvent = (eventid: string, projectid?: string) => {
+    const removeEvent = (eventid: string) => {
         setEvents((e) => e.filter((e) => e.id !== eventid));
     };
 

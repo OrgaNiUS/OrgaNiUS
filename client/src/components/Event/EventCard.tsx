@@ -43,7 +43,15 @@ const Action = styled.div`
     cursor: pointer;
 `;
 
-const EventCard = ({ event, view }: { event: DateItem; view: "scheduler" | "timeline" }): JSX.Element => {
+const EventCard = ({
+    event,
+    view,
+    removeEvent = undefined,
+}: {
+    event: DateItem;
+    view: "scheduler" | "timeline";
+    removeEvent?: ((eventid: string) => void) | undefined;
+}): JSX.Element => {
     const data = useContext(DataContext);
 
     const toggleMenu = () => {
@@ -56,14 +64,16 @@ const EventCard = ({ event, view }: { event: DateItem; view: "scheduler" | "time
     };
 
     const performEdit: React.MouseEventHandler<HTMLDivElement> = () => {
-        // TODO: modify state properly for project events
         data.setEditingEvent(event);
         data.setSelectedEvent(undefined);
     };
 
     const performTrash: React.MouseEventHandler<HTMLDivElement> = () => {
-        // TODO: modify state properly for project events
-        data.removeEvent(event.id);
+        if (removeEvent === undefined) {
+            data.removeEvent(event.id);
+        } else {
+            removeEvent(event.id);
+        }
         data.setSelectedEvent(undefined);
     };
 
