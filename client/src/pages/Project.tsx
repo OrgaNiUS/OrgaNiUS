@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { EventCreate } from "../api/EventAPI";
 import { ProjectDelete, ProjectLeave, ProjectModify, ProjectRemoveUser } from "../api/ProjectAPI";
 import AltModal from "../components/AltModal";
 import EventEdit from "../components/Event/EventEdit";
@@ -171,6 +172,8 @@ const Project = (): JSX.Element => {
         searchTerm: "",
     };
 
+    // might be worth moving all these functions into a context & provider (eventually) because there are many of them already, but then again, each inner component only uses a few of them
+
     const createCallback = (task: ITask | undefined) => {
         if (task === undefined) {
             return;
@@ -201,6 +204,51 @@ const Project = (): JSX.Element => {
             }
             return tasksCopy;
         });
+    };
+
+    // differs from createCallback above (for tasks) as this is responsible for actually calling the API as well
+    // project events are not stored in dataprovider
+    const createEvent = (event: IEvent | undefined) => {
+        if (event === undefined) {
+            return;
+        }
+
+        if (project === undefined) {
+            return;
+        }
+
+        EventCreate(
+            auth.axiosInstance,
+            {
+                name: event.name,
+                start: event.start.toISOString(),
+                end: event.end.toISOString(),
+                projectid: project.id,
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true,
+            },
+            (response) => {
+                const data = response.data;
+                const eventid: string = data.eventid;
+                const newEvent: IEvent = { ...event, id: eventid };
+
+                setProject((p) => {
+                    if (p === undefined) {
+                        return undefined;
+                    }
+
+                    const eventids: string[] = [...p.events, eventid];
+                    return { ...p, events: eventids };
+                });
+
+                setEvents((e) => {
+                    return [...e, newEvent];
+                });
+            },
+            () => {}
+        );
     };
 
     const mergedEvents: DateItem[] = mergeEventArrays(events, tasks);
@@ -677,7 +725,7 @@ const Project = (): JSX.Element => {
                         },
                     }}
                 />
-                <ArrangeMeeting {...{ project, showArrangeMeeting, setShowArrangeMeeting }} />
+                <ArrangeMeeting {...{ project, showArrangeMeeting, setShowArrangeMeeting, createEvent }} />
                 <Container>
                     {showInviteWindow && <ProjectsInvite {...{ projectid, setShowInviteWindow }} />}
                     <Row className="my-2">

@@ -5,7 +5,7 @@ import { EventFindCommonSlots } from "../../api/EventAPI";
 import AuthContext from "../../context/AuthProvider";
 import { convertMaybeISO, lastDayOfMonth } from "../../functions/dates";
 import { BaseButton, InputCSS } from "../../styles";
-import { IProject, IUser } from "../../types";
+import { IEvent, IProject, IUser } from "../../types";
 import Modal from "../Modal";
 
 const Container = styled.div`
@@ -568,20 +568,28 @@ interface createFields {
     end: Date | undefined;
 }
 
+const emptyCreateFields: createFields = {
+    name: "",
+    start: undefined,
+    end: undefined,
+};
+
 const CreateForm = ({
     hideForm,
     selection,
+    message,
+    setMessage,
     setState,
+    createEvent,
 }: {
     hideForm: () => void;
     selection: slotShape | undefined;
+    message: string | undefined;
+    setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
     setState: React.Dispatch<React.SetStateAction<states>>;
+    createEvent: (event: IEvent | undefined) => void;
 }): JSX.Element => {
-    const [fields, setFields] = useState<createFields>({
-        name: "",
-        start: undefined,
-        end: undefined,
-    });
+    const [fields, setFields] = useState<createFields>(emptyCreateFields);
 
     useEffect(() => {
         // when selection changes, update the details in the form
@@ -615,7 +623,35 @@ const CreateForm = ({
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
 
-        // TODO: submit to server & update project state
+        // assert the fields are not empty (also ensured on html level via required)
+        if (fields.name === "") {
+            setMessage("Name must not be empty.");
+            return;
+        } else if (fields.start === undefined || fields.end === undefined) {
+            setMessage("Start and end must not be empty.");
+            return;
+        }
+
+        if (fields.start > fields.end) {
+            setMessage("Date cannot end before it starts.");
+            return;
+        }
+        if (fields.start < new Date()) {
+            setMessage("Cannot create event before now.");
+            return;
+        }
+
+        const event: IEvent = {
+            id: "" /* placeholder */,
+            name: fields.name,
+            start: fields.start,
+            end: fields.end,
+        };
+
+        createEvent(event);
+        hideForm();
+        setMessage(undefined);
+        setFields(emptyCreateFields);
     };
 
     return (
@@ -645,6 +681,7 @@ const CreateForm = ({
                 <div>
                     <DateTimePicker className="w-full" onChange={handleDateChange("end")} value={fields.end} required />
                 </div>
+                <MessageDiv>{message}</MessageDiv>
                 <ButtonSubmit type="submit">Create</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Close</ButtonCancel>
                 <ButtonCancel onClick={() => setState("search")}>Back to Search</ButtonCancel>
@@ -656,18 +693,24 @@ const CreateForm = ({
 const Create = ({
     hideForm,
     slots,
+    message,
+    setMessage,
     setState,
+    createEvent,
 }: {
     hideForm: () => void;
     slots: slotShape[];
+    message: string | undefined;
+    setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
     setState: React.Dispatch<React.SetStateAction<states>>;
+    createEvent: (event: IEvent | undefined) => void;
 }): JSX.Element => {
     const [selection, setSelection] = useState<slotShape | undefined>(undefined);
 
     return (
         <Container>
             <Selector {...{ slots, setSelection, setState }} />
-            <CreateForm {...{ hideForm, selection, setState }} />
+            <CreateForm {...{ hideForm, selection, message, setMessage, setState, createEvent }} />
         </Container>
     );
 };
@@ -676,10 +719,12 @@ const ArrangeMeeting = ({
     project,
     showArrangeMeeting,
     setShowArrangeMeeting,
+    createEvent,
 }: {
     project: IProject;
     showArrangeMeeting: boolean;
     setShowArrangeMeeting: React.Dispatch<React.SetStateAction<boolean>>;
+    createEvent: (event: IEvent | undefined) => void;
 }): JSX.Element => {
     const auth = useContext(AuthContext);
 
@@ -715,7 +760,7 @@ const ArrangeMeeting = ({
     const stateSwitch = {
         search: <Search {...{ project, hideForm, fields, setFields, message, setMessage, setState, setSlots }} />,
         loading: <Loading />,
-        create: <Create {...{ hideForm, slots, setState }} />,
+        create: <Create {...{ hideForm, slots, message, setMessage, setState, createEvent }} />,
     };
 
     return (

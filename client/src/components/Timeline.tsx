@@ -76,7 +76,7 @@ const Row = styled.div`
     column-gap: 1rem; /* column gap specifies the minimum gap between items in the row */
     display: flex;
     height: 100%;
-    justify-content: space-between;
+    justify-content: space-around;
     overflow-x: scroll;
     overflow-y: hidden;
     padding-bottom: 0.5rem;
