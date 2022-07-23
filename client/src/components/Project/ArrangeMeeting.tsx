@@ -533,22 +533,30 @@ const formatDate = (slot: slotShape): string => {
 const Selector = ({
     slots,
     setSelection,
+    setState,
 }: {
     slots: slotShape[];
     setSelection: React.Dispatch<React.SetStateAction<slotShape | undefined>>;
+    setState: React.Dispatch<React.SetStateAction<states>>;
 }): JSX.Element => {
     return (
         <Panel className="h-full">
             <Title>Select a Slot</Title>
             <p>Select something, then edit on the right.</p>
             <SlotsWrapper>
-                {slots.map((s, key) => {
-                    return (
-                        <SlotContainer key={key} onClick={() => setSelection(s)}>
-                            {formatDate(s)}
-                        </SlotContainer>
-                    );
-                })}
+                {slots.length === 0 ? (
+                    <SlotContainer onClick={() => setState("search")}>
+                        None found, click to change search parameters!
+                    </SlotContainer>
+                ) : (
+                    slots.map((s, key) => {
+                        return (
+                            <SlotContainer key={key} onClick={() => setSelection(s)}>
+                                {formatDate(s)}
+                            </SlotContainer>
+                        );
+                    })
+                )}
             </SlotsWrapper>
         </Panel>
     );
@@ -613,6 +621,7 @@ const CreateForm = ({
     return (
         <Panel>
             <Form onSubmit={handleSubmit}>
+                <Title>Create Meeting</Title>
                 <Label>Name</Label>
                 <Input
                     type="text"
@@ -636,7 +645,7 @@ const CreateForm = ({
                 <div>
                     <DateTimePicker className="w-full" onChange={handleDateChange("end")} value={fields.end} required />
                 </div>
-                <ButtonSubmit type="submit">Submit</ButtonSubmit>
+                <ButtonSubmit type="submit">Create</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Close</ButtonCancel>
                 <ButtonCancel onClick={() => setState("search")}>Back to Search</ButtonCancel>
             </Form>
@@ -657,7 +666,7 @@ const Create = ({
 
     return (
         <Container>
-            <Selector {...{ slots, setSelection }} />
+            <Selector {...{ slots, setSelection, setState }} />
             <CreateForm {...{ hideForm, selection, setState }} />
         </Container>
     );
