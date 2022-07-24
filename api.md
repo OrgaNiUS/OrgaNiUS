@@ -879,7 +879,7 @@ type Slot = {
 
 Web Socket "/project_chat". This upgrades the existing http/s connection to a web socket connection.
 
-Input: Query parameters of "projectid" (when establishing the connection).
+Input: Query parameters of "chatid" (when establishing the connection).
 
 Send: Just a single string which is the text message, maximum of 512 bytes (512 ASCII characters).
 

@@ -572,6 +572,14 @@ func ProjectChat(hub *socket.ChatHub, userController controllers.UserController,
 			return
 		}
 
-		socket.ConnectClient(ctx, hub, user.Name)
+		// treat projectid as the roomid as well
+		// so effectively, everyone in the same project is in the same chatroom
+		chatid := ctx.DefaultQuery("chatid", "")
+		if chatid == "" {
+			DisplayError(ctx, "provide a chatid")
+			return
+		}
+
+		socket.ConnectClient(ctx, hub, chatid, user.Name)
 	}
 }

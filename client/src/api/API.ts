@@ -104,8 +104,10 @@ export const CreateDeleteFunctionWithParams = <T>(url: string) => {
  * @param url URL for web socket request, don't put an extra "/" at the front, as opposed to the other HOF in this file. See ProjectSearch.tsx for an example usage.
  * @returns Web Socket.
  */
-export const CreateWebSocket = (url: string): WebSocket => {
-    const full_url: string = API_URL + url;
+export const CreateWebSocket = (url: string, params?: { [key: string]: string }): WebSocket => {
+    const paramsSuffix: string = params === undefined ? "" : "?" + arraySerializer(params);
+
+    const full_url: string = API_URL + url + paramsSuffix;
     // replace http or https with ws
     const ws_url: string = full_url.replace(/^https?/, "ws");
     return new WebSocket(ws_url);

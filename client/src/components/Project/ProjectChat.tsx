@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CreateWebSocket } from "../../api/API";
 import { convertMaybeISO } from "../../functions/dates";
 
@@ -28,30 +28,38 @@ const ProjectChat = (): JSX.Element => {
     const [inputField, setInputField] = useState<string>("");
     const [messages, setMessages] = useState<messageShape[]>([]);
 
-    useEffect(() => {
-        const socket: WebSocket = CreateWebSocket("project_chat");
+    // TODO: get from project page (ofc lol)
+    const [projectid, setProjectid] = useState<string>("");
 
-        socket.addEventListener("open", () => {
+    const establishConnection = () => {
+        if (socket !== undefined) {
+            // close previous socket, if there is any
+            socket.close();
+        }
+
+        const newSocket: WebSocket = CreateWebSocket("project_chat", { chatid: projectid });
+
+        newSocket.addEventListener("open", () => {
             setConnectionState("connected");
         });
 
-        socket.addEventListener("message", (event) => {
+        newSocket.addEventListener("message", (event) => {
             const data = event.data;
             const parsedMessages: messageShape[] = mapServerMessages(data);
 
             setMessages((m) => [...m, ...parsedMessages]);
         });
 
-        socket.addEventListener("close", () => {
+        newSocket.addEventListener("close", () => {
             setConnectionState("disconnected");
         });
 
-        socket.addEventListener("error", () => {
+        newSocket.addEventListener("error", () => {
             setConnectionState("disconnected");
         });
 
-        setSocket(socket);
-    }, []);
+        setSocket(newSocket);
+    };
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         event.preventDefault();
@@ -64,13 +72,25 @@ const ProjectChat = (): JSX.Element => {
             return;
         }
 
-        // TODO: check for string that is too long (& stop it, because otherwise server will kill connection! :D)
-        // https://stackoverflow.com/a/34332105/
+        if (inputField === "") {
+            // TODO: show error message
+            return;
+        }
+
+        // from https://stackoverflow.com/a/34332105/
+        const byteLength: number = new TextEncoder().encode(inputField).length;
+        // maximum size of message configured on the server is 512 bytes and it will kill the connection if the message exceeds it
+        if (byteLength >= 512) {
+            // TODO: show error message
+            return;
+        }
+
         socket.send(inputField);
         setInputField("");
     };
 
     return (
+        // TODO: UI
         <div>
             <p>State: {connectionState}</p>
             <p>Messages:</p>
@@ -81,7 +101,19 @@ const ProjectChat = (): JSX.Element => {
                     </p>
                 );
             })}
-            <input onChange={handleChange} value={inputField} autoFocus />
+            <input
+                onChange={(event) => {
+                    event.preventDefault();
+                    setProjectid(event.target.value);
+                }}
+                value={projectid}
+                autoFocus
+            />
+            <button type="button" onClick={establishConnection}>
+                Connect to Server
+            </button>
+            {/* TODO: give this autoFocus back in project page */}
+            <input onChange={handleChange} value={inputField} required />
             <button type="button" onClick={handleSubmit}>
                 Send
             </button>

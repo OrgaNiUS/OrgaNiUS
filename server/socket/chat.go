@@ -29,6 +29,7 @@ const (
 )
 
 type ChatMessage struct {
+	RoomId      string    `json:"projectid"`
 	MessageType string    `json:"messageType"`
 	User        string    `json:"user"`
 	Message     string    `json:"message"`
@@ -42,10 +43,11 @@ var (
 	}
 )
 
-// TODO: handle for different projects
+type Clients = map[*ChatClient]bool
+
 type ChatHub struct {
 	// set of registered clients
-	clients map[*ChatClient]bool
+	rooms map[string]Clients
 
 	// messages to be broadcasted
 	broadcast chan ChatMessage
@@ -59,10 +61,10 @@ type ChatHub struct {
 
 func NewChatHub() *ChatHub {
 	return &ChatHub{
+		rooms:      make(map[string]Clients),
 		broadcast:  make(chan ChatMessage),
 		register:   make(chan *ChatClient),
 		unregister: make(chan *ChatClient),
-		clients:    make(map[*ChatClient]bool),
 	}
 }
 
@@ -72,25 +74,54 @@ func (h *ChatHub) Run() {
 		select {
 		case client := <-h.register:
 			// client requests to join hub
-			h.clients[client] = true
+			room, isRoomOk := h.rooms[client.roomid]
+			if !isRoomOk {
+				// room does not exist yet -> create a room
+				h.rooms[client.roomid] = make(map[*ChatClient]bool)
+				room = h.rooms[client.roomid]
+			}
+			room[client] = true
 		case client := <-h.unregister:
 			// client requests to leave hub
-			if _, ok := h.clients[client]; ok {
+			room, isRoomOk := h.rooms[client.roomid]
+			if !isRoomOk {
+				// should not happen, because room should be created on register
+				// but just in case, just skip it
+				continue
+			}
+			if _, ok := room[client]; ok {
 				// check if client exists in list of clients before closing connection
-				delete(h.clients, client)
+				delete(room, client)
 				close(client.send)
+
+				if len(room) == 0 {
+					// if room is now empty, remove it
+					delete(h.rooms, client.roomid)
+				}
 			}
 		case message := <-h.broadcast:
+			room, isRoomOk := h.rooms[message.RoomId]
+			if !isRoomOk {
+				// should not happen, because room should be created on register
+				// but just in case, just skip it
+				continue
+			}
+
 			// somebody sent a message
-			for client := range h.clients {
-				// loop through all the clients and broadcast to them
+			for client := range room {
+				// loop through all the clients in the room and broadcast to them
 				select {
 				// broadcast the message to client's receiving channel
 				case client.send <- message:
 				// if client has disconencted, close the channel
 				default:
-					delete(h.clients, client)
+					delete(room, client)
 					close(client.send)
+
+					if len(room) == 0 {
+						// if room is now empty, remove it
+						delete(h.rooms, client.roomid)
+					}
 				}
 			}
 		}
@@ -98,6 +129,8 @@ func (h *ChatHub) Run() {
 }
 
 type ChatClient struct {
+	roomid string
+
 	user string
 
 	hub *ChatHub
@@ -138,6 +171,7 @@ func (c *ChatClient) readPump() {
 		}
 
 		chatMessage := ChatMessage{
+			RoomId:      c.roomid,
 			MessageType: "message",
 			User:        c.user,
 			Message:     string(message),
@@ -198,7 +232,7 @@ func (c *ChatClient) writePump() {
 }
 
 // entrypoint for ProjectChat handler
-func ConnectClient(ctx *gin.Context, hub *ChatHub, name string) {
+func ConnectClient(ctx *gin.Context, hub *ChatHub, roomid, name string) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Print("Error when upgrading websocket connection (for chat): ", err)
@@ -206,10 +240,11 @@ func ConnectClient(ctx *gin.Context, hub *ChatHub, name string) {
 	}
 
 	client := &ChatClient{
-		user: name,
-		hub:  hub,
-		conn: conn,
-		send: make(chan ChatMessage, 256),
+		roomid: roomid,
+		user:   name,
+		hub:    hub,
+		conn:   conn,
+		send:   make(chan ChatMessage, 256),
 	}
 
 	// register new client
