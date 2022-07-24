@@ -887,10 +887,10 @@ Receive: There are different structures of payloads, but the "type" field will a
 
 ```typescript
 type receive = {
-    messages: Message[];
+    messages: message[];
 };
 
-type Message = text | join;
+type message = text | join;
 
 // this structure is for a text message sent by a user
 type text = {

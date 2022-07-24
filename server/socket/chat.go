@@ -33,6 +33,7 @@ type ChatMessage struct {
 	MessageType string    `json:"messageType"`
 	User        string    `json:"user"`
 	Message     string    `json:"message"`
+	Joined      bool      `json:"joined"`
 	Time        time.Time `json:"time"`
 }
 
@@ -61,10 +62,37 @@ type ChatHub struct {
 
 func NewChatHub() *ChatHub {
 	return &ChatHub{
-		rooms:      make(map[string]Clients),
-		broadcast:  make(chan ChatMessage),
+		rooms: make(map[string]Clients),
+		// needs a buffer, else cannot pass anything to it in Run()
+		broadcast:  make(chan ChatMessage, 1),
 		register:   make(chan *ChatClient),
 		unregister: make(chan *ChatClient),
+	}
+}
+
+func (h *ChatHub) broadcastMessage(message ChatMessage) {
+	room, isRoomOk := h.rooms[message.RoomId]
+	if !isRoomOk {
+		// should not happen, because room should be created on register
+		// but just in case, just skip it
+		return
+	}
+
+	for client := range room {
+		// loop through all the clients in the room and broadcast to them
+		select {
+		// broadcast the message to client's receiving channel
+		case client.send <- message:
+		// if client has disconencted, close the channel
+		default:
+			delete(room, client)
+			close(client.send)
+
+			if len(room) == 0 {
+				// if room is now empty, remove it
+				delete(h.rooms, client.roomid)
+			}
+		}
 	}
 }
 
@@ -79,6 +107,17 @@ func (h *ChatHub) Run() {
 				// room does not exist yet -> create a room
 				h.rooms[client.roomid] = make(map[*ChatClient]bool)
 				room = h.rooms[client.roomid]
+			} else {
+				// user has joined message
+				joinMessage := ChatMessage{
+					RoomId:      client.roomid,
+					MessageType: "join",
+					User:        client.user,
+					Joined:      true,
+					Time:        time.Now(),
+				}
+
+				h.broadcastMessage(joinMessage)
 			}
 			room[client] = true
 		case client := <-h.unregister:
@@ -97,33 +136,21 @@ func (h *ChatHub) Run() {
 				if len(room) == 0 {
 					// if room is now empty, remove it
 					delete(h.rooms, client.roomid)
+				} else {
+					// user has left message
+					leftMessage := ChatMessage{
+						RoomId:      client.roomid,
+						MessageType: "join",
+						User:        client.user,
+						Joined:      false,
+						Time:        time.Now(),
+					}
+
+					h.broadcastMessage(leftMessage)
 				}
 			}
 		case message := <-h.broadcast:
-			room, isRoomOk := h.rooms[message.RoomId]
-			if !isRoomOk {
-				// should not happen, because room should be created on register
-				// but just in case, just skip it
-				continue
-			}
-
-			// somebody sent a message
-			for client := range room {
-				// loop through all the clients in the room and broadcast to them
-				select {
-				// broadcast the message to client's receiving channel
-				case client.send <- message:
-				// if client has disconencted, close the channel
-				default:
-					delete(room, client)
-					close(client.send)
-
-					if len(room) == 0 {
-						// if room is now empty, remove it
-						delete(h.rooms, client.roomid)
-					}
-				}
-			}
+			h.broadcastMessage(message)
 		}
 	}
 }
@@ -172,7 +199,7 @@ func (c *ChatClient) readPump() {
 
 		chatMessage := ChatMessage{
 			RoomId:      c.roomid,
-			MessageType: "message",
+			MessageType: "text",
 			User:        c.user,
 			Message:     string(message),
 			Time:        time.Now(),

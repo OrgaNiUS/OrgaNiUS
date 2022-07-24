@@ -10,6 +10,27 @@ interface messageShape {
     time: Date;
 }
 
+const Message = ({ message }: { message: messageShape }): JSX.Element => {
+    if (message.messageType === "text") {
+        return (
+            <p>
+                {message.user}: {message.message}
+            </p>
+        );
+    } else if (message.messageType === "join") {
+        if (message.joined === undefined) {
+            return <p>Invalid Message</p>;
+        }
+        if (message.joined) {
+            return <p>{message.user} has joined the chat.</p>;
+        } else {
+            return <p>{message.user} has left the chat.</p>;
+        }
+    }
+
+    return <p>Invalid Message</p>;
+};
+
 const mapServerMessages = (data: string): messageShape[] => {
     const json = JSON.parse(data);
     const serverMessages: any[] = json.messages;
@@ -94,13 +115,9 @@ const ProjectChat = (): JSX.Element => {
         <div>
             <p>State: {connectionState}</p>
             <p>Messages:</p>
-            {messages.map((m: messageShape, key) => {
-                return (
-                    <p key={key}>
-                        {m.user}: {m.message}
-                    </p>
-                );
-            })}
+            {messages.map((message: messageShape, key) => (
+                <Message key={key} {...{ message }} />
+            ))}
             <input
                 onChange={(event) => {
                     event.preventDefault();
