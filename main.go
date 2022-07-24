@@ -11,13 +11,14 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
+	"github.com/OrgaNiUS/OrgaNiUS/server/socket"
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
-func handleRoutes(URL string, router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
+func handleRoutes(router *gin.Engine, userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, eventController controllers.EventController, jwtParser *auth.JWTParser, mailer *mailer.Mailer) {
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
@@ -64,6 +65,7 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/project_get_applications", handlers.ProjectGetApplicants(userController, projectController, jwtParser))
 	v1.PATCH("/project_choose", handlers.ProjectChooseUsers(userController, projectController, jwtParser))
 	v1.PATCH("/project_remove_user", handlers.ProjectRemoveUsers(userController, projectController, jwtParser))
+	v1.PATCH("/project_leave", handlers.ProjectLeave(userController, projectController, taskController, jwtParser))
 	v1.DELETE("/project_delete", handlers.ProjectDelete(userController, projectController, taskController, jwtParser))
 
 	v1.POST("/task_create", handlers.TaskCreate(userController, projectController, taskController, jwtParser))
@@ -76,10 +78,18 @@ func handleRoutes(URL string, router *gin.Engine, userController controllers.Use
 	v1.GET("/event_get_all", handlers.EventGetAll(userController, projectController, eventController, jwtParser))
 	v1.PATCH("/event_modify", handlers.EventModify(eventController, jwtParser))
 	v1.DELETE("/event_delete", handlers.EventDelete(userController, projectController, eventController, jwtParser))
+	v1.POST("/event_nusmods", handlers.EventNusmods(userController, eventController, jwtParser))
+	v1.POST("/event_ics", handlers.EventIcs(userController, eventController, jwtParser))
+	v1.POST("/event_find_common", handlers.EventCommonSlots(userController, projectController, eventController, jwtParser))
 
 	// web socket handlers here
 	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))
 	v1.GET("/project_invite_search", handlers.ProjectInviteSearch(userController, jwtParser))
+
+	hub := socket.NewChatHub()
+	go hub.Run()
+
+	v1.GET("/project_chat", handlers.ProjectChat(hub, userController, jwtParser))
 }
 
 func main() {
@@ -135,7 +145,7 @@ func main() {
 	eventController := controllers.NewE(client, URL)
 	jwtParser := auth.New(jwtSecret)
 	mailer := mailer.New("OrgaNiUS", emailSender, sendGridKey)
-	handleRoutes(URL, router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
+	handleRoutes(router, *userController, *projectController, *taskController, *eventController, jwtParser, mailer)
 
 	log.Print("Server booted up!")
 

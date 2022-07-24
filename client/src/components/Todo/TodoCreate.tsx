@@ -1,5 +1,5 @@
-import moment from "moment";
 import { useContext, useState } from "react";
+import DateTimePicker from "react-datetime-picker";
 import styled from "styled-components";
 import { DataContext } from "../../context/DataProvider";
 import { BaseButton, IconButton, InputCSS } from "../../styles";
@@ -96,17 +96,17 @@ const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] =>
     const handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = (event) => {
         event.preventDefault();
 
-        if (event.target.name === "deadline") {
-            const date = event.target.value === "" ? undefined : moment(event.target.value).toDate();
+        setFields((f) => {
+            return { ...f, [event.target.name]: event.target.value };
+        });
+    };
 
+    const handleDateChange = (field: string) => {
+        return (value: Date) => {
             setFields((f) => {
-                return { ...f, deadline: date };
+                return { ...f, [field]: value };
             });
-        } else {
-            setFields((f) => {
-                return { ...f, [event.target.name]: event.target.value };
-            });
-        }
+        };
     };
 
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
@@ -165,12 +165,13 @@ const TodoCreate = ({ view }: { view: TodoView }): [JSX.Element, JSX.Element] =>
                 <Label>Tags (separate with commas)</Label>
                 <Input type="text" name="tags" placeholder="Tags" onChange={handleChange} value={fields.tags} />
                 <Label>Deadline</Label>
-                <Input
-                    type="datetime-local"
-                    name="deadline"
-                    onChange={handleChange}
-                    value={fields.deadline !== undefined ? moment(fields.deadline).format("YYYY-MM-DD HH:mm") : ""}
-                />
+                <div>
+                    <DateTimePicker
+                        className="w-full"
+                        onChange={handleDateChange("deadline")}
+                        value={fields.deadline}
+                    />
+                </div>
                 <ButtonSubmit type="submit">Submit</ButtonSubmit>
                 <ButtonCancel onClick={hideForm}>Cancel</ButtonCancel>
             </Form>

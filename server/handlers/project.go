@@ -58,6 +58,7 @@ func ProjectGet(userController controllers.UserController, projectController con
 				"creationTime": project.CreationTime,
 				"members":      userArr,
 				"tasks":        taskController.TaskMapToArray(ctx, project.Tasks),
+				"isPublic":     project.IsPublic,
 				"events":       eventController.EventMapToArray(ctx, project.Events),
 			}
 			ctx.JSON(http.StatusOK, returnedProject)
@@ -418,6 +419,80 @@ func ProjectDelete(userController controllers.UserController, projectController 
 	}
 }
 
+func ProjectLeave(userController controllers.UserController, projectController controllers.ProjectController, taskController controllers.TaskController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+		type Query struct {
+			Id string `bson:"projectid" json:"projectid"`
+		}
+		var query Query
+		if err := ctx.BindJSON(&query); err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		project, err := projectController.ProjectRetrieve(ctx, query.Id)
+		if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		user, err := userController.UserRetrieve(ctx, id, "")
+		if err == mongo.ErrNoDocuments {
+			DisplayError(ctx, "user does not exist")
+			return
+		} else if err != nil {
+			DisplayError(ctx, err.Error())
+			return
+		}
+		useridArr := []string{id}
+
+		// If user is admin & there are no other admins in the project, assign someone else admin role.
+		if len(project.Members) > 1 {
+			if project.Settings.Roles[project.Members[id]].IsAdmin {
+				onlyAdmin := true
+				for nextUserId := range project.Members {
+					if nextUserId == id {
+						continue
+					}
+					if project.Members[nextUserId] == "admin" {
+						onlyAdmin = false
+						break
+					}
+				}
+				if onlyAdmin {
+					for nextUserId := range project.Members {
+						if nextUserId != id {
+							project.Members[nextUserId] = "admin"
+							break
+						}
+					}
+				}
+			}
+		}
+
+		// Delete user from project.Members
+		delete(project.Members, id)
+		projectController.ProjectModifyUser(ctx, &project)
+
+		// Delete all project tasks from user.Tasks
+		for _, taskid := range project.Tasks {
+			delete(user.Tasks, taskid)
+		}
+
+		// Remove User from all project.Tasks.assignedTo
+		taskController.TasksDeleteUser(ctx, project.Tasks, id)
+		userController.UserModifyTask(ctx, &user)
+
+		// delete projectid from user.projects
+		userController.UsersDeleteProject(ctx, useridArr, query.Id)
+
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
+}
+
 // autocomplete for searching for users to invite
 func ProjectInviteSearch(userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return socket.CreateWebSocketFunction(func(ctx *gin.Context, message []byte) (interface{}, bool) {
@@ -481,4 +556,23 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 			Projects: projects,
 		}, false
 	})
+}
+
+func ProjectChat(hub *socket.ChatHub, userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		_, name, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		// using projectid as roomid, but this also means that we can easily extend this out to other applications
+		roomid := ctx.DefaultQuery("roomid", "")
+		if roomid == "" {
+			DisplayError(ctx, "provide a roomid")
+			return
+		}
+
+		socket.ConnectClient(ctx, hub, roomid, name)
+	}
 }

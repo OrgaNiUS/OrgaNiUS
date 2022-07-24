@@ -55,6 +55,17 @@ export const CreatePostFunction = <T>(url: string) => {
 };
 
 /**
+ * Returns a post function with FormData.
+ * @param url URL for request.
+ * @returns Post Function with FormData.
+ */
+export const CreatePostFunctionWithFormData = (url: string) => {
+    return (axiosInstance: AxiosInstance, formData: FormData, success: APICallback, failure: APICallback) => {
+        return axiosInstance.post(url, formData).then(success).catch(failure);
+    };
+};
+
+/**
  * Returns a patch function.
  * @param url URL for request.
  * @returns Patch Function.
@@ -93,8 +104,10 @@ export const CreateDeleteFunctionWithParams = <T>(url: string) => {
  * @param url URL for web socket request, don't put an extra "/" at the front, as opposed to the other HOF in this file. See ProjectSearch.tsx for an example usage.
  * @returns Web Socket.
  */
-export const CreateWebSocket = (url: string): WebSocket => {
-    const full_url: string = API_URL + url;
+export const CreateWebSocket = (url: string, params?: { [key: string]: string }): WebSocket => {
+    const paramsSuffix: string = params === undefined ? "" : "?" + arraySerializer(params);
+
+    const full_url: string = API_URL + url + paramsSuffix;
     // replace http or https with ws
     const ws_url: string = full_url.replace(/^https?/, "ws");
     return new WebSocket(ws_url);

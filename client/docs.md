@@ -72,7 +72,23 @@ The user can see their tasks and events in this timeline view, where they can qu
 
 The user can click on the two buttons that flank either side of the timeline to scroll the timeline. Alternatively, they can scroll using traditional scrolling methods like shift + scrollwheel or touchpad swiping.
 
-The user can click on these tasks and events to toggle a popup card that reveals some more information.
+The user can click on these tasks and events to toggle a [popup card](#events) that reveals some more information.
+
+### Import from nusmods.com
+
+There is an option to import schedule from nusmods.com through a button in the dashboard. After clicking on the button, the user will be given a set of instructions.
+
+### Import from iCalendar file
+
+There is an option to import timetable from a iCalendar (.ics) file through a button in the dashboard. After clicking on the button, the user will be given a set of instructions.
+
+Note that repeating events are not supported and only the first event will be imported. If a user wishes to import nusmods timetable, use the [previous option](#import-from-nusmodscom) instead.
+
+## Events
+
+In the event popup card, the user can click on the "3 dots" menu to reveal some actions on Events. For tasks (which also appear in the timeline/scheduler), the menu will not appear on the popup card.
+
+The user can edit/trash an event from here.
 
 ## Projects
 
@@ -88,9 +104,21 @@ The user can also create a new project from here.
 
 The user can see an individual project's dashboard here.
 
-They can work with the tasks, similarly to the user dashboard, and other features.
+They can work with the tasks and events, similarly to the user dashboard, and other features.
 
 Admins can also navigate to the project settings page from this screen. Admins can also invite others to the project from this screen, with autocomplete. Admins can also manage user applications from this screen.
+
+The user can choose to leave the project at any time. Admin's if chose to leave, will automatically transfer admin rights to next earliest member to join project.
+
+# Project Settings
+
+Only accessible to admins of project to prevent abuse.
+
+Admin can change Name, Description, Public status, and Edit current members(currently only Remove a User). They can also choose to delete the project.
+
+If an admin deletes the project, project will be permanently deleted and all associated tasks will be deleted as well. All users involved in the project will also be removed from the project as a result.
+
+Admin can navigate to the application page from here toe manage applications to join the project.
 
 ### Task Assignment
 

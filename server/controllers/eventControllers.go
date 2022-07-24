@@ -13,6 +13,8 @@ import (
 type EventCollectionInterface interface {
 	InsertOne(ctx context.Context, event *models.Event) (primitive.ObjectID, error)
 
+	InsertMany(ctx context.Context, events []*models.Event) (*mongo.InsertManyResult, error)
+
 	FindOne(ctx context.Context, id string) (*models.Event, error)
 
 	FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error
@@ -33,6 +35,15 @@ func (c *EventCollection) InsertOne(ctx context.Context, event *models.Event) (p
 	}
 	id := result.InsertedID.(primitive.ObjectID)
 	return id, nil
+}
+
+func (c *EventCollection) InsertMany(ctx context.Context, events []*models.Event) (*mongo.InsertManyResult, error) {
+	// unfortunately, need to explicitly change the type this way
+	documents := make([]interface{}, len(events))
+	for i, event := range events {
+		documents[i] = event
+	}
+	return c.eventCollection.InsertMany(ctx, documents)
 }
 
 func (c *EventCollection) FindAll(ctx context.Context, ids []primitive.ObjectID, events *[]models.Event) error {

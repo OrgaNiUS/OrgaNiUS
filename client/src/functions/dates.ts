@@ -70,3 +70,32 @@ export const isLessThan = (date: Date, period: number, type: typeof types[number
             return diff < period;
     }
 };
+
+/**
+ * Converts Maybe ISO from the server into a maybe Javascript Date object.
+ * @param maybeISO Maybe ISO string returned from the server.
+ * @returns Maybe Javascript Date object.
+ */
+export const convertMaybeISO = (maybeISO: string): Date | undefined => {
+    if (maybeISO === "1970-01-01T00:00:00Z") {
+        return undefined;
+    }
+    return new Date(maybeISO);
+};
+
+/**
+ * Gets last day of month.
+ * @param month from 1 to 12
+ * @returns The last day of the month.
+ */
+export const lastDayOfMonth = (month: number): number => {
+    if (month < 1 || month > 12) {
+        return -1;
+    }
+
+    const now: Date = new Date();
+    // javascript quirk: setting day to 0 gets the last day of previous month
+    const lastDay: Date = new Date(now.getFullYear(), month, 0);
+
+    return lastDay.getDate();
+};

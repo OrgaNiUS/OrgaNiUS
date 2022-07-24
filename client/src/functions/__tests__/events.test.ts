@@ -3,11 +3,13 @@ import { filterEvents, filterTasks, mergeEventArrays } from "../events";
 
 describe("mergeEventArrays", () => {
     const event1: IEvent = {
+        id: "0",
         name: "event 1",
         start: new Date(2022, 0, 1),
         end: new Date(2022, 1, 1),
     };
     const event2: IEvent = {
+        id: "0",
         name: "event 2",
         start: new Date(2022, 0, 1),
         end: new Date(2022, 0, 1),
@@ -25,6 +27,7 @@ describe("mergeEventArrays", () => {
         isPersonal: true,
     };
     const event3: IEvent = {
+        id: "0",
         name: task1.name,
         start: task1.deadline as Date,
         end: task1.deadline as Date,
@@ -41,6 +44,7 @@ describe("mergeEventArrays", () => {
         isPersonal: true,
     };
     const event4: IEvent = {
+        id: "0",
         name: task2.name,
         start: task2.deadline as Date,
         end: task2.deadline as Date,
@@ -61,10 +65,10 @@ describe("filterEvents", () => {
     it("filter over", () => {
         const events: IEvent[] = [
             {
+                id: "",
                 name: "Ends yesterday.",
                 start: new Date(Date.now() - 1000 * 60 * 60 * 24),
                 end: new Date(Date.now() - 1000 * 60 * 60 * 24),
-                allDay: true,
             },
         ];
         expect(filterEvents(events, { over: true })).toStrictEqual([]);
@@ -92,7 +96,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -117,7 +120,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -142,7 +144,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
         expect(
@@ -152,7 +153,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
         expect(
@@ -162,7 +162,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
         expect(
@@ -172,7 +171,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "",
-                taskids: undefined,
             })
         ).toStrictEqual([]);
     });
@@ -197,7 +195,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "name",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });
@@ -222,7 +219,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "desc",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });
@@ -247,7 +243,6 @@ describe("filterTasks", () => {
                 personal: true,
                 project: true,
                 searchTerm: "tag",
-                taskids: undefined,
             })
         ).toStrictEqual(tasks);
     });

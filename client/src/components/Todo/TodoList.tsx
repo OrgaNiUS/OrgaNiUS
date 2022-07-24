@@ -61,14 +61,7 @@ const TodoList = (): JSX.Element => {
                 ) : (
                     <div>
                         {props.filteredTasks.map((task, i) => {
-                            return (
-                                <Task
-                                    key={i}
-                                    {...{
-                                        task,
-                                    }}
-                                />
-                            );
+                            return <Task key={i} {...{ task }} />;
                         })}
                     </div>
                 )}

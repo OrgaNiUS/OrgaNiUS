@@ -32,3 +32,15 @@ export const getDeltaOfArrays = <T>(original: T[], changed: T[]): [T[], T[]] => 
 
     return [added, removed];
 };
+
+/**
+ * Removes an item from array.
+ *
+ * @param arr The array we are opearating on.
+ * @param value  The value to remove.
+ *
+ * @returns Modified array.
+ */
+export const removeFromArray = <T>(arr: Array<T>, value: T): Array<T> => { 
+  return arr.filter(item => item !== value);
+}

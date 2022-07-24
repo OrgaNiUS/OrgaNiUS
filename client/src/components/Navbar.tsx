@@ -7,9 +7,7 @@ import { deleteCookie } from "../functions/cookies";
 const Navbar = (): JSX.Element => {
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
-    const username = auth.auth.user;
-    const linkToUser: string = "/user/" + username;
-
+    
     const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
         UserLogout(
             auth.axiosInstance,
@@ -28,11 +26,11 @@ const Navbar = (): JSX.Element => {
             <Link to="/" className="home-icon">
                 OrgaNiUS
             </Link>
+            <Link to="/" className="navbar-icon">
+                Home
+            </Link>
             <Link to="/projects" className="navbar-icon">
                 Projects
-            </Link>
-            <Link to={linkToUser} className="navbar-icon">
-                User
             </Link>
             <Link to="/settings" className="navbar-icon">
                 Settings

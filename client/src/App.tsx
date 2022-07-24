@@ -38,19 +38,7 @@ function App() {
         return () => clearInterval(interval);
     }, [auth.axiosInstance, auth.auth.loggedIn]);
 
-    return !auth.auth.loggedIn ? (
-        <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/registration" element={<Registration />} />
-            <Route path="/forgot_pwd" element={<ForgotPwd />} />
-            <Route path="/project_create" element={<UnauthorisedAccess />} />
-            <Route path="/projects" element={<UnauthorisedAccess />} />
-            <Route path="/project/:id" element={<UnauthorisedAccess />} />
-            <Route path="/settings" element={<UnauthorisedAccess />} />
-            <Route path="/user/:username" element={<UnauthorisedAccess />} />
-            <Route path="*" element={<PageDoesNotExist />} />
-        </Routes>
-    ) : (
+    return auth.auth.loggedIn ? (
         <DataProvider>
             <>
                 <Navbar />
@@ -67,6 +55,18 @@ function App() {
                 </Routes>
             </>
         </DataProvider>
+    ) : (
+        <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/forgot_pwd" element={<ForgotPwd />} />
+            <Route path="/project_create" element={<UnauthorisedAccess />} />
+            <Route path="/projects" element={<UnauthorisedAccess />} />
+            <Route path="/project/:id" element={<UnauthorisedAccess />} />
+            <Route path="/settings" element={<UnauthorisedAccess />} />
+            <Route path="/user/:username" element={<UnauthorisedAccess />} />
+            <Route path="*" element={<PageDoesNotExist />} />
+        </Routes>
     );
 }
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mergeEventArrays } from "../functions/events";
 import { IEvent, IProject, IProjectCondensed, ITask, MaybeProject } from "../types";
-import { DataContext, patchTaskData } from "./DataProvider";
+import { DataContext, patchEventData, patchTaskData } from "./DataProvider";
 
 const MockDataProvider = ({
     initialTasks,
@@ -17,6 +17,8 @@ const MockDataProvider = ({
     const [tasks, setTasks] = useState<ITask[]>(initialTasks);
     const [events, setEvents] = useState<IEvent[]>(initialEvents);
     const mergedEvents = mergeEventArrays(events, tasks);
+    const [selectedEvent, setSelectedEvent] = useState<string | undefined>(undefined);
+    const [editingEvent, setEditingEvent] = useState<IEvent | undefined>(undefined);
     const [projects, setProjects] = useState<IProjectCondensed[]>(initialProjects);
 
     const addTask = (task: ITask, _: string = ""): Promise<ITask | undefined> => {
@@ -58,13 +60,54 @@ const MockDataProvider = ({
         });
     };
 
-    const getProject = (id: string): Promise<[MaybeProject, ITask[]]> => {
+    const addEvent = (event: IEvent, projectid?: string) => {
+        const newEvent: IEvent = { ...event, id: "" };
+
+        setEvents((e) => [...e, newEvent]);
+    };
+
+    const nusmodsEvent = (url: string) => {};
+
+    const icsEvent = (file: File) => {};
+
+    const patchEvent = (event: patchEventData) => {
+        setEvents((e) => {
+            const eventsCopy: IEvent[] = [...e];
+            for (let i = 0; i < eventsCopy.length; i++) {
+                const e: IEvent = { ...eventsCopy[i] };
+                if (e.id !== event.id) {
+                    continue;
+                }
+                eventsCopy[i] = {
+                    id: e.id,
+                    name: event.name ?? e.name,
+                    start: event.start ?? e.start,
+                    end: event.end ?? e.end,
+                };
+                break;
+            }
+            return eventsCopy;
+        });
+    };
+
+    const removeEvent = (eventid: string) => {
+        setEvents((e) => e.filter((e) => e.id !== eventid));
+    };
+
+    const getProject = (id: string): Promise<[MaybeProject, ITask[], IEvent[]]> => {
         const condensedProject: IProjectCondensed | undefined = projects.find((project) => project.id === id);
         if (condensedProject === undefined) {
-            return Promise.resolve([undefined, []]);
+            return Promise.resolve([undefined, [], []]);
         }
-        const project: IProject = { ...condensedProject, members: [], events: [], tasks: [], creationTime: new Date() };
-        return Promise.resolve([project, []]);
+        const project: IProject = {
+            ...condensedProject,
+            members: [],
+            events: [],
+            tasks: [],
+            creationTime: new Date(),
+            isPublic: false,
+        };
+        return Promise.resolve([project, [], []]);
     };
 
     const addProject = (project: IProject): Promise<string> => {
@@ -86,6 +129,15 @@ const MockDataProvider = ({
                 removeTasks,
                 events,
                 mergedEvents,
+                selectedEvent,
+                setSelectedEvent,
+                editingEvent,
+                setEditingEvent,
+                addEvent,
+                nusmodsEvent,
+                icsEvent,
+                patchEvent,
+                removeEvent,
                 projects,
                 getProject,
                 addProject,

@@ -13,6 +13,8 @@ import (
 )
 
 type UserCollectionInterface interface {
+	Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (cur *mongo.Cursor, err error)
+
 	// Find one by id, name or email.
 	// All empty fields are ignored in the search.
 	// Populates the user reference passed in and returns it again. Handles nil user as well.
@@ -91,6 +93,10 @@ func (c *UserCollection) FindAll(ctx context.Context, useridArr []primitive.Obje
 
 func (c *UserCollection) FindAllByName(ctx context.Context, usernames []string, UserArr *[]models.User) error {
 	return c.FindAllByField(ctx, "name", usernames, UserArr)
+}
+
+func (c *UserCollection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (cur *mongo.Cursor, err error) {
+	return c.userCollection.Find(ctx, filter, opts...)
 }
 
 func (c *UserCollection) InsertOne(ctx context.Context, user *models.User) (primitive.ObjectID, error) {
