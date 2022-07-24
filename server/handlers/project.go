@@ -481,7 +481,7 @@ func ProjectLeave(userController controllers.UserController, projectController c
 		for _, taskid := range project.Tasks {
 			delete(user.Tasks, taskid)
 		}
-		
+
 		// Remove User from all project.Tasks.assignedTo
 		taskController.TasksDeleteUser(ctx, project.Tasks, id)
 		userController.UserModifyTask(ctx, &user)

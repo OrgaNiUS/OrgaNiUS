@@ -4,6 +4,7 @@ import { UserRefreshJWT } from "./api/UserAPI";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import ProjectApplications from "./components/Project/ProjectApplications";
+import ProjectChat from "./components/Project/ProjectChat";
 import AuthContext from "./context/AuthProvider";
 import { DataProvider } from "./context/DataProvider";
 import PageDoesNotExist from "./pages/ErrorPages/PageDoesNotExist";
@@ -58,6 +59,8 @@ function App() {
     ) : (
         <Routes>
             <Route path="/" element={<Login />} />
+            {/* TODO: move this */}
+            <Route path="/chat" element={<ProjectChat />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/forgot_pwd" element={<ForgotPwd />} />
             <Route path="/project_create" element={<UnauthorisedAccess />} />
