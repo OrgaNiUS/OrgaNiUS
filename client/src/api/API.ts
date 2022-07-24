@@ -108,7 +108,8 @@ export const CreateWebSocket = (url: string, params?: { [key: string]: string })
     const paramsSuffix: string = params === undefined ? "" : "?" + arraySerializer(params);
 
     const full_url: string = API_URL + url + paramsSuffix;
-    // replace http or https with ws
-    const ws_url: string = full_url.replace(/^https?/, "ws");
+    // some browsers restrict & prevent mixed content access
+    // replace http with ws and https with wss
+    const ws_url: string = full_url.replace(/^http/, "ws");
     return new WebSocket(ws_url);
 };
