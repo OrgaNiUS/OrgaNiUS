@@ -16,6 +16,7 @@ const ItemContainer = styled.div`
     display: flex;
     flex-direction: column;
     min-width: fit-content;
+    pointer-events: auto;
     position: relative;
     text-align: center;
     top: 50%;
@@ -73,6 +74,7 @@ const Container = styled.div`
     bottom: 5rem;
     height: 10rem;
     margin-bottom: -5rem; /* https://stackoverflow.com/a/12601490 */
+    pointer-events: none;
     position: relative;
 `;
 

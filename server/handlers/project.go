@@ -481,7 +481,7 @@ func ProjectLeave(userController controllers.UserController, projectController c
 		for _, taskid := range project.Tasks {
 			delete(user.Tasks, taskid)
 		}
-		
+
 		// Remove User from all project.Tasks.assignedTo
 		taskController.TasksDeleteUser(ctx, project.Tasks, id)
 		userController.UserModifyTask(ctx, &user)
@@ -556,4 +556,23 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 			Projects: projects,
 		}, false
 	})
+}
+
+func ProjectChat(hub *socket.ChatHub, userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		_, name, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		// using projectid as roomid, but this also means that we can easily extend this out to other applications
+		roomid := ctx.DefaultQuery("roomid", "")
+		if roomid == "" {
+			DisplayError(ctx, "provide a roomid")
+			return
+		}
+
+		socket.ConnectClient(ctx, hub, roomid, name)
+	}
 }

@@ -875,6 +875,40 @@ type Slot = {
 };
 ```
 
+## Project Chat
+
+Web Socket "/project_chat". This upgrades the existing http/s connection to a web socket connection.
+
+Input: Query parameters of "chatid" (when establishing the connection).
+
+Send: Just a single string which is the text message, maximum of 512 bytes (512 ASCII characters).
+
+Receive: There are different structures of payloads, but the "type" field will always be present and will determine the structure of the payload.
+
+```typescript
+type receive = {
+    messages: message[];
+};
+
+type message = text | join;
+
+// this structure is for a text message sent by a user
+type text = {
+    messageType: "text";
+    user: string; // sent by this user
+    message: string;
+    time: string;
+};
+
+// this structure is for a user joining/leaving the chat
+type join = {
+    messageType: "join";
+    user: string; // this user has joined/left
+    joined: boolean; // true if joined, false if left
+    time: string;
+};
+```
+
 ## Definitions
 
 ```typescript

@@ -8,6 +8,7 @@ import EventEdit from "../components/Event/EventEdit";
 import Modal from "../components/Modal";
 import PreLoader from "../components/PreLoader";
 import ArrangeMeeting from "../components/Project/ArrangeMeeting";
+import ProjectChat from "../components/Project/ProjectChat";
 import ProjectsInvite from "../components/Projects/ProjectsInvite";
 import Timeline from "../components/Timeline";
 import TodoGrid from "../components/Todo/TodoGrid";
@@ -822,6 +823,8 @@ const Project = (): JSX.Element => {
                             <ButtonMeetingSlot type="button" onClick={() => setShowArrangeMeeting(true)}>
                                 Arrange Meeting
                             </ButtonMeetingSlot>
+
+                            <ProjectChat {...{ project }} />
                         </LeftBox>
                         <RightBox>
                             <TodoGrid {...{ view: "project" }} />

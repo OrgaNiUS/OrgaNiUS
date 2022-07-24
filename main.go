@@ -11,6 +11,7 @@ import (
 	"github.com/OrgaNiUS/OrgaNiUS/server/db"
 	"github.com/OrgaNiUS/OrgaNiUS/server/handlers"
 	"github.com/OrgaNiUS/OrgaNiUS/server/mailer"
+	"github.com/OrgaNiUS/OrgaNiUS/server/socket"
 
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
@@ -84,6 +85,11 @@ func handleRoutes(router *gin.Engine, userController controllers.UserController,
 	// web socket handlers here
 	v1.GET("/project_search", handlers.ProjectSearch(projectController, jwtParser))
 	v1.GET("/project_invite_search", handlers.ProjectInviteSearch(userController, jwtParser))
+
+	hub := socket.NewChatHub()
+	go hub.Run()
+
+	v1.GET("/project_chat", handlers.ProjectChat(hub, userController, jwtParser))
 }
 
 func main() {
