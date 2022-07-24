@@ -12,6 +12,12 @@ import (
 	This chat server is built upon this example listed in gorilla web socket's repo.
 
 	https://github.com/gorilla/websocket/tree/master/examples/chat
+
+	Added:
+	1. Rooms
+	2. Users
+	3. Join/Leave messages
+	4. Integrated into our application (of course!)
 */
 
 const (

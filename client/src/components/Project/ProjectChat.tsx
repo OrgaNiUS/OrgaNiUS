@@ -58,7 +58,7 @@ const ProjectChat = (): JSX.Element => {
             socket.close();
         }
 
-        const newSocket: WebSocket = CreateWebSocket("project_chat", { chatid: projectid });
+        const newSocket: WebSocket = CreateWebSocket("project_chat", { roomid: projectid });
 
         newSocket.addEventListener("open", () => {
             setConnectionState("connected");

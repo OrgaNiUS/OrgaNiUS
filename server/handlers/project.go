@@ -560,26 +560,19 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 
 func ProjectChat(hub *socket.ChatHub, userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		id, _, ok := jwtParser.GetFromJWT(ctx)
+		_, name, ok := jwtParser.GetFromJWT(ctx)
 		if !ok {
 			DisplayNotAuthorized(ctx, "not logged in")
 			return
 		}
 
-		user, err := userController.UserRetrieve(ctx, id, "")
-		if err != nil {
-			DisplayNotAuthorized(ctx, "bad jwt")
+		// using projectid as roomid, but this also means that we can easily extend this out to other applications
+		roomid := ctx.DefaultQuery("roomid", "")
+		if roomid == "" {
+			DisplayError(ctx, "provide a roomid")
 			return
 		}
 
-		// treat projectid as the roomid as well
-		// so effectively, everyone in the same project is in the same chatroom
-		chatid := ctx.DefaultQuery("chatid", "")
-		if chatid == "" {
-			DisplayError(ctx, "provide a chatid")
-			return
-		}
-
-		socket.ConnectClient(ctx, hub, chatid, user.Name)
+		socket.ConnectClient(ctx, hub, roomid, name)
 	}
 }
