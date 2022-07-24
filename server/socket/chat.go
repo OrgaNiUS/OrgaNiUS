@@ -24,17 +24,22 @@ const (
 	// send pings to peer with this period, pingPeriod < pongWait
 	pingPeriod = (pongWait * 9) / 10
 
-	// maximum message size
+	// maximum message size (in bytes)
 	maxMessageSize = 512
 )
+
+type ChatMessage struct {
+	MessageType string    `json:"messageType"`
+	User        string    `json:"user"`
+	Message     string    `json:"message"`
+	Time        time.Time `json:"time"`
+}
 
 var (
 	chatUpgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-
-	newLine = []byte{'\n'}
 )
 
 // TODO: handle for different projects
@@ -43,7 +48,7 @@ type ChatHub struct {
 	clients map[*ChatClient]bool
 
 	// messages to be broadcasted
-	broadcast chan []byte
+	broadcast chan ChatMessage
 
 	// register requests from client
 	register chan *ChatClient
@@ -54,7 +59,7 @@ type ChatHub struct {
 
 func NewChatHub() *ChatHub {
 	return &ChatHub{
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan ChatMessage),
 		register:   make(chan *ChatClient),
 		unregister: make(chan *ChatClient),
 		clients:    make(map[*ChatClient]bool),
@@ -93,13 +98,15 @@ func (h *ChatHub) Run() {
 }
 
 type ChatClient struct {
+	user string
+
 	hub *ChatHub
 
 	// The websocket connection.
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	send chan ChatMessage
 }
 
 // reads messages from the websocket connection
@@ -129,9 +136,14 @@ func (c *ChatClient) readPump() {
 			}
 			break
 		}
-		// TODO: unmarshal message into a struct instead (& let broadcast take in a struct of message)
-		// trimmedMessage := bytes.TrimSpace(bytes.Replace(message, newLine, space, -1))
-		c.hub.broadcast <- message
+
+		chatMessage := ChatMessage{
+			MessageType: "message",
+			User:        c.user,
+			Message:     string(message),
+			Time:        time.Now(),
+		}
+		c.hub.broadcast <- chatMessage
 	}
 }
 
@@ -150,7 +162,7 @@ func (c *ChatClient) writePump() {
 
 	for {
 		select {
-		case message, isChannelOk := <-c.send:
+		case chatMessage, isChannelOk := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !isChannelOk {
 				// hub closed the channel
@@ -158,23 +170,22 @@ func (c *ChatClient) writePump() {
 				return
 			}
 
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
 			n := len(c.send)
-			for i := 0; i < n; i++ {
-				// sends all queued messages to the client
-				w.Write(newLine)
-				w.Write(<-c.send)
+			messages := make([]ChatMessage, n+1)
+			messages[0] = chatMessage
+
+			for i := 1; i <= n; i++ {
+				// gather all remaining queued messages to the client & send as a json object
+				messages[i] = <-c.send
 			}
 
-			// close the writer
-			if err := w.Close(); err != nil {
-				return
+			type r struct {
+				Messages []ChatMessage `json:"messages"`
 			}
+
+			c.conn.WriteJSON(r{
+				Messages: messages,
+			})
 
 		case <-ticker.C:
 			// send ping message
@@ -186,25 +197,25 @@ func (c *ChatClient) writePump() {
 	}
 }
 
-func ChatHandler(hub *ChatHub) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			log.Print("Error when upgrading websocket connection (for chat): ", err)
-			return
-		}
-
-		client := &ChatClient{
-			hub:  hub,
-			conn: conn,
-			send: make(chan []byte, 256),
-		}
-
-		// register new client
-		client.hub.register <- client
-
-		// run in goroutines for concurrency
-		go client.writePump()
-		go client.readPump()
+// entrypoint for ProjectChat handler
+func ConnectClient(ctx *gin.Context, hub *ChatHub, name string) {
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Print("Error when upgrading websocket connection (for chat): ", err)
+		return
 	}
+
+	client := &ChatClient{
+		user: name,
+		hub:  hub,
+		conn: conn,
+		send: make(chan ChatMessage, 256),
+	}
+
+	// register new client
+	client.hub.register <- client
+
+	// run in goroutines for concurrency
+	go client.writePump()
+	go client.readPump()
 }

@@ -557,3 +557,21 @@ func ProjectSearch(projectController controllers.ProjectController, jwtParser *a
 		}, false
 	})
 }
+
+func ProjectChat(hub *socket.ChatHub, userController controllers.UserController, jwtParser *auth.JWTParser) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, _, ok := jwtParser.GetFromJWT(ctx)
+		if !ok {
+			DisplayNotAuthorized(ctx, "not logged in")
+			return
+		}
+
+		user, err := userController.UserRetrieve(ctx, id, "")
+		if err != nil {
+			DisplayNotAuthorized(ctx, "bad jwt")
+			return
+		}
+
+		socket.ConnectClient(ctx, hub, user.Name)
+	}
+}

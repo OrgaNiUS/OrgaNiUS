@@ -50,6 +50,8 @@ function App() {
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/project/:id" element={<Project />} />
                     <Route path="/project_applications/:id" element={<ProjectApplications />} />
+                    {/* TODO: move this */}
+                    <Route path="/chat" element={<ProjectChat />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/user/:username" element={<User />} />
                     <Route path="*" element={<PageDoesNotExist />} />
@@ -59,8 +61,6 @@ function App() {
     ) : (
         <Routes>
             <Route path="/" element={<Login />} />
-            {/* TODO: move this */}
-            <Route path="/chat" element={<ProjectChat />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/forgot_pwd" element={<ForgotPwd />} />
             <Route path="/project_create" element={<UnauthorisedAccess />} />

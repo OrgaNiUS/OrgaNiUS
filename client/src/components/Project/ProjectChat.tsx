@@ -1,38 +1,53 @@
 import { useEffect, useState } from "react";
 import { CreateWebSocket } from "../../api/API";
+import { convertMaybeISO } from "../../functions/dates";
+
+interface messageShape {
+    messageType: "text" | "join";
+    user: string;
+    message?: string;
+    joined?: boolean;
+    time: Date;
+}
+
+const mapServerMessages = (data: string): messageShape[] => {
+    const json = JSON.parse(data);
+    const serverMessages: any[] = json.messages;
+
+    const messages: messageShape[] = serverMessages.map((msg: any) => {
+        const time: Date | undefined = convertMaybeISO(msg.start);
+        return { ...msg, time };
+    });
+
+    return messages;
+};
 
 const ProjectChat = (): JSX.Element => {
     const [socket, setSocket] = useState<WebSocket | undefined>(undefined);
     const [connectionState, setConnectionState] = useState<"loading" | "connected" | "disconnected">("loading");
     const [inputField, setInputField] = useState<string>("");
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<messageShape[]>([]);
 
     useEffect(() => {
         const socket: WebSocket = CreateWebSocket("project_chat");
 
         socket.addEventListener("open", () => {
             setConnectionState("connected");
-
-            console.log("connected");
         });
 
         socket.addEventListener("message", (event) => {
             const data = event.data;
-            console.log(data);
+            const parsedMessages: messageShape[] = mapServerMessages(data);
 
-            setMessages((m) => [...m, data]);
+            setMessages((m) => [...m, ...parsedMessages]);
         });
 
-        socket.addEventListener("close", (event) => {
+        socket.addEventListener("close", () => {
             setConnectionState("disconnected");
-
-            console.log("closed", event);
         });
 
-        socket.addEventListener("error", (event) => {
+        socket.addEventListener("error", () => {
             setConnectionState("disconnected");
-
-            console.log("error", event);
         });
 
         setSocket(socket);
@@ -49,17 +64,20 @@ const ProjectChat = (): JSX.Element => {
             return;
         }
 
+        // TODO: check for string that is too long (& stop it, because otherwise server will kill connection! :D)
+        // https://stackoverflow.com/a/34332105/
         socket.send(inputField);
+        setInputField("");
     };
 
     return (
         <div>
             <p>State: {connectionState}</p>
             <p>Messages:</p>
-            {messages.map((m: string, key) => {
+            {messages.map((m: messageShape, key) => {
                 return (
                     <p key={key}>
-                        Message {key}: {m}
+                        {m.user}: {m.message}
                     </p>
                 );
             })}

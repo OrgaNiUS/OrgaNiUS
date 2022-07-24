@@ -89,7 +89,7 @@ func handleRoutes(router *gin.Engine, userController controllers.UserController,
 	hub := socket.NewChatHub()
 	go hub.Run()
 
-	v1.GET("/project_chat", socket.ChatHandler(hub))
+	v1.GET("/project_chat", handlers.ProjectChat(hub, userController, jwtParser))
 }
 
 func main() {
