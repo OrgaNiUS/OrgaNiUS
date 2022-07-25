@@ -84,7 +84,7 @@ const Row = styled.div`
     column-gap: 1rem; /* column gap specifies the minimum gap between items in the row */
     display: flex;
     height: 100%;
-    justify-content: space-around;
+    justify-content: space-between;
     overflow-x: scroll;
     overflow-y: hidden;
     padding-bottom: 0.5rem;
@@ -108,6 +108,7 @@ const RowScroller = styled.div`
     color: white;
     cursor: pointer;
     padding: 0.1rem 0.3rem;
+    pointer-events: auto;
     position: absolute;
     user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
     z-index: 5;
