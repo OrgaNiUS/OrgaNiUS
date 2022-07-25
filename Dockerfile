@@ -23,6 +23,9 @@ COPY . .
 RUN go build -o main .
 
 FROM alpine:3.16
+# alpine image does not have timezone data by default, so we have to install timezone data
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Singapore
 COPY --from=build-node /app/build ./client/build
 
 # need the following line if running locally
