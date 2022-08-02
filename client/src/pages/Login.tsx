@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import App from "../App";
 
-import { AxiosError } from "axios";
 import { UserLogin } from "../api/UserAPI";
 import AuthContext from "../context/AuthProvider";
 
@@ -44,11 +43,8 @@ const Login = (): JSX.Element => {
                 setPwd("");
                 setSuccess(true);
             },
-            (err) => {
-                if (err instanceof AxiosError) {
-                    console.log(err);
-                    setErrMsg(err.response?.data.error);
-                } else setErrMsg("Login Failed");
+            (_) => {
+                setErrMsg("Wrong username or password!");
             }
         );
     };

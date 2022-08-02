@@ -1,4 +1,16 @@
-import { CreateDeleteFunction, CreateGetFunction, CreatePatchFunction, CreatePostFunction } from "./API";
+import {
+    CreateDeleteFunction,
+    CreateGetFunction,
+    CreateGetFunctionWithParams,
+    CreatePatchFunction,
+    CreatePostFunction,
+} from "./API";
+
+type UserExistsData = {
+    name?: string;
+    email?: string;
+};
+export const UserExists = CreateGetFunctionWithParams<UserExistsData>("user_exists");
 
 type UserRegisterData = {
     name: string;

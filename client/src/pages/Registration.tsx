@@ -1,10 +1,28 @@
-import { AxiosError } from "axios";
+import { AxiosInstance } from "axios";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { UserRegister, UserRegisterVerify } from "../api/UserAPI";
+import { UserExists, UserRegister, UserRegisterVerify } from "../api/UserAPI";
 import App from "../App";
 import { validEmail, validPassword, validPinCode, validUsername } from "../components/regex";
 import AuthContext from "../context/AuthProvider";
+
+const checkExistence = (axios: AxiosInstance, name?: string, email?: string): Promise<boolean> => {
+    if (name === undefined && email === undefined) {
+        // if both blank, don't bother to check
+        return Promise.resolve(false);
+    }
+    return UserExists(
+        axios,
+        { name, email },
+        (response) => {
+            const data = response.data;
+            return data.exists;
+        },
+        () => {
+            return false;
+        }
+    );
+};
 
 const Registration = (): JSX.Element => {
     const auth = useContext(AuthContext);
@@ -43,11 +61,33 @@ const Registration = (): JSX.Element => {
     }, []);
 
     useEffect(() => {
-        setValidName(validUsername.test(user));
+        const isValid = validUsername.test(user);
+        setValidName(isValid);
+
+        if (isValid) {
+            checkExistence(auth.axiosInstance, user).then((exists) => {
+                if (exists) {
+                    setValidName(!exists);
+                    setErrMsg("Username already exists.");
+                }
+            });
+        }
+        // eslint-disable-next-line
     }, [user]);
 
     useEffect(() => {
-        setValidMail(validEmail.test(mail));
+        const isValid = validEmail.test(mail);
+        setValidMail(isValid);
+
+        if (isValid) {
+            checkExistence(auth.axiosInstance, undefined, mail).then((exists) => {
+                if (exists) {
+                    setValidMail(!exists);
+                    setErrMsg("Email already exists.");
+                }
+            });
+        }
+        // eslint-disable-next-line
     }, [mail]);
 
     useEffect(() => {
@@ -77,10 +117,13 @@ const Registration = (): JSX.Element => {
                 setSuccess(true);
             },
             (err) => {
-                if (err instanceof AxiosError) {
-                    console.log(err);
-                    setErrMsg(err.message);
-                } else setErrMsg("Registration failed");
+                const error = err.response.data.error;
+
+                if (error === "username or email already exists") {
+                    setErrMsg("Username or email already exists!");
+                } else {
+                    setErrMsg("Something went wrong, try again later!");
+                }
             }
         );
     };
@@ -100,10 +143,7 @@ const Registration = (): JSX.Element => {
                 navigate("/");
             },
             (err) => {
-                if (err instanceof AxiosError) {
-                    console.log(err);
-                    setErrMsg(err.message);
-                } else setErrMsg("Verification Failed");
+                setErrMsg("Something went wrong!");
             }
         );
     };
@@ -143,7 +183,7 @@ const Registration = (): JSX.Element => {
                                         ref={userRef}
                                         onChange={(e) => setUser(e.target.value)}
                                         className={`form-control block w-full px-4 py-2 text-xl font-normal text-gray-700 bg-white bg-clip-padding border border-solid "border-gray-300" rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none`}
-                                        placeholder="Username (Min. 5 characters)"
+                                        placeholder="Username"
                                         required
                                     />
                                     <p className={`${user && !validName ? "errmsg" : "hidden"}`}>
