@@ -4,6 +4,10 @@ This guide is for how to deploy a Golang + React application onto Heroku with a 
 
 Replace "organius" with your own application name.
 
+## Update
+
+Since Heroku removed the free tier, we have moved the hosting of our application to my (@seetohjinwei) remote server. If you have any queries on how I hosted it, feel free to contact me.
+
 ## Setup
 
 This section is for initial deployment and is only to be done _once_.

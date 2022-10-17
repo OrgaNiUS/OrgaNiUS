@@ -22,13 +22,13 @@ func handleRoutes(router *gin.Engine, userController controllers.UserController,
 	// serve React build at root
 	// make sure to re-build the React client after every change
 	// run `make bc`
-	router.Use(static.Serve("/", static.LocalFile("./client/build", true)))
+	router.Use(static.Serve("/", static.LocalFile("/root/git/organius/client/build", true)))
 
 	// always serve React build if path is not valid (for Gin Router)
 	// React will handle actual invalid paths
 	// which is any path not defined in Gin Router AND React Router
 	router.NoRoute(func(ctx *gin.Context) {
-		ctx.File("./client/build")
+		ctx.File("/root/git/organius/client/build")
 	})
 
 	// API Routes Group
@@ -101,7 +101,7 @@ func main() {
 	_ = os.Mkdir("logs", os.ModePerm)
 	// FileMode from https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
 	// 0666 is read & write
-	logFile, err := os.OpenFile("logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("/root/git/organius/logs/server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("error creating/opening logger file: %v", err)
 	}
@@ -149,5 +149,5 @@ func main() {
 
 	log.Print("Server booted up!")
 
-	router.Run()
+	router.Run(":8081")
 }

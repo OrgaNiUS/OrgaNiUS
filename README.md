@@ -2,7 +2,7 @@
 
 OrgaNiUS aims to be a central hub for forming, planning and organising group work.
 
-Available at: https://organius.herokuapp.com/. Initial loading might take a while due to the server sleeping.
+Available at: https://organius.jinwei.dev/. Initial loading might take a while due to the server sleeping.
 
 More details on the project can be found in our [Project Documentation](https://docs.google.com/document/d/1i6PSnL6ETGeS_o3-guyhrTmHUamMz73ZENaw63N_GPI/edit?usp=sharing) (on Google Docs).
 

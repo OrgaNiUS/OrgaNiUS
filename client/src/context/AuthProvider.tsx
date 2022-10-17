@@ -47,7 +47,7 @@ const ParseJWT = (): AuthInterface => {
 // Thus, opt to override it with a local environment variable for development instead.
 // This requires an extra .env to be placed inside "/client" folder.
 const group: string = "api/v1/";
-const url: string = process.env.REACT_APP_URL || "https://organius.herokuapp.com/";
+const url: string = "https://organius.jinwei.dev/";
 
 export const API_URL = url + group;
 
